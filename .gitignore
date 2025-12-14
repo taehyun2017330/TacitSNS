@@ -4,6 +4,15 @@
 .env.*.local
 *.env
 
+# Firebase credentials
+firebase-credentials.json
+*-firebase-adminsdk-*.json
+
+# Firebase hosting cache
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
 # Python
 __pycache__/
 *.py[cod]
@@ -85,3 +94,6 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+.claude
+.claude/

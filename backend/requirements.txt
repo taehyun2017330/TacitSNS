@@ -15,3 +15,6 @@ httpx==0.28.1
 
 # CORS and middleware
 python-multipart==0.0.20
+
+# Firebase
+firebase-admin==6.5.0
