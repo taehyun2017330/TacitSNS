@@ -11,13 +11,18 @@ def initialize_firebase():
     if not firebase_admin._apps:
         # Check if credentials file exists
         if os.path.exists(settings.firebase_credentials_path):
+            print(f"Loading Firebase credentials from: {settings.firebase_credentials_path}")
             cred = credentials.Certificate(settings.firebase_credentials_path)
             firebase_admin.initialize_app(cred, {
-                'storageBucket': settings.firebase_storage_bucket
+                'projectId': 'tacitsns',
+                'storageBucket': settings.firebase_storage_bucket,
+                'databaseURL': 'https://tacitsns.firebaseio.com'
             })
-            print("Firebase initialized successfully")
+            print(f"✓ Firebase initialized successfully")
+            print(f"  Project ID: {cred.project_id}")
+            print(f"  Storage Bucket: {settings.firebase_storage_bucket}")
         else:
-            print(f"Warning: Firebase credentials file not found at {settings.firebase_credentials_path}")
+            print(f"✗ Warning: Firebase credentials file not found at {settings.firebase_credentials_path}")
             print("Please download your Firebase service account key and save it as firebase-credentials.json")
 
 # Initialize Firebase on import
@@ -26,6 +31,7 @@ initialize_firebase()
 # Firestore client
 def get_firestore_client():
     """Get Firestore client instance"""
+    # Get client for default database
     return firestore.client()
 
 # Storage client

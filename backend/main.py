@@ -16,14 +16,17 @@ app = FastAPI(
 # CORS middleware - configure this based on your frontend URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite default port
+    allow_origins=[
+        "http://localhost:3000",  # React dev server
+        "http://localhost:5173",  # Vite default port
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Import routers
-from routers import llm, example
+from routers import llm, example, auth, brands, themes
 
 @app.get("/")
 async def root():
@@ -36,11 +39,9 @@ async def health_check():
 # Register routers
 app.include_router(llm.router, prefix="/api/llm", tags=["llm"])
 app.include_router(example.router, prefix="/api/example", tags=["example"])
-
-# Add your custom routers here
-# app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-# app.include_router(users.router, prefix="/api/users", tags=["users"])
-# app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(brands.router, prefix="/api/brands", tags=["brands"])
+app.include_router(themes.router, prefix="/api/themes", tags=["themes"])
 
 if __name__ == "__main__":
     import uvicorn
