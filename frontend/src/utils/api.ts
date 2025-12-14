@@ -1,6 +1,9 @@
-import { getIdToken } from "../firebase/auth";
-
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+// Helper function to get user ID from localStorage
+const getUserId = (): string | null => {
+  return localStorage.getItem('userId');
+};
 
 // Helper function to make authenticated API calls
 export const apiCall = async (
@@ -8,17 +11,16 @@ export const apiCall = async (
   options: RequestInit = {}
 ): Promise<any> => {
   try {
-    // Get Firebase ID token for authentication
-    const token = await getIdToken();
+    const userId = getUserId();
 
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...options.headers,
     };
 
-    // Add auth token if available
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+    // Add user ID header for simple auth (HCI study only)
+    if (userId) {
+      headers["X-User-ID"] = userId;
     }
 
     const response = await fetch(`${API_URL}${endpoint}`, {

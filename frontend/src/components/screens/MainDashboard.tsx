@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Plus, FolderOpen, Palette, ChevronDown, ChevronRight, Trash2, Search, User, Settings, Image as ImageIcon, Bookmark } from 'lucide-react';
+import { Sparkles, Plus, FolderOpen, Palette, ChevronDown, ChevronRight, Trash2, Search, User, Settings, Image as ImageIcon, Bookmark, LogOut } from 'lucide-react';
 import type { BrandData, ThemeData, PostData } from '../../App';
 import { LogoGeneratorModal } from '../modals/LogoGeneratorModal';
 import { SavedPostsView } from './SavedPostsView';
@@ -21,6 +21,8 @@ interface MainDashboardProps {
   onSchedulePost: (post: PostData, scheduledTime: string) => void;
   onRemovePost: (postId: string) => void;
   onEditPost: (post: PostData, prompt: string) => void;
+  username?: string;
+  onLogout?: () => void;
 }
 
 export function MainDashboard({
@@ -39,7 +41,9 @@ export function MainDashboard({
   showingSavedPosts,
   onSchedulePost,
   onRemovePost,
-  onEditPost
+  onEditPost,
+  username,
+  onLogout
 }: MainDashboardProps) {
   const [expandedBrands, setExpandedBrands] = useState<Record<string, boolean>>({});
 
@@ -60,15 +64,21 @@ export function MainDashboard({
             <span>Brand Generator</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <Search className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <User className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <Settings className="w-5 h-5 text-gray-600" />
-            </button>
+            {username && (
+              <div className="flex items-center gap-2 text-gray-700">
+                <User className="w-5 h-5" />
+                <span>{username}</span>
+              </div>
+            )}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            )}
           </div>
         </div>
       </header>

@@ -1,14 +1,31 @@
 import React from 'react';
-import { ArrowRight, Sparkles, FolderOpen, Download } from 'lucide-react';
+import { ArrowRight, Sparkles, FolderOpen, Download, LogOut } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onGetStarted: () => void;
+  username?: string;
+  onLogout?: () => void;
 }
 
-export function WelcomeScreen({ onGetStarted }: WelcomeScreenProps) {
+export function WelcomeScreen({ onGetStarted, username, onLogout }: WelcomeScreenProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-8">
-      <div className="max-w-2xl w-full text-center">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Header with logout */}
+      {username && onLogout && (
+        <div className="absolute top-0 right-0 p-6 flex items-center gap-4">
+          <span className="text-gray-700">Hello, {username}</span>
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </button>
+        </div>
+      )}
+
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="max-w-2xl w-full text-center">
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 text-indigo-600 mb-6">
             <Sparkles className="w-10 h-10" />
@@ -26,9 +43,6 @@ export function WelcomeScreen({ onGetStarted }: WelcomeScreenProps) {
           >
             Get Started
             <ArrowRight className="w-5 h-5" />
-          </button>
-          <button className="text-gray-600 hover:text-gray-800 transition-colors">
-            Sign In
           </button>
         </div>
 
@@ -56,6 +70,7 @@ export function WelcomeScreen({ onGetStarted }: WelcomeScreenProps) {
             <h3 className="text-sm">Export Content</h3>
             <p className="text-xs text-gray-600">Schedule and publish to social media</p>
           </div>
+        </div>
         </div>
       </div>
     </div>

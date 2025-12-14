@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LoginScreen from './components/screens/LoginScreen';
 import { WelcomeScreen } from './components/screens/WelcomeScreen';
 import { BrandNameScreen } from './components/screens/BrandNameScreen';
 import { BrandDescriptionScreen } from './components/screens/BrandDescriptionScreen';
@@ -12,6 +13,7 @@ import { PublishingSuccessScreen } from './components/screens/PublishingSuccessS
 import { PlatformConnectionScreen } from './components/screens/PlatformConnectionScreen';
 import { PostEditorModal } from './components/modals/PostEditorModal';
 import { ScheduleEditorModal } from './components/modals/ScheduleEditorModal';
+import { get, post } from './utils/api';
 
 export interface BrandData {
   id: string;
@@ -55,7 +57,9 @@ export interface PostData {
 }
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('welcome');
+  const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
+  const [userId, setUserId] = useState<string | null>(localStorage.getItem('userId'));
+  const [currentScreen, setCurrentScreen] = useState(localStorage.getItem('userId') ? 'welcome' : 'login');
   const [brands, setBrands] = useState<BrandData[]>([]);
   const [themes, setThemes] = useState<ThemeData[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
@@ -82,11 +86,120 @@ export default function App() {
     return postTheme?.brandId === selectedBrandId;
   });
 
-  const handleCreateBrand = (brandData: BrandData) => {
-    setBrands([...brands, brandData]);
-    setSelectedBrandId(brandData.id);
-    setTempBrandData({});
-    setCurrentScreen('dashboard');
+  const handleLogin = async (name: string, uid: string) => {
+    setUsername(name);
+    setUserId(uid);
+
+    try {
+      // Fetch user's existing brands and themes from backend
+      const [backendBrands, backendThemes] = await Promise.all([
+        get('/api/brands/'),
+        get('/api/themes/')
+      ]);
+
+      // Convert brands from snake_case to camelCase
+      const userBrands: BrandData[] = backendBrands.map((brand: any) => ({
+        id: brand.id,
+        name: brand.name,
+        category: brand.category,
+        description: brand.description,
+        targetAudience: brand.target_audience,
+        majorStrengths: brand.major_strengths,
+        mainProducts: brand.main_products,
+        brandVoice: brand.brand_voice,
+        referenceImages: brand.reference_images || [],
+        logoImage: brand.logo_image,
+        createdDate: brand.created_date,
+      }));
+
+      // Convert themes from snake_case to camelCase
+      const userThemes: ThemeData[] = backendThemes.map((theme: any) => ({
+        id: theme.id,
+        brandId: theme.brand_id,
+        name: theme.name,
+        postsCount: theme.posts_count,
+        mood: theme.mood,
+        colors: theme.colors,
+        imagery: theme.imagery,
+        tone: theme.tone,
+        captionLength: theme.caption_length,
+        useEmojis: theme.use_emojis,
+        useHashtags: theme.use_hashtags,
+        posts: theme.posts || [],
+      }));
+
+      setBrands(userBrands);
+      setThemes(userThemes);
+
+      // If user has existing brands, go to dashboard
+      // Otherwise, show welcome/onboarding flow
+      if (userBrands.length > 0) {
+        setSelectedBrandId(userBrands[0].id);
+        setCurrentScreen('dashboard');
+      } else {
+        setCurrentScreen('welcome');
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // On error, still show welcome screen
+      setCurrentScreen('welcome');
+    }
+  };
+
+  const handleLogout = () => {
+    // Clear user data
+    localStorage.removeItem('username');
+    localStorage.removeItem('userId');
+    setUsername(null);
+    setUserId(null);
+    setBrands([]);
+    setThemes([]);
+    setSelectedBrandId(null);
+    setSelectedThemeId(null);
+    setCurrentScreen('login');
+  };
+
+  const handleCreateBrand = async (brandData: BrandData) => {
+    try {
+      // Convert camelCase to snake_case for backend
+      const backendBrandData = {
+        name: brandData.name,
+        category: brandData.category,
+        description: brandData.description,
+        target_audience: brandData.targetAudience,
+        major_strengths: brandData.majorStrengths,
+        main_products: brandData.mainProducts,
+        brand_voice: brandData.brandVoice,
+        reference_images: brandData.referenceImages || [],
+        logo_image: brandData.logoImage,
+      };
+
+      // Save to backend
+      const savedBrand = await post('/api/brands/', backendBrandData);
+
+      // Convert response back to camelCase
+      const frontendBrand: BrandData = {
+        id: savedBrand.id,
+        name: savedBrand.name,
+        category: savedBrand.category,
+        description: savedBrand.description,
+        targetAudience: savedBrand.target_audience,
+        majorStrengths: savedBrand.major_strengths,
+        mainProducts: savedBrand.main_products,
+        brandVoice: savedBrand.brand_voice,
+        referenceImages: savedBrand.reference_images || [],
+        logoImage: savedBrand.logo_image,
+        createdDate: savedBrand.created_date,
+      };
+
+      setBrands([...brands, frontendBrand]);
+      setSelectedBrandId(frontendBrand.id);
+      setTempBrandData({});
+      setCurrentScreen('dashboard');
+    } catch (error) {
+      console.error('Error creating brand:', error);
+      alert('Failed to create brand. Please try again.');
+    }
   };
 
   const handleCreateTheme = (themeData: ThemeData) => {
@@ -129,8 +242,17 @@ export default function App() {
 
   const renderScreen = () => {
     switch (currentScreen) {
+      case 'login':
+        return <LoginScreen onLogin={handleLogin} />;
+
       case 'welcome':
-        return <WelcomeScreen onGetStarted={() => setCurrentScreen('brand-name')} />;
+        return (
+          <WelcomeScreen
+            onGetStarted={() => setCurrentScreen('brand-name')}
+            username={username || undefined}
+            onLogout={handleLogout}
+          />
+        );
       
       case 'brand-name':
         return (
@@ -229,6 +351,8 @@ export default function App() {
               // Simulate AI editing - in a real app, this would call an API
               console.log('Editing post with prompt:', prompt);
             }}
+            username={username || undefined}
+            onLogout={handleLogout}
           />
         );
       
