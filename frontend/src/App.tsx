@@ -16,6 +16,7 @@ import { PlatformConnectionScreen } from './components/screens/PlatformConnectio
 import { PostEditorModal } from './components/modals/PostEditorModal';
 import { ScheduleEditorModal } from './components/modals/ScheduleEditorModal';
 import { get, post, put } from './utils/api';
+import { API_BASE_URL } from './config';
 
 export interface BrandData {
   id: string;
@@ -396,7 +397,7 @@ export default function App() {
       // Connect to SSE endpoint for auto-generating theme options
       const userId = localStorage.getItem('userId');
       const eventSourceWithAuth = new EventSource(
-        `http://localhost:8000/api/themes/auto-generate-stream?brand_id=${brandId}&user_id=${userId}`
+        `${API_BASE_URL}/api/themes/auto-generate-stream?brand_id=${brandId}&user_id=${userId}`
       );
 
       eventSourceWithAuth.onmessage = (event) => {
@@ -511,7 +512,7 @@ export default function App() {
 
       // Connect to SSE endpoint for regenerating images
       const eventSourceWithAuth = new EventSource(
-        `http://localhost:8000/api/themes/regenerate-images-stream?${params.toString()}`
+        `${API_BASE_URL}/api/themes/regenerate-images-stream?${params.toString()}`
       );
 
       eventSourceWithAuth.onmessage = (event) => {
@@ -572,7 +573,7 @@ export default function App() {
       // Connect to SSE endpoint for streaming posts
       const userId = localStorage.getItem('userId');
       const eventSourceWithAuth = new EventSource(
-        `http://localhost:8000/api/themes/${themeId}/generate-posts-stream?user_id=${userId}`
+        `${API_BASE_URL}/api/themes/${themeId}/generate-posts-stream?user_id=${userId}`
       );
 
       eventSourceWithAuth.onmessage = (event) => {

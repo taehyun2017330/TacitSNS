@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { API_BASE_URL } from '../config';
+
+const API_URL = API_BASE_URL;
 
 // Helper function to get user ID from localStorage
 const getUserId = (): string | null => {
