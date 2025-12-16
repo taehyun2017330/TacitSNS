@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     # OpenAI settings
     openai_api_key: str
 
+    # Gemini settings
+    gemini_api_key: str
+
     # Firebase settings
     firebase_credentials_path: str = "firebase-credentials.json"
     firebase_storage_bucket: str

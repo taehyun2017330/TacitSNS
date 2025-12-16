@@ -1,36 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, ArrowLeft, Save, Copy, Trash2, RefreshCw, Heart, MessageCircle, Send, Bookmark, Wand2 } from 'lucide-react';
-import type { ThemeData } from '../../App';
+import type { ThemeData, PostData } from '../../App';
 import { CustomVisualsModal } from '../modals/CustomVisualsModal';
 import { CustomCaptionModal } from '../modals/CustomCaptionModal';
 import { PostTypeSelectorModal } from '../modals/PostTypeSelectorModal';
+
+interface ThemeOption {
+  name: string;
+  mood: string;
+  colors: string[];
+  imagery: string;
+  tone: string;
+  captionLength: string;
+  useEmojis: boolean;
+  useHashtags: boolean;
+  imageUrl: string;
+}
 
 interface ThemeProposalScreenProps {
   brandId: string;
   themeData: Partial<ThemeData>;
   onSave: (theme: Partial<ThemeData>) => void;
-  onGeneratePosts: () => void;
+  onGeneratePosts: (theme: Partial<ThemeData>) => void;
+  onRegenerateImages: (themeParams: {
+    name: string;
+    mood: string;
+    colors: string[];
+    imagery: string;
+    tone: string;
+    captionLength: string;
+    useEmojis: boolean;
+    useHashtags: boolean;
+  }) => void;
   onBack: () => void;
+  generatedPosts?: PostData[];
+  isGenerating?: boolean;
+  themeOptions?: ThemeOption[];
 }
 
 const MOODS = ['Professional', 'Playful', 'Elegant', 'Bold', 'Minimal', 'Warm', 'Modern'];
 const IMAGERY_STYLES = ['Product-focused', 'Lifestyle', 'Flat lay', 'In-use', 'Behind-the-scenes'];
 const TONES = ['Professional', 'Casual', 'Inspirational', 'Educational', 'Conversational'];
 
-interface ImageOption {
-  id: string;
-  url: string;
-  mood: string;
-  colors: string[];
-  tone: string;
-}
-
 export function ThemeProposalScreen({
   brandId,
   themeData,
   onSave,
   onGeneratePosts,
-  onBack
+  onRegenerateImages,
+  onBack,
+  generatedPosts = [],
+  isGenerating = false,
+  themeOptions = []
 }: ThemeProposalScreenProps) {
   const [name, setName] = useState(themeData.name || '');
   const [postsCount, setPostsCount] = useState(themeData.postsCount || 5);
@@ -39,84 +60,50 @@ export function ThemeProposalScreen({
   const [imagery, setImagery] = useState(themeData.imagery || 'Product-focused');
   const [tone, setTone] = useState(themeData.tone || 'Professional');
   const [captionLength, setCaptionLength] = useState(themeData.captionLength || 'medium');
+  const [useEmojis, setUseEmojis] = useState(themeData.useEmojis ?? false);
   const [useHashtags, setUseHashtags] = useState(themeData.useHashtags ?? true);
-  const [imageOptions, setImageOptions] = useState<ImageOption[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [showCustomVisuals, setShowCustomVisuals] = useState(false);
   const [showCustomCaption, setShowCustomCaption] = useState(false);
   const [showPostTypeSelector, setShowPostTypeSelector] = useState(false);
   const [selectedPostIndex, setSelectedPostIndex] = useState(0);
   const [postTypes, setPostTypes] = useState<string[]>(Array(9).fill('Emotional Brand Posts'));
+  const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
 
-  const selectedImage = imageOptions.find(img => img.id === selectedImageId);
+  const selectedImage = generatedPosts.find(post => post.id === selectedImageId);
 
-  useEffect(() => {
-    // Generate initial image options
-    generateImageOptions();
-  }, []);
+  // Check if we're waiting for theme parameters to be generated
+  const isGeneratingTheme = isGenerating && themeOptions.length === 0 && !name && !themeData.name;
 
-  const generateImageOptions = async () => {
-    setIsGenerating(true);
-    // Simulate AI generation delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newOptions: ImageOption[] = [
-      {
-        id: '1',
-        url: 'https://images.unsplash.com/photo-1707127786343-0dcce4c76ca0?w=600',
-        mood: 'Professional',
-        colors: ['#4F46E5', '#1E40AF', '#8B5CF6', '#10B981'],
-        tone: 'Professional'
-      },
-      {
-        id: '2',
-        url: 'https://images.unsplash.com/photo-1728836882608-6911cc2d6fb6?w=600',
-        mood: 'Warm',
-        colors: ['#F59E0B', '#DC2626', '#EC4899', '#8B5CF6'],
-        tone: 'Casual'
-      },
-      {
-        id: '3',
-        url: 'https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=600',
-        mood: 'Minimal',
-        colors: ['#6B7280', '#D1D5DB', '#4F46E5', '#10B981'],
-        tone: 'Inspirational'
-      },
-      {
-        id: '4',
-        url: 'https://images.unsplash.com/photo-1622814859704-c6cd5ae75dd0?w=600',
-        mood: 'Bold',
-        colors: ['#DC2626', '#F59E0B', '#4F46E5', '#EC4899'],
-        tone: 'Conversational'
-      },
-      {
-        id: '5',
-        url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600',
-        mood: 'Modern',
-        colors: ['#10B981', '#059669', '#4F46E5', '#F59E0B'],
-        tone: 'Educational'
-      }
-    ];
-    
-    setImageOptions(newOptions);
-    setSelectedImageId(newOptions[0].id);
-    setIsGenerating(false);
-  };
-
-  const handleSelectImage = (imageId: string) => {
-    setSelectedImageId(imageId);
-    const image = imageOptions.find(img => img.id === imageId);
-    if (image) {
-      setMood(image.mood);
-      setColors(image.colors);
-      setTone(image.tone);
+  // Handle theme option selection
+  const handleSelectThemeOption = (index: number) => {
+    const theme = themeOptions[index];
+    if (theme) {
+      setSelectedThemeIndex(index);
+      setName(theme.name);
+      setMood(theme.mood);
+      setColors(theme.colors);
+      setImagery(theme.imagery);
+      setTone(theme.tone);
+      setCaptionLength(theme.captionLength);
+      setUseEmojis(theme.useEmojis);
+      setUseHashtags(theme.useHashtags);
     }
   };
 
-  const handleRegenerate = () => {
-    generateImageOptions();
-  };
+  // Auto-select first theme option when they arrive
+  useEffect(() => {
+    if (themeOptions.length > 0 && selectedThemeIndex === 0) {
+      handleSelectThemeOption(0);
+    }
+  }, [themeOptions]);
+
+  // Set first generated post as selected when posts arrive
+  useEffect(() => {
+    if (generatedPosts.length > 0 && !selectedImageId) {
+      setSelectedImageId(generatedPosts[0].id);
+    }
+  }, [generatedPosts]);
 
   const handleSave = () => {
     const theme: Partial<ThemeData> = {
@@ -129,10 +116,42 @@ export function ThemeProposalScreen({
       imagery,
       tone,
       captionLength,
+      useEmojis,
       useHashtags,
       posts: themeData.posts || []
     };
     onSave(theme);
+  };
+
+  const handleGenerateImages = () => {
+    const theme: Partial<ThemeData> = {
+      id: themeData.id || Date.now().toString(),
+      brandId,
+      name: name || 'Untitled Theme',
+      postsCount: 5, // Always generate 5 image variations
+      mood,
+      colors,
+      imagery,
+      tone,
+      captionLength,
+      useEmojis,
+      useHashtags,
+      posts: themeData.posts || []
+    };
+    onGeneratePosts(theme);
+  };
+
+  const handleRegenerate = () => {
+    onRegenerateImages({
+      name,
+      mood,
+      colors,
+      imagery,
+      tone,
+      captionLength,
+      useEmojis,
+      useHashtags
+    });
   };
 
   return (
@@ -149,10 +168,11 @@ export function ThemeProposalScreen({
             </div>
           </div>
           <button
-            onClick={onGeneratePosts}
+            onClick={handleGenerateImages}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+            disabled={isGenerating}
           >
-            Generate Posts →
+            {isGenerating ? 'Generating...' : 'Generate Posts →'}
           </button>
         </div>
       </header>
@@ -161,16 +181,41 @@ export function ThemeProposalScreen({
         <div className="grid grid-cols-2 gap-8">
           {/* Left Side - Settings */}
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm mb-2">Theme Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Summer Launch 2024"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            {isGeneratingTheme ? (
+              /* Loading skeleton while generating theme parameters */
+              <>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-5 h-5 text-indigo-600 animate-spin" />
+                    <span className="text-sm text-indigo-600">Generating theme parameters with AI...</span>
+                  </div>
+                  <div className="h-10 bg-gray-200 rounded-lg animate-pulse" />
+                </div>
+                <div className="bg-white rounded-lg p-6 border border-gray-200 space-y-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
+                  <div className="h-10 bg-gray-200 rounded-lg animate-pulse" />
+                  <div className="h-10 bg-gray-200 rounded-lg animate-pulse" />
+                  <div className="h-20 bg-gray-200 rounded-lg animate-pulse" />
+                </div>
+                <div className="bg-white rounded-lg p-6 border border-gray-200 space-y-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
+                  <div className="h-10 bg-gray-200 rounded-lg animate-pulse" />
+                  <div className="h-10 bg-gray-200 rounded-lg animate-pulse" />
+                  <div className="h-16 bg-gray-200 rounded-lg animate-pulse" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-sm mb-2">Theme Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g., Summer Launch 2024"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
 
             {/* Visual Options */}
             <div className="bg-white rounded-lg p-6 border border-gray-200">
@@ -203,35 +248,30 @@ export function ThemeProposalScreen({
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2">Color Palette</label>
-                  <div className="flex gap-2">
+                  <label className="block text-sm mb-2">Color Palette (Click to Edit)</label>
+                  <div className="grid grid-cols-4 gap-3">
                     {colors.map((color, i) => (
-                      <div
-                        key={i}
-                        className="w-12 h-12 rounded-lg border-2 border-gray-300"
-                        style={{ backgroundColor: color }}
-                      />
+                      <div key={i} className="flex flex-col items-center gap-1">
+                        <div className="relative w-12 h-12">
+                          <input
+                            type="color"
+                            value={color}
+                            onChange={(e) => {
+                              const newColors = [...colors];
+                              newColors[i] = e.target.value;
+                              setColors(newColors);
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            title={`Color ${i + 1}`}
+                          />
+                          <div
+                            className="w-12 h-12 rounded-full border-2 border-gray-300 cursor-pointer"
+                            style={{ backgroundColor: color }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-500 text-center">{color}</span>
+                      </div>
                     ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm mb-2">Main Color</label>
-                  <div className="flex gap-2">
-                    <div
-                      className="w-12 h-12 rounded-lg border-2 border-gray-300"
-                      style={{ backgroundColor: colors[0] }}
-                    />
-                    <input
-                      type="color"
-                      value={colors[0]}
-                      onChange={(e) => {
-                        const newColors = [...colors];
-                        newColors[0] = e.target.value;
-                        setColors(newColors);
-                      }}
-                      className="w-12 h-12 rounded-lg border-2 border-gray-300 cursor-pointer"
-                    />
                   </div>
                 </div>
 
@@ -280,7 +320,16 @@ export function ThemeProposalScreen({
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={useEmojis}
+                      onChange={(e) => setUseEmojis(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Include Emojis</span>
+                  </label>
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -301,26 +350,28 @@ export function ThemeProposalScreen({
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                Save
-              </button>
-              <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2">
-                <Copy className="w-4 h-4" />
-                Duplicate
-              </button>
-              <button className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-sm flex items-center gap-2">
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-            </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSave}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save
+                  </button>
+                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2">
+                    <Copy className="w-4 h-4" />
+                    Duplicate
+                  </button>
+                  <button className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-sm flex items-center gap-2">
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Right Side - Instagram Mockup with Image Exploration */}
+          {/* Right Side - Image Exploration */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-4">
@@ -350,15 +401,22 @@ export function ThemeProposalScreen({
 
                 {/* Instagram Image */}
                 <div className="relative">
-                  {selectedImage ? (
+                  {themeOptions.length > 0 && themeOptions[selectedThemeIndex] ? (
                     <img
-                      src={selectedImage.url}
+                      src={themeOptions[selectedThemeIndex].imageUrl}
                       alt="Instagram post preview"
                       className="w-full aspect-square object-cover"
                     />
+                  ) : isGenerating ? (
+                    <div className="w-full aspect-square bg-gray-200 flex items-center justify-center">
+                      <Sparkles className="w-12 h-12 text-gray-400 animate-spin" />
+                    </div>
                   ) : (
-                    <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
-                      <p className="text-sm text-gray-400">Select an image style</p>
+                    <div className="w-full aspect-square bg-gray-200 flex items-center justify-center">
+                      <div className="text-center px-4">
+                        <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">AI will generate theme options for you</p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -379,37 +437,42 @@ export function ThemeProposalScreen({
                 </div>
               </div>
 
-              {/* Image Options Grid */}
-              <div>
-                <p className="text-xs text-gray-600 mb-2">Pick a style (AI will generate similar images):</p>
-                <div className="grid grid-cols-5 gap-2">
-                  {imageOptions.map((option) => (
-                    <div
-                      key={option.id}
-                      onClick={() => handleSelectImage(option.id)}
-                      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedImageId === option.id
-                          ? 'border-indigo-500 ring-2 ring-indigo-200'
-                          : 'border-gray-200 hover:border-indigo-300'
-                      }`}
-                    >
-                      <img
-                        src={option.url}
-                        alt={`Option ${option.id}`}
-                        className="w-full aspect-square object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-                {selectedImage && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-600 mb-1">Selected Style:</p>
-                    <p className="text-sm">
-                      <span className="font-medium">{selectedImage.mood}</span> mood • {selectedImage.tone} tone
-                    </p>
+              {/* Theme Options Grid */}
+              {(themeOptions.length > 0 || isGenerating) && (
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">Pick a theme:</p>
+                  <div className="grid grid-cols-5 gap-2">
+                    {themeOptions.slice(0, 5).map((theme, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleSelectThemeOption(index)}
+                        className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                          selectedThemeIndex === index
+                            ? 'border-indigo-500 ring-2 ring-indigo-200'
+                            : 'border-gray-200 hover:border-indigo-300'
+                        }`}
+                        style={{
+                          animation: 'fadeIn 0.5s ease-in',
+                        }}
+                      >
+                        <img
+                          src={theme.imageUrl}
+                          alt={theme.name}
+                          className="w-full aspect-square object-cover"
+                        />
+                      </div>
+                    ))}
+                    {/* Show skeleton loaders for remaining themes while generating */}
+                    {isGenerating && Array.from({ length: 5 - themeOptions.length }).map((_, index) => (
+                      <div key={`skeleton-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-200 animate-pulse">
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Sparkles className="w-4 h-4 text-gray-400" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

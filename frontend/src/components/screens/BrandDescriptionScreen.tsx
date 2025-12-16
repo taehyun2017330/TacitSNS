@@ -17,9 +17,17 @@ export function BrandDescriptionScreen({ data, onNext, onBack }: BrandDescriptio
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
       <div className="max-w-2xl w-full">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2 text-indigo-600">
-            <Sparkles className="w-6 h-6" />
-            <span>Brand Generator</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div className="flex items-center gap-2 text-indigo-600">
+              <Sparkles className="w-6 h-6" />
+              <span>Brand Generator</span>
+            </div>
           </div>
           <span className="text-sm text-gray-500">Step 2 of 4</span>
         </div>

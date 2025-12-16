@@ -168,7 +168,7 @@ export function MainDashboard({
         <main className="flex-1 overflow-y-auto p-8">
           {!selectedBrandId ? (
             <EmptyState onCreateBrand={onCreateBrand} />
-          ) : selectedThemeId ? (
+          ) : selectedThemeId && themes.find(t => t.id === selectedThemeId) ? (
             <ThemeView
               theme={themes.find(t => t.id === selectedThemeId)!}
               brand={selectedBrand!}

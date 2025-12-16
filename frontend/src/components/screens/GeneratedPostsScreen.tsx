@@ -37,16 +37,13 @@ export function GeneratedPostsScreen({
   const [showInstagramModal, setShowInstagramModal] = useState(false);
 
   useEffect(() => {
-    // Generate posts if they don't exist
+    // Update posts when theme.posts changes (for streaming)
     if (theme.posts && theme.posts.length > 0) {
       setPosts(theme.posts);
       const selected = new Set(theme.posts.filter(p => p.selected).map(p => p.id));
       setSelectedPosts(selected);
-    } else {
-      const generatedPosts = generatePosts(theme);
-      setPosts(generatedPosts);
     }
-  }, [theme]);
+  }, [theme.posts]);
 
   const togglePost = (postId: string) => {
     const newSelected = new Set(selectedPosts);
