@@ -19,6 +19,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # React dev server
         "http://localhost:5173",  # Vite default port
+        "https://tacitsns.web.app",  # Production frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
