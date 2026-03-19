@@ -1,4 +1,1 @@
-# Routers module
-from . import llm, example, auth, brands, themes
-
-__all__ = ['llm', 'example', 'auth', 'brands', 'themes']
+# Active routers for the CHI prototype backend.

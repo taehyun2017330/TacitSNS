@@ -9,9 +9,6 @@ from datetime import datetime
 from openai import OpenAI
 import os
 
-# Initialize OpenAI client
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 # Model Configuration
 MODEL_CONFIG = {
     "direction_analysis": {
@@ -27,6 +24,10 @@ MODEL_CONFIG = {
 # In-memory storage for sessions
 brand_progress = {}
 contexts = {}
+
+
+def get_openai_client() -> OpenAI:
+    return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Brand elements definition
 BRAND_ELEMENTS = {
@@ -124,7 +125,7 @@ Return JSON:
   "statusMessage": "Actionable guidance"
 }}"""
 
-        response = openai_client.chat.completions.create(
+        response = get_openai_client().chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=temperature,
@@ -234,7 +235,7 @@ Return JSON:
   ]
 }}"""
 
-            response = openai_client.chat.completions.create(
+            response = get_openai_client().chat.completions.create(
                 model=suggestion_model,
                 messages=[
                     {"role": "system", "content": system_prompt},

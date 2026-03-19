@@ -1,134 +1,79 @@
 # TacitSNS Backend
 
-FastAPI backend with Firebase Firestore integration.
+FastAPI backend for the active CHI prototype branch.
+
+## Current Active Scope
+
+The running backend supports the current prototype path only:
+- in-memory brand session endpoints
+- autocomplete endpoints for brand-description writing
+- post generation, edit, caption, and persona-summary endpoints
+- Firebase-backed image storage and Gemini/OpenAI integrations
+
+Legacy CRUD/auth/theme/logo scaffolding has been removed from the active path so the prototype can evolve from a smaller, clearer backend surface.
 
 ## Quick Start
 
-### 1. Navigate to backend directory
+### 1. Create and activate a virtual environment
 
 ```bash
-cd /Users/grace/TacitSNS/backend
-```
-
-### 2. Create and activate virtual environment
-
-```bash
-# Create virtual environment
+cd backend
 python3 -m venv venv
-
-# Activate it (you'll see (venv) in your terminal)
 source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Firebase Setup
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project (or create a new one)
-3. Click the gear icon ⚙️ > **Project Settings**
-4. Go to the **Service Accounts** tab
-5. Click **"Generate New Private Key"**
-6. Click **"Generate Key"** to download the JSON file
-7. Move the downloaded file to `/Users/grace/TacitSNS/backend/` and rename it to `firebase-credentials.json`
-
-**Get your Storage Bucket name:**
-- In the Firebase Console sidebar, go to **Build** > **Storage**
-- Click **"Get Started"** if not set up yet
-- Your bucket name will be shown (e.g., `your-project-id.appspot.com`)
-
-### 5. Environment Variables
-
-Create a `.env` file:
+### 3. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your actual values:
+Set at least:
 
 ```bash
-# LLM API Configuration
-OPENAI_API_KEY=sk-your-actual-openai-key-here
-
-# Firebase Configuration
+OPENAI_API_KEY=your_openai_key
+GEMINI_API_KEY=your_gemini_key
 FIREBASE_CREDENTIALS_PATH=firebase-credentials.json
 FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
-
-# Application Settings
-DEBUG=True
 ```
 
-### 6. Run the Server
+### 4. Run the server
 
 ```bash
-python main.py
+python main_simple.py
 ```
 
-You should see:
-```
-INFO:     Started server process
-INFO:     Uvicorn running on http://0.0.0.0:8000
-```
+The active local API runs on `http://localhost:8001`.
 
-**Backend is now running at:** `http://localhost:8000`
+## Active Endpoints
 
-### 7. Test the API
+- `POST /brand/create`
+- `GET /brand/current`
+- `POST /api/suggestions`
+- `POST /api/annotate`
+- `POST /api/generate-post-images`
+- `POST /api/edit-image`
+- `POST /api/generate-captions`
+- `POST /api/generate-captions-old`
+- `POST /api/summarize-persona`
+- `GET /health`
 
-Open your browser and go to:
-- **API Docs**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
+## Active Backend Structure
 
-## API Documentation
+- `main_simple.py`: thin server entrypoint
+- `app_factory.py`: FastAPI app creation and router mounting
+- `api_models.py`: shared Pydantic request models
+- `routers/`: HTTP routing layer for the active prototype path
+- `services/`: brand session, autocomplete, image generation, and post workflow logic
 
-Once running, visit:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+## Notes
 
-## API Endpoints
-
-### Auth
-- `POST /api/auth/login` - Simple username login (for HCI study)
-- `GET /api/auth/me` - Get current user profile (protected)
-
-### Brands
-- `POST /api/brands/` - Create a brand
-- `GET /api/brands/` - Get all user brands
-- `GET /api/brands/{brand_id}` - Get specific brand
-- `PUT /api/brands/{brand_id}` - Update brand
-- `DELETE /api/brands/{brand_id}` - Delete brand
-
-### Themes
-- `POST /api/themes/` - Create a theme
-- `GET /api/themes/?brand_id={brand_id}` - Get themes (optionally filter by brand)
-- `GET /api/themes/{theme_id}` - Get specific theme
-- `PUT /api/themes/{theme_id}` - Update theme
-- `DELETE /api/themes/{theme_id}` - Delete theme
-
-### LLM
-- `POST /api/llm/chat` - Chat with LLM
-
-## Architecture
-
-**Clean Architecture Pattern:**
-```
-Frontend → Backend API (FastAPI)
-              ↓
-         Firestore Database
-              ↓
-         LLM APIs (OpenAI)
-```
-
-**For HCI Study (Current Implementation):**
-- Frontend sends user ID in `X-User-ID` header with each request
-- Backend validates and uses this for data access
-- All data operations go through backend (single source of truth)
-
-**For Production (Future):**
-- Replace simple user ID auth with Firebase ID token verification
-- Use the commented-out Firebase auth code in `dependencies/auth.py`
-- Frontend already has Firebase Auth set up in the `firebase/` directory
+- The frontend currently talks to this backend on port `8001`.
+- Firebase initialization still happens at startup because generated images may be uploaded through the active image path.
+- Some API behavior remains key-dependent and should be verified against real Gemini/OpenAI credentials after structural refactors.
