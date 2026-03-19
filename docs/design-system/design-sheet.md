@@ -6,7 +6,15 @@ Use it to record the design rules that should remain stable across the CHI proto
 
 ## Current Status
 - Baseline scaffold created.
-- Fill this in after the first Impeccable-driven cleanup pass.
+- Design context captured in `.impeccable.md`.
+- First visual cleanup pass is still pending.
+
+## Current Direction
+- Primary users: small business owners with low design literacy
+- Interface tone: clean, minimalistic, actually usable
+- Target feel: premium editorial tool
+- Mode target: light mode only for now
+- Anti-reference: should not feel like obviously vibe-coded UI
 
 ## Capture Checklist
 - Color tokens and semantic usage
