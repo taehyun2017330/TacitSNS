@@ -10,6 +10,13 @@ export interface BrandContext {
   brandCategory: string;
 }
 
+export interface BrandStatus {
+  satisfied: boolean;
+  overallAssessment: string;
+  statusMessage: string;
+  sentenceEnded: boolean;
+}
+
 export interface ModelConfig {
   directionModel: string;
   suggestionModel: string;
@@ -25,4 +32,24 @@ export interface SentenceSegment {
 export interface SentenceAnnotation {
   segments: SentenceSegment[];
   sentenceTargets: string[];
+}
+
+export interface TooltipPart {
+  text: string;
+  color?: string;
+}
+
+export interface BrandAutocompleteResponse {
+  suggestions?: Suggestion[];
+  brandStatus?: BrandStatus;
+  debug?: {
+    thinking: string;
+    elapsed: number;
+  };
+  progress?: any;
+  annotation?: {
+    sentenceIndex: number;
+    segments: SentenceSegment[];
+    sentenceTargets: string[];
+  };
 }

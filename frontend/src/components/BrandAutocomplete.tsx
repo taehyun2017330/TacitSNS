@@ -1,5 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Suggestion, BrandContext, ModelConfig, SentenceAnnotation, SentenceSegment } from '../types/brandAutocomplete';
+import {
+  BrandContext,
+  BrandStatus,
+  ModelConfig,
+  SentenceAnnotation,
+  Suggestion
+} from '../types/brandAutocomplete';
+import { requestSentenceAnnotation, requestSuggestions, sanitizeAnnotation } from './brandAutocomplete/api';
+import {
+  applySuggestionToText,
+  elementLabelForKey,
+  getElementColor,
+  getElementLabel,
+  getSentenceIndexAt,
+  getStatusColor,
+  getStatusTooltip,
+  getSuggestionIcon,
+  getUniqueSentenceTargets,
+  normalizeTargets,
+  splitSentences,
+  underlineStyleForTargets
+} from './brandAutocomplete/utils';
 import './BrandAutocomplete.css';
 
 interface Props {
@@ -14,12 +35,7 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [brandStatus, setBrandStatus] = useState<{
-    satisfied: boolean;
-    overallAssessment: string;
-    statusMessage: string;
-    sentenceEnded: boolean;
-  } | null>(null);
+  const [brandStatus, setBrandStatus] = useState<BrandStatus | null>(null);
   const [debugInfo, setDebugInfo] = useState<{
     thinking: string;
     elapsed: number;
@@ -39,8 +55,6 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
     targets: string[];
   } | null>(null);
   const [guidanceOpen, setGuidanceOpen] = useState(false);
-  const [modelPanelOpen, setModelPanelOpen] = useState(false);
-  const [progressPanelOpen, setProgressPanelOpen] = useState(false);
   const activeSentenceIndexRef = useRef<number | null>(null);
   const sentenceDebounceRef = useRef<NodeJS.Timeout>();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -52,75 +66,12 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
   const debounceRef = useRef<NodeJS.Timeout>();
   const skipDebounceRef = useRef(false); // Flag to skip debounce after clicking suggestion
 
-  const API_URL = import.meta.env.VITE_BRAND_AUTOCOMPLETE_API_URL || 'http://localhost:8001';
-  const MODEL_OPTIONS = [
-    'gpt-5',
-    'gpt-5-mini',
-    'gpt-5-nano',
-    'gpt-5-nano-2025-08-07',
-    'gpt-4o',
-    'gpt-4o-mini',
-    'gpt-4-turbo'
-  ];
-
-  const splitSentences = (fullText: string) => {
-    const sentences: Array<{ index: number; start: number; end: number; text: string }> = [];
-    const regex = /[^.!?]+[.!?]?\s*/g;
-    let match: RegExpExecArray | null;
-    let i = 0;
-    while ((match = regex.exec(fullText)) !== null) {
-      const textPart = match[0];
-      if (!textPart) continue;
-      sentences.push({
-        index: i++,
-        start: match.index,
-        end: match.index + textPart.length,
-        text: textPart
-      });
-    }
-    return sentences;
-  };
-
-  const getSentenceIndexAt = (fullText: string, cursorPos: number) => {
-    const sentences = splitSentences(fullText);
-    const idx = sentences.findIndex(s => cursorPos >= s.start && cursorPos <= s.end);
-    return idx === -1 ? null : idx;
-  };
-
   const selectSentenceInTextarea = (fullText: string, sentenceIndex: number) => {
     const sentences = splitSentences(fullText);
     const s = sentences.find(x => x.index === sentenceIndex);
     if (!s || !textareaRef.current) return;
     textareaRef.current.focus();
     textareaRef.current.setSelectionRange(s.start, s.end);
-  };
-
-  const elementLabelForKey = (key: string) => {
-    const labels: { [key: string]: string } = {
-      companyType: 'Industry/Type',
-      audience: 'Target Audience',
-      problem: 'Problem',
-      solution: 'Solution',
-      mission: 'Mission',
-      differentiator: 'Differentiator',
-      brandIdentity: 'Brand Identity',
-      values: 'Values'
-    };
-    return labels[key] || key;
-  };
-
-  const normalizeTargets = (targets: string[] | undefined | null) => {
-    const allowed = new Set([
-      'companyType',
-      'audience',
-      'problem',
-      'solution',
-      'mission',
-      'differentiator',
-      'brandIdentity',
-      'values'
-    ]);
-    return (targets || []).filter(t => allowed.has(t));
   };
 
   const getFulfilledTargetSet = () => {
@@ -135,23 +86,12 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
 
   const fetchSentenceAnnotation = async (sentenceText: string, sentenceIndex: number) => {
     try {
-      const response = await fetch(`${API_URL}/api/annotate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brandName: brandContext.brandName,
-          brandCategory: brandContext.brandCategory,
-          sentenceText,
-          modelConfig
-        })
+      const annotation = await requestSentenceAnnotation({
+        brandContext,
+        sentenceText,
+        modelConfig
       });
-      const data = (await response.json()) as SentenceAnnotation;
-      const segments: SentenceSegment[] = Array.isArray(data?.segments) ? data.segments : [{ text: sentenceText, targets: [] }];
-      const cleaned: SentenceAnnotation = {
-        segments: segments.map(s => ({ text: s.text || '', targets: normalizeTargets(s.targets) })),
-        sentenceTargets: normalizeTargets(data?.sentenceTargets)
-      };
-      setSentenceAnnotations(prev => ({ ...prev, [sentenceIndex]: cleaned }));
+      setSentenceAnnotations(prev => ({ ...prev, [sentenceIndex]: annotation }));
     } catch (e) {
       setSentenceAnnotations(prev => ({
         ...prev,
@@ -161,24 +101,14 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
   };
 
   const fetchSuggestions = async (currentText: string = '') => {
-    const fetchUrl = `${API_URL}/api/suggestions`;
     setIsLoading(true);
     try {
-      const response = await fetch(fetchUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          brandName: brandContext.brandName,
-          brandCategory: brandContext.brandCategory,
-          currentText,
-          sessionId,
-          modelConfig
-        }),
+      const data = await requestSuggestions({
+        brandContext,
+        currentText,
+        sessionId,
+        modelConfig
       });
-
-      const data = await response.json();
       setSuggestions(data.suggestions || []);
       if (data.brandStatus) {
         setBrandStatus(data.brandStatus);
@@ -192,10 +122,7 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
 
       // If backend returned a direction-model annotation, store it.
       if (data.annotation?.sentenceIndex !== undefined && Array.isArray(data.annotation?.segments)) {
-        const cleaned: SentenceAnnotation = {
-          segments: data.annotation.segments.map((s: any) => ({ text: s.text || '', targets: normalizeTargets(s.targets) })),
-          sentenceTargets: normalizeTargets(data.annotation.sentenceTargets)
-        };
+        const cleaned = sanitizeAnnotation(data.annotation, '');
         setSentenceAnnotations(prev => ({ ...prev, [data.annotation.sentenceIndex]: cleaned }));
       } else if (currentText.trim() && data.brandStatus?.sentenceEnded) {
         // Fallback: annotate locally via /api/annotate
@@ -246,25 +173,6 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
 
-  const handleModelSelect = (field: 'directionModel' | 'suggestionModel', value: string) => {
-    setModelConfig(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleTemperatureChange = (field: 'directionTemp' | 'suggestionTemp', value: string) => {
-    const parsed = Math.max(0, Math.min(2, parseFloat(value) || 0));
-    setModelConfig(prev => ({ ...prev, [field]: parsed }));
-  };
-
-  const applyModelConfig = () => {
-    // Re-fetch using new configuration
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    skipDebounceRef.current = true;
-    setIsTyping(false);
-    fetchSuggestions(text);
-  };
-
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     setText(newValue);
@@ -293,30 +201,7 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
   };
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
-    let newText = text;
-
-    // Smart insertion logic
-    if (text.trim() === '') {
-      // Empty text - just add the suggestion
-      newText = suggestion.text;
-    } else if (suggestion.text === '.') {
-      // Period only - append directly without space
-      newText = text.trimEnd() + '.';
-    } else if (text.endsWith(' ')) {
-      // Already has space - add suggestion
-      newText = text + suggestion.text;
-    } else if (suggestion.type === 'continuation' || suggestion.type === 'sentence_end') {
-      // Continuation or sentence_end - add space then suggestion
-      newText = text + ' ' + suggestion.text;
-    } else {
-      // New angle - add period and space if needed
-      const lastChar = text.trim().slice(-1);
-      if (lastChar !== '.' && lastChar !== '!' && lastChar !== '?') {
-        newText = text.trim() + '. ' + suggestion.text;
-      } else {
-        newText = text.trim() + ' ' + suggestion.text;
-      }
-    }
+    const newText = applySuggestionToText(text, suggestion);
 
     // Clear any pending debounce timer
     if (debounceRef.current) {
@@ -336,206 +221,6 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
     // Clear typing state and fetch immediately
     setIsTyping(false);
     fetchSuggestions(newText);
-  };
-
-  const getSuggestionIcon = (type: string) => {
-    switch (type) {
-      case 'continuation':
-        return '→';
-      case 'sentence_end':
-        return '→';
-      case 'new_angle':
-        return '✨';
-      case 'example':
-        return '💡';
-      default:
-        return '→';
-    }
-  };
-
-  const getElementColor = (targets: string[] | undefined) => {
-    if (!targets || targets.length === 0) return '#6B7280';
-    const element = targets[0];
-    const colors: { [key: string]: string } = {
-      companyType: '#3B82F6',      // Blue
-      audience: '#10B981',          // Green
-      problem: '#EF4444',           // Red
-      solution: '#8B5CF6',          // Purple
-      mission: '#F59E0B',           // Amber
-      differentiator: '#EC4899',    // Pink
-      brandIdentity: '#06B6D4',     // Cyan
-      values: '#14B8A6'             // Teal
-    };
-    return colors[element] || '#6B7280';
-  };
-
-  const getElementLabel = (targets: string[] | undefined) => {
-    if (!targets || targets.length === 0) return '';
-    const element = targets[0];
-    const labels: { [key: string]: string } = {
-      companyType: 'Industry/Type',
-      audience: 'Target Audience',
-      problem: 'Problem',
-      solution: 'Solution',
-      mission: 'Mission',
-      differentiator: 'Differentiator',
-      brandIdentity: 'Brand Identity',
-      values: 'Values'
-    };
-    return labels[element] || '';
-  };
-
-  const getUniqueSentenceTargets = (annotation: SentenceAnnotation | undefined | null) => {
-    if (!annotation) return [];
-    const fulfilled = getFulfilledTargetSet();
-    const set = new Set<string>();
-    annotation.segments.forEach(seg =>
-      normalizeTargets(seg.targets)
-        .filter(t => (fulfilled.size ? fulfilled.has(t) : true))
-        .forEach(t => set.add(t))
-    );
-    return Array.from(set);
-  };
-
-  const underlineStyleForTargets = (targets: string[]) => {
-    if (!targets.length) {
-      return {
-        boxShadow: 'none',
-        background: 'transparent'
-      } as React.CSSProperties;
-    }
-
-    // Avoid multi-color underlines for a single phrase; pick a single "primary" target.
-    const primary = targets[0];
-    const primaryColor = getElementColor([primary]);
-    return {
-      boxShadow: `inset 0 -2px 0 ${primaryColor}`,
-      background: `${primaryColor}14`
-    } as React.CSSProperties;
-  };
-
-  const renderAnnotatedSentence = (sentenceIndex: number, sentenceText: string, annotation: SentenceAnnotation | undefined) => {
-    const segments = annotation?.segments?.length ? annotation.segments : [{ text: sentenceText, targets: [] }];
-    return (
-      <div
-        key={sentenceIndex}
-        className={`sentence-row ${activeSentenceIndexRef.current === sentenceIndex ? 'active' : ''}`}
-        onClick={() => selectSentenceInTextarea(text, sentenceIndex)}
-        role="button"
-        tabIndex={0}
-      >
-        <div className="sentence-text">
-          {segments.map((seg, i) => {
-            const targets = normalizeTargets(seg.targets);
-            return (
-              <span
-                key={i}
-                className="sentence-seg"
-                style={underlineStyleForTargets(targets)}
-                title={targets.length ? targets.map(elementLabelForKey).join(', ') : 'Unlabeled'}
-              >
-                {seg.text}
-              </span>
-            );
-          })}
-        </div>
-        <div className="sentence-tags">
-          {getUniqueSentenceTargets(annotation).map(t => (
-            <span key={t} className="sentence-tag" style={{ borderColor: getElementColor([t]), color: getElementColor([t]) }}>
-              {elementLabelForKey(t)}
-            </span>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // Determine status indicator color
-  const getStatusColor = () => {
-    if (!text.trim()) return 'red'; // Empty = red
-    if (!brandStatus) return 'orange'; // No analysis yet = orange
-    if (brandStatus.satisfied && brandStatus.sentenceEnded) return 'green'; // Complete + period = green
-    return 'orange'; // Otherwise = orange (typing or not satisfied)
-  };
-
-  // Map element keywords to their colors and labels
-  const elementKeywords: { [key: string]: { color: string; label: string } } = {
-    'company type': { color: '#3B82F6', label: 'Industry/Type' },
-    'industry': { color: '#3B82F6', label: 'Industry/Type' },
-    'type': { color: '#3B82F6', label: 'Industry/Type' },
-    'audience': { color: '#10B981', label: 'Target Audience' },
-    'target audience': { color: '#10B981', label: 'Target Audience' },
-    'problem': { color: '#EF4444', label: 'Problem' },
-    'solution': { color: '#8B5CF6', label: 'Solution' },
-    'mission': { color: '#F59E0B', label: 'Mission' },
-    'vision': { color: '#F59E0B', label: 'Mission' },
-    'differentiator': { color: '#EC4899', label: 'Differentiator' },
-    'unique': { color: '#EC4899', label: 'Differentiator' },
-    'brand identity': { color: '#06B6D4', label: 'Brand Identity' },
-    'personality': { color: '#06B6D4', label: 'Brand Identity' },
-    'values': { color: '#14B8A6', label: 'Values' }
-  };
-
-  const highlightElements = (message: string) => {
-    // Split message into parts and highlight element keywords
-    const parts: Array<{ text: string; color?: string }> = [];
-    let remainingText = message;
-    let lastIndex = 0;
-
-    // Sort keywords by length (longest first) to match longer phrases first
-    const sortedKeywords = Object.entries(elementKeywords).sort((a, b) => b[0].length - a[0].length);
-
-    const matches: Array<{ start: number; end: number; keyword: string; color: string }> = [];
-
-    // Find all matches
-    sortedKeywords.forEach(([keyword, { color }]) => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      let match: RegExpExecArray | null;
-      while ((match = regex.exec(message)) !== null) {
-        // Check if this position is already matched by a longer keyword
-        const overlaps = matches.some(m =>
-          (match!.index >= m.start && match!.index < m.end) ||
-          (match!.index + match![0].length > m.start && match!.index + match![0].length <= m.end)
-        );
-        if (!overlaps) {
-          matches.push({
-            start: match.index,
-            end: match.index + match[0].length,
-            keyword: match[0],
-            color
-          });
-        }
-      }
-    });
-
-    // Sort matches by start position
-    matches.sort((a, b) => a.start - b.start);
-
-    // Build highlighted parts
-    matches.forEach(match => {
-      if (lastIndex < match.start) {
-        parts.push({ text: message.substring(lastIndex, match.start) });
-      }
-      parts.push({ text: match.keyword, color: match.color });
-      lastIndex = match.end;
-    });
-
-    if (lastIndex < message.length) {
-      parts.push({ text: message.substring(lastIndex) });
-    }
-
-    return parts.length > 0 ? parts : [{ text: message }];
-  };
-
-  const getStatusTooltip = () => {
-    if (!text.trim()) {
-      return [{ text: 'Start by introducing what type of brand your company is' }];
-    }
-    if (!brandStatus) {
-      return [{ text: 'Continue building your brand description' }];
-    }
-    const fullMessage = `${brandStatus.overallAssessment}: ${brandStatus.statusMessage}`;
-    return highlightElements(fullMessage);
   };
 
   const buildOverlaySegments = () => {
@@ -736,7 +421,7 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
           {/* Status indicator (click to toggle highlights + explanation) */}
           <div className="status-indicator-overlay">
             <div
-              className={`status-light ${getStatusColor()} ${guidanceOpen ? 'open' : ''}`}
+              className={`status-light ${getStatusColor(text, brandStatus)} ${guidanceOpen ? 'open' : ''}`}
               onClick={() => {
                 setGuidanceOpen(open => {
                   const next = !open;
@@ -750,7 +435,7 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
             >
               <div className="status-tooltip">
                 <div className="status-tooltip-message">
-                  {getStatusTooltip().map((part, idx) => (
+                  {getStatusTooltip(text, brandStatus).map((part, idx) => (
                     part.color ? (
                       <span key={idx} className="highlighted-keyword" style={{ color: part.color, fontWeight: 600 }}>
                         {part.text}

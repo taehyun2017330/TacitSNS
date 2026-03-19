@@ -1,15 +1,14 @@
 import React, { useMemo, useState } from 'react';
+
 import PostGrid from './PostGrid';
 import PostSingleView from './PostSingleView';
 import HistoryBoardModal from './history/HistoryBoardModal';
 import { buildHistoryMap, createSelectionNode, getBatchNodes } from './history/historyUtils';
 import { FeedbackData, Gen, PostNode } from './history/types';
+import { requestPostGeneration } from './postStudio/api';
+import type { EditOptions } from './postStudio/types';
+import { buildFallbackDelta, createGeneratedNodes, createPlaceholderNodes, findNearestGridBatch } from './postStudio/utils';
 import './PostStudio.css';
-
-interface EditOptions {
-  suggestedEdits: string[];
-  customEdit: string;
-}
 
 type ViewMode = 'grid' | 'single';
 
@@ -19,53 +18,6 @@ interface Props {
   brandContext: string;
   onBack: () => void;
   onFinalize: (postUrl: string, postData?: any) => void;
-}
-
-function findNearestGridBatch(history: Map<string, Gen>, startingBatchId: string | null): string | null {
-  let currentBatchId = startingBatchId;
-
-  while (currentBatchId) {
-    const generation = history.get(currentBatchId);
-    if (!generation) {
-      return null;
-    }
-
-    if (generation.nodes.length === 4) {
-      return generation.id;
-    }
-
-    currentBatchId = generation.parentBatchId;
-  }
-
-  return null;
-}
-
-function buildFallbackDelta(
-  actionType: 'initial' | 'explore' | 'edit' | 'regenerate',
-  editOptions?: EditOptions,
-  similarity?: number,
-  direction?: string
-) {
-  if (actionType === 'edit') {
-    const edits = [
-      ...(editOptions?.suggestedEdits ?? []),
-      ...(editOptions?.customEdit ? [editOptions.customEdit] : [])
-    ];
-    return edits.length > 0 ? `Edited: ${edits.join(', ')}` : 'Edited image';
-  }
-
-  if (actionType === 'explore') {
-    if (direction) {
-      return `Explored "${direction}" direction`;
-    }
-    return `Explored variations (${similarity ?? 50}% similarity)`;
-  }
-
-  if (actionType === 'regenerate') {
-    return 'Regenerated with new variations';
-  }
-
-  return 'Initial generation';
 }
 
 const PostStudio: React.FC<Props> = ({
@@ -135,71 +87,40 @@ const PostStudio: React.FC<Props> = ({
         : parentNode?.metadata?.batchId ?? currentGridBatchId ?? null;
 
     try {
-      const response = await fetch('http://localhost:8001/api/generate-post-images', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brandSummary: `${brandName} - ${brandCategory}: ${brandContext}`,
-          parentNodeId: parentNode?.id,
-          parentImageUrl: parentNode?.imageUrl,
-          parentKeywords: parentNode?.keywords,
-          userFeedback: feedback ? {
-            likes: feedback.type === 'yes' ? feedback.reasons : [],
-            dislikes: feedback.type === 'no' ? feedback.reasons : [],
-            unsure: feedback.type === 'unsure' ? feedback.reasons : []
-          } : null,
-          similarity: similarity ?? similarityLevel,
-          explorationLevel: (similarity ?? similarityLevel) / 100,
-          direction: direction || initialDirection,
-          actionType,
-          editOptions,
-          numImages: actionType === 'edit' ? 1 : 4
-        })
+      const resolvedSimilarity = similarity ?? similarityLevel;
+      const resolvedDirection = direction || initialDirection;
+      const data = await requestPostGeneration({
+        brandName,
+        brandCategory,
+        brandContext,
+        parentNode,
+        feedback,
+        similarity: resolvedSimilarity,
+        direction: resolvedDirection,
+        actionType,
+        editOptions
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to generate posts: ${response.status}`);
-      }
-
-      const data = await response.json();
       const fallbackDelta = buildFallbackDelta(
         actionType,
         editOptions,
-        similarity ?? similarityLevel,
-        direction || initialDirection
+        resolvedSimilarity,
+        resolvedDirection
       );
 
-      const newNodes: PostNode[] = (data.posts || []).map((post: any, index: number) => ({
-        id: `${batchId}-${index}`,
-        imageUrl: post.imageUrl,
-        keywords: post.keywords || [],
-        vibe: post.vibe || post.metadata?.vibe || '',
-        deltaFromParent: post.deltaFromParent || data.delta || fallbackDelta,
-        deltaDetails: post.deltaDetails,
-        parentId: parentNodeId,
+      const newNodes = createGeneratedNodes({
+        posts: data.posts || [],
+        batchId,
+        batchTime,
+        parentNodeId,
+        parentBatchId,
         actionType,
-        timestamp: batchTime,
-        feedback: undefined,
-        metadata: {
-          batchId,
-          parentBatchId,
-          selectedFromParent:
-            parentNode && parentBatchId
-              ? {
-                  parentBatchId,
-                  selectedNodeId: parentNode.id,
-                  indexInGrid:
-                    selectedGridIndex ??
-                    parentNode.metadata?.selectedFromParent?.indexInGrid ??
-                    undefined
-                }
-              : undefined,
-          editAction: editOptions?.customEdit,
-          similarity: similarity ?? similarityLevel,
-          direction: direction || initialDirection,
-          indexInBatch: index
-        }
-      }));
+        fallbackDelta: data.delta || fallbackDelta,
+        similarity: resolvedSimilarity,
+        direction: resolvedDirection,
+        selectedGridIndex,
+        parentNode,
+        editOptions
+      });
 
       upsertNodes(newNodes);
 
@@ -216,44 +137,27 @@ const PostStudio: React.FC<Props> = ({
     } catch (requestError: any) {
       setError(requestError?.message || 'Failed to generate posts');
 
-      const placeholderColors = ['3B82F6', '10B981', 'F59E0B', 'EF4444'];
-      const placeholderKeywords = [
-        ['modern', 'clean', 'minimal'],
-        ['fresh', 'vibrant', 'energetic'],
-        ['warm', 'inviting', 'friendly'],
-        ['bold', 'dynamic', 'attention']
-      ];
-      const placeholderVibes = [
-        'Clean and professional',
-        'Fresh and dynamic',
-        'Warm and approachable',
-        'Bold and eye-catching'
-      ];
       const placeholderCount = actionType === 'edit' ? 1 : 4;
+      const resolvedSimilarity = similarity ?? similarityLevel;
+      const resolvedDirection = direction || initialDirection;
       const fallbackDelta = buildFallbackDelta(
         actionType,
         editOptions,
-        similarity ?? similarityLevel,
-        direction || initialDirection
+        resolvedSimilarity,
+        resolvedDirection
       );
 
-      const placeholderNodes: PostNode[] = Array.from({ length: placeholderCount }, (_, index) => ({
-        id: `${batchId}-${index}`,
-        imageUrl: `https://via.placeholder.com/800x1000/${placeholderColors[index]}/ffffff?text=Post+${index + 1}`,
-        keywords: placeholderKeywords[index] ?? placeholderKeywords[0],
-        vibe: placeholderVibes[index] ?? placeholderVibes[0],
-        deltaFromParent: fallbackDelta,
-        parentId: parentNodeId,
+      const placeholderNodes = createPlaceholderNodes({
+        batchId,
+        batchTime,
+        parentNodeId,
+        parentBatchId,
         actionType,
-        timestamp: batchTime,
-        metadata: {
-          batchId,
-          parentBatchId,
-          similarity: similarity ?? similarityLevel,
-          direction: direction || initialDirection,
-          indexInBatch: index
-        }
-      }));
+        fallbackDelta,
+        similarity: resolvedSimilarity,
+        direction: resolvedDirection,
+        count: placeholderCount
+      });
 
       upsertNodes(placeholderNodes);
 
