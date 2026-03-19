@@ -173,32 +173,24 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
       <div className="brand-onboarding-layout">
         <section className="brand-onboarding-intro">
           <div className="screen-eyebrow">Brand setup</div>
-          <h1>Externalize the brand first. Then choose the goals this post system should optimize for.</h1>
+          <h1>Write the brand story first.</h1>
           <p>
-            Small business owners usually do not start with a clean creative brief. This onboarding turns
-            brand intuition into broad business goals that can later branch into post-goal folders and visual strategies.
+            Give the system enough context to suggest the right business goals.
           </p>
 
           <div className="brand-hierarchy-preview">
             <div className="brand-hierarchy-step">
               <span>1</span>
               <div>
-                <strong>Brand identity</strong>
-                <p>Name the business, its audience, and the feeling it should carry.</p>
+                <strong>Brand narrative</strong>
+                <p>Say what the brand is, who it serves, and how it should feel.</p>
               </div>
             </div>
             <div className="brand-hierarchy-step">
               <span>2</span>
               <div>
                 <strong>Business goals</strong>
-                <p>Choose broad outcomes like trust, awareness, education, engagement, or sales.</p>
-              </div>
-            </div>
-            <div className="brand-hierarchy-step">
-              <span>3</span>
-              <div>
-                <strong>Post-goal folders</strong>
-                <p>Create narrower content goals that open into the 2x2 generation workspace.</p>
+                <p>Pick the outcomes this system should optimize for.</p>
               </div>
             </div>
           </div>
@@ -208,7 +200,7 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
           <div className="screen-eyebrow">Onboarding</div>
           <h2>Tell the system who this brand is.</h2>
           <p className="brand-onboarding-subtitle">
-            Use one guided brand narrative field so the system can infer identity, positioning, and likely business goals together.
+            Use one guided field. Then choose the goals that matter most.
           </p>
 
           {submitError && <div className="brand-onboarding-error">{submitError}</div>}
@@ -246,13 +238,12 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
             <div className="brand-onboarding-block">
               <span>Brand identity and positioning</span>
               <div className="brand-onboarding-tip">
-                <p>Use the autocomplete to explain:</p>
+                <p>Cover the essentials:</p>
                 <ul>
-                  <li>what kind of brand this is</li>
-                  <li>who the brand serves</li>
-                  <li>what problem it solves</li>
-                  <li>why it should feel different</li>
-                  <li>what impression you want people to leave with</li>
+                  <li>what the brand is</li>
+                  <li>who it serves</li>
+                  <li>what makes it different</li>
+                  <li>how it should come across</li>
                 </ul>
               </div>
               <BrandAutocomplete
@@ -278,8 +269,7 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
               />
             ) : (
               <div className="brand-onboarding-gate">
-                Complete the brand identity and background first. The business-goal recommendations appear once the
-                system has enough context to rank them meaningfully.
+                Finish the brand narrative first. Then the goal suggestions will appear.
               </div>
             )}
 
@@ -288,7 +278,7 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
                 {!brandData.name.trim() && <span>Brand name required</span>}
                 {brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
                 {brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
-                  <span>Add a fuller brand narrative so goals can be ranked properly</span>
+                  <span>Add a little more detail so the goals can be ranked well</span>
                 )}
                 {canGenerateGoals(brandData) && selectedGoalIds.length === 0 && (
                   <span>Select at least one business goal</span>

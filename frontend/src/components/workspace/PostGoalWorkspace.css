@@ -20,7 +20,6 @@
 .workspace-brand-card,
 .workspace-sidebar-section,
 .goal-hierarchy-card,
-.workspace-chat-panel,
 .workspace-recommendation-panel,
 .workspace-folder-section,
 .goal-dialog {
@@ -32,10 +31,15 @@
 
 .workspace-brand-card,
 .workspace-sidebar-section,
-.workspace-chat-panel,
-.workspace-recommendation-panel,
 .workspace-folder-section {
   padding: 1.35rem;
+}
+
+.workspace-recommendation-panel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 .workspace-brand-card h1,
@@ -60,7 +64,6 @@
 .workspace-folder-card p,
 .workspace-empty-card,
 .workspace-empty-note,
-.assistant-message p,
 .goal-dialog p {
   color: var(--ink-soft);
   line-height: 1.6;
@@ -72,7 +75,6 @@
 }
 
 .workspace-sidebar-label,
-.assistant-message-role,
 .goal-hierarchy-step span,
 .workspace-folder-card-topline,
 .section-kicker,
@@ -151,6 +153,8 @@
   display: grid;
   gap: 0.9rem;
   padding: 1.2rem;
+  background: rgba(247, 241, 232, 0.7);
+  box-shadow: none;
 }
 
 .goal-hierarchy-step {
@@ -170,20 +174,42 @@
   margin-bottom: 1rem;
 }
 
+.workspace-panel-header--row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
 .workspace-panel-header h3 {
   font-size: 1.55rem;
 }
 
-.assistant-thread {
-  display: grid;
-  gap: 0.9rem;
+.workspace-panel-header p {
+  max-width: 38rem;
+  color: var(--ink-soft);
+  line-height: 1.58;
 }
 
-.assistant-message {
-  padding: 1rem 1.05rem;
-  border-radius: 1.15rem;
-  border: 1px solid rgba(97, 81, 59, 0.1);
-  background: rgba(248, 244, 237, 0.8);
+.workspace-guidance-note {
+  padding: 0.15rem 0 0.35rem;
+  color: var(--ink-soft);
+  line-height: 1.58;
+}
+
+.workspace-guidance-note strong {
+  color: var(--ink-strong);
+}
+
+.workspace-count-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(220, 233, 229, 0.72);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .post-goal-card-grid,
@@ -204,6 +230,12 @@
   background: rgba(255, 249, 242, 0.84);
   text-align: left;
   transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.workspace-folder-card--selected {
+  background: rgba(255, 252, 247, 0.96);
+  border-color: rgba(33, 79, 74, 0.16);
+  box-shadow: 0 18px 36px rgba(28, 48, 45, 0.08);
 }
 
 .goal-card.is-selected {
@@ -247,6 +279,11 @@
   justify-content: flex-end;
   color: #fffdf8;
   isolation: isolate;
+}
+
+.post-goal-card.is-added {
+  opacity: 0.78;
+  border-color: rgba(33, 79, 74, 0.16);
 }
 
 .post-goal-visual::after,
@@ -314,6 +351,10 @@
 .workspace-folder-section {
   display: grid;
   gap: 1rem;
+}
+
+.workspace-folder-section--selected {
+  background: rgba(255, 253, 249, 0.98);
 }
 
 .workspace-folder-card-topline,

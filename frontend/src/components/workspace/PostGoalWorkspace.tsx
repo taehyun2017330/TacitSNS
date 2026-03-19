@@ -52,6 +52,10 @@ const PostGoalWorkspace: React.FC<Props> = ({
     () => postGoalFolders.filter(folder => folder.businessGoalId === activeBusinessGoal?.id),
     [activeBusinessGoal?.id, postGoalFolders]
   );
+  const selectedFolderTitles = useMemo(
+    () => new Set(foldersForActiveGoal.map(folder => folder.title)),
+    [foldersForActiveGoal]
+  );
 
   useEffect(() => {
     setCustomPostGoalInput('');
@@ -174,94 +178,29 @@ const PostGoalWorkspace: React.FC<Props> = ({
           </div>
         </header>
 
-        <section className="workspace-chat-panel">
-          <div className="workspace-panel-header">
-            <div className="section-kicker">Goal guidance</div>
-            <h3>Choose post-goal folders before entering the workspace loop.</h3>
-          </div>
-
-          <div className="assistant-thread">
-            <article className="assistant-message">
-              <div className="assistant-message-role">Why this goal</div>
-              <p>{activeBusinessGoal.rationale}</p>
-            </article>
-            <article className="assistant-message">
-              <div className="assistant-message-role">Selection rule</div>
-              <p>
-                Start with one or two folders that feel closest to what you want to communicate now.
-                You can always return here to add more or edit the higher-level business goals.
-              </p>
-            </article>
-          </div>
+        <section className="workspace-guidance-note">
+          <strong>Pick one or two folders to start.</strong> You can always come back and add more.
         </section>
 
-        <section className="workspace-recommendation-panel">
-          <div className="workspace-panel-header">
-            <div className="section-kicker">Recommended post goals</div>
-            <h3>Examples that interpret this goal in plain language</h3>
-          </div>
-
-          <div className="post-goal-card-grid">
-            {suggestedPostGoals.map(goal => (
-              <article key={goal.id} className="post-goal-card">
-                <div
-                  className="post-goal-visual"
-                  style={{ background: goal.previewBackground }}
-                >
-                  <div className="post-goal-visual-eyebrow">{goal.taxonomyTags.join(' · ')}</div>
-                  <div className="post-goal-visual-title">{goal.previewTitle || goal.title}</div>
-                  <div className="post-goal-visual-caption">{goal.previewCaption || goal.description}</div>
-                </div>
-
-                <div className="post-goal-card-body">
-                  <h4>{goal.title}</h4>
-                  <p>{goal.description}</p>
-                  <div className="post-goal-tags">
-                    {goal.taxonomyTags.map(tag => (
-                      <span key={tag} className="post-goal-tag">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="ui-btn ui-btn--secondary"
-                  onClick={() => handleCreateFromSuggestion(goal, 'recommended')}
-                >
-                  Add folder
-                </button>
-              </article>
-            ))}
-
-            <button
-              type="button"
-              className="post-goal-card post-goal-card--add"
-              onClick={() => setIsComposerOpen(true)}
-            >
-              <div className="post-goal-add-icon">+</div>
-              <div className="post-goal-card-body">
-                <h4>Add your own post goal</h4>
-                <p>
-                  Create a custom folder if the recommended examples do not capture the direction you want.
-                </p>
-              </div>
-            </button>
-          </div>
-        </section>
-
-        <section className="workspace-folder-section">
-          <div className="workspace-panel-header">
-            <div className="section-kicker">Current workspace folders</div>
-            <h3>Open any selected post goal into the image generation workspace.</h3>
+        <section className="workspace-folder-section workspace-folder-section--selected">
+          <div className="workspace-panel-header workspace-panel-header--row">
+            <div>
+              <div className="section-kicker">Selected folders</div>
+              <h3>Your current working set</h3>
+            </div>
+            <div className="workspace-count-chip">
+              {foldersForActiveGoal.length} {foldersForActiveGoal.length === 1 ? 'folder' : 'folders'}
+            </div>
           </div>
 
           <div className="workspace-folder-grid">
             {foldersForActiveGoal.length === 0 ? (
               <div className="workspace-empty-card">
-                No folders selected yet. Add one from the recommendations above to start the visual exploration loop.
+                Nothing selected yet. Add a folder from the recommendations below to start the visual exploration loop.
               </div>
             ) : (
               foldersForActiveGoal.map(folder => (
-                <article key={folder.id} className="workspace-folder-card">
+                <article key={folder.id} className="workspace-folder-card workspace-folder-card--selected">
                   <div
                     className="workspace-folder-preview"
                     style={{ background: folder.previewBackground }}
@@ -292,6 +231,64 @@ const PostGoalWorkspace: React.FC<Props> = ({
             )}
           </div>
         </section>
+
+        <section className="workspace-recommendation-panel">
+          <div className="workspace-panel-header">
+            <div className="section-kicker">Recommended post goals</div>
+            <h3>Choose a direction to add</h3>
+            <p>{activeBusinessGoal.rationale}</p>
+          </div>
+
+          <div className="post-goal-card-grid">
+            {suggestedPostGoals.map(goal => {
+              const isAdded = selectedFolderTitles.has(goal.title);
+
+              return (
+              <article key={goal.id} className={`post-goal-card ${isAdded ? 'is-added' : ''}`}>
+                <div
+                  className="post-goal-visual"
+                  style={{ background: goal.previewBackground }}
+                >
+                  <div className="post-goal-visual-eyebrow">{goal.taxonomyTags.join(' · ')}</div>
+                  <div className="post-goal-visual-title">{goal.previewTitle || goal.title}</div>
+                  <div className="post-goal-visual-caption">{goal.previewCaption || goal.description}</div>
+                </div>
+
+                <div className="post-goal-card-body">
+                  <h4>{goal.title}</h4>
+                  <p>{goal.description}</p>
+                  <div className="post-goal-tags">
+                    {goal.taxonomyTags.map(tag => (
+                      <span key={tag} className="post-goal-tag">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--secondary"
+                  disabled={isAdded}
+                  onClick={() => handleCreateFromSuggestion(goal, 'recommended')}
+                >
+                  {isAdded ? 'Added' : 'Add folder'}
+                </button>
+              </article>
+            )})}
+
+            <button
+              type="button"
+              className="post-goal-card post-goal-card--add"
+              onClick={() => setIsComposerOpen(true)}
+            >
+              <div className="post-goal-add-icon">+</div>
+              <div className="post-goal-card-body">
+                <h4>Add your own post goal</h4>
+                <p>
+                  Add a custom folder if none of these directions fit.
+                </p>
+              </div>
+            </button>
+          </div>
+        </section>
       </section>
 
       {isComposerOpen && (
@@ -300,7 +297,7 @@ const PostGoalWorkspace: React.FC<Props> = ({
             <div className="section-kicker">Custom post goal</div>
             <h4>Add your own post goal</h4>
             <p>
-              Write the folder in plain language. It should still belong under <strong>{activeBusinessGoal.title}</strong>.
+              Write it in plain language under <strong>{activeBusinessGoal.title}</strong>.
             </p>
 
             <textarea

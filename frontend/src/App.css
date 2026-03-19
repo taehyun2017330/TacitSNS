@@ -177,7 +177,7 @@ html {
 .auth-shell,
 .brand-onboarding-layout {
   display: grid;
-  grid-template-columns: minmax(18rem, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(16rem, 0.72fr) minmax(0, 1.28fr);
   gap: 1.25rem;
 }
 
@@ -199,6 +199,12 @@ html {
 
 .brand-onboarding-card {
   padding: 1.6rem;
+}
+
+.brand-onboarding-intro {
+  align-self: start;
+  box-shadow: none;
+  background: rgba(255, 252, 247, 0.62);
 }
 
 .screen-eyebrow {
@@ -240,13 +246,13 @@ html {
 
 .auth-copy-card,
 .brand-hierarchy-preview {
-  margin-top: 1.3rem;
+  margin-top: 1rem;
   display: grid;
-  gap: 0.95rem;
-  padding: 1.2rem;
-  border-radius: 1.35rem;
-  border: 1px solid rgba(97, 81, 59, 0.1);
-  background: rgba(247, 241, 232, 0.86);
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(97, 81, 59, 0.08);
+  background: rgba(247, 241, 232, 0.68);
 }
 
 .auth-copy-label {
@@ -266,7 +272,7 @@ html {
 .brand-hierarchy-step {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.8rem;
+  gap: 0.7rem;
   align-items: start;
 }
 
@@ -284,7 +290,7 @@ html {
 
 .brand-hierarchy-step strong {
   display: block;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.05rem;
   color: var(--ink-strong);
 }
 
@@ -356,8 +362,8 @@ html {
 
 .brand-onboarding-form {
   display: grid;
-  gap: 1.2rem;
-  margin-top: 1.25rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .brand-onboarding-grid {
@@ -367,10 +373,10 @@ html {
 }
 
 .brand-onboarding-tip {
-  padding: 1rem 1.05rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(125, 97, 54, 0.14);
-  background: linear-gradient(135deg, #f7f0e5 0%, #f4ebdc 100%);
+  padding: 0.8rem 0.95rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(125, 97, 54, 0.12);
+  background: rgba(247, 241, 232, 0.76);
 }
 
 .brand-onboarding-tip p,
@@ -391,8 +397,8 @@ html {
 }
 
 .brand-onboarding-gate {
-  background: rgba(247, 241, 232, 0.86);
-  border: 1px solid rgba(97, 81, 59, 0.1);
+  background: rgba(247, 241, 232, 0.72);
+  border: 1px solid rgba(97, 81, 59, 0.08);
   color: var(--ink-soft);
 }
 
@@ -407,7 +413,7 @@ html {
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
-  padding-top: 1.15rem;
+  padding-top: 1rem;
   border-top: 1px solid rgba(97, 81, 59, 0.12);
 }
 

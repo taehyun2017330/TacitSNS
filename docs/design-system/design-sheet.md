@@ -12,6 +12,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Brand identity and brand positioning now live in one guided narrative field with autocomplete support.
 - Custom business goals and custom post goals should use add-cards that open focused dialogs, not long inline form rows.
 - Post-goal recommendation cards should include visual preview blocks so the examples feel concrete before the user enters the studio.
+- The selected post-goal folders should read as the primary working set, with recommendations visually demoted beneath them.
+- Onboarding should keep explanation light so the guided narrative field remains the dominant action on the page.
 
 ## Current Direction
 - Primary users: small business owners with low design literacy
