@@ -5,6 +5,7 @@ import {
   suggestBusinessGoalAutocomplete
 } from '../../data/goalHierarchy';
 import type { BusinessGoalOption } from '../../types/workspace';
+import '../workspace/PostGoalWorkspace.css';
 
 interface Props {
   options: BusinessGoalOption[];
@@ -20,6 +21,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
   onAddCustomGoal
 }) => {
   const [customGoalInput, setCustomGoalInput] = useState('');
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
 
   const suggestions = useMemo(
     () => suggestBusinessGoalAutocomplete(customGoalInput),
@@ -34,6 +36,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
 
     onAddCustomGoal(normalizeBusinessGoalInput(trimmed));
     setCustomGoalInput('');
+    setIsComposerOpen(false);
   };
 
   return (
@@ -44,7 +47,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
           <h3>Choose the outcomes this brand should prioritize.</h3>
         </div>
         <p>
-          Start broad. The system turns these into more concrete post goals later.
+          Start broad. These act as the parent goals for later post-goal folders.
         </p>
       </div>
 
@@ -75,44 +78,69 @@ const BusinessGoalSelector: React.FC<Props> = ({
             </button>
           );
         })}
+
+        <button
+          type="button"
+          className="goal-card goal-card--add"
+          onClick={() => setIsComposerOpen(true)}
+        >
+          <div className="goal-card-add-icon">+</div>
+          <div className="goal-card-title">Add your own goal</div>
+          <div className="goal-card-rationale">
+            Write what you mean in plain language and the system will normalize it when possible.
+          </div>
+        </button>
       </div>
 
-      <div className="custom-goal-panel">
-        <div className="section-kicker">Type your own</div>
-        <div className="custom-goal-copy">
-          If the suggested wording feels off, type what you mean and the system will normalize it when possible.
-        </div>
+      {isComposerOpen && (
+        <div className="goal-dialog-backdrop" onClick={() => setIsComposerOpen(false)}>
+          <div className="goal-dialog" onClick={event => event.stopPropagation()}>
+            <div className="section-kicker">Custom business goal</div>
+            <h4>Add your own goal</h4>
+            <p>
+              Keep it broad and outcome-based. If possible, the system will map your wording to one of the shared business-goal buckets.
+            </p>
 
-        <div className="custom-goal-composer">
-          <input
-            type="text"
-            value={customGoalInput}
-            onChange={event => setCustomGoalInput(event.target.value)}
-            placeholder='e.g., "help people understand why we cost more"'
-          />
-          <button
-            type="button"
-            className="ui-btn ui-btn--secondary"
-            onClick={() => handleAddCustomGoal(customGoalInput)}
-            disabled={!customGoalInput.trim()}
-          >
-            Add goal
-          </button>
-        </div>
+            <textarea
+              value={customGoalInput}
+              onChange={event => setCustomGoalInput(event.target.value)}
+              placeholder='e.g., "help people understand why we cost more"'
+              rows={4}
+            />
 
-        <div className="autocomplete-chip-row">
-          {suggestions.map(suggestion => (
-            <button
-              type="button"
-              key={suggestion}
-              className="ui-btn ui-btn--choice"
-              onClick={() => handleAddCustomGoal(suggestion)}
-            >
-              {suggestion}
-            </button>
-          ))}
+            <div className="autocomplete-chip-row">
+              {suggestions.map(suggestion => (
+                <button
+                  type="button"
+                  key={suggestion}
+                  className="ui-btn ui-btn--choice"
+                  onClick={() => setCustomGoalInput(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+
+            <div className="goal-dialog-actions">
+              <button
+                type="button"
+                className="ui-btn ui-btn--secondary"
+                onClick={() => setIsComposerOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn--primary"
+                onClick={() => handleAddCustomGoal(customGoalInput)}
+                disabled={!customGoalInput.trim()}
+              >
+                Add goal
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

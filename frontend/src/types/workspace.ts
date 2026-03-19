@@ -25,6 +25,9 @@ export interface PostGoalSuggestion {
   description: string;
   taxonomyTags: string[];
   assistantPrompt: string;
+  previewTitle?: string;
+  previewCaption?: string;
+  previewBackground?: string;
 }
 
 export interface PostGoalFolder extends PostGoalSuggestion {

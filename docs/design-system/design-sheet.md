@@ -9,6 +9,9 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Design context captured in `.impeccable.md`.
 - Product shell now includes mock login, brand setup, business-goal selection, post-goal workspace, and nested 2x2 studio entry.
 - The goal hierarchy is now a first-class structural pattern, not just a content idea.
+- Brand identity and brand positioning now live in one guided narrative field with autocomplete support.
+- Custom business goals and custom post goals should use add-cards that open focused dialogs, not long inline form rows.
+- Post-goal recommendation cards should include visual preview blocks so the examples feel concrete before the user enters the studio.
 
 ## Current Direction
 - Primary users: small business owners with low design literacy
@@ -30,6 +33,7 @@ Use it to record the design rules that should remain stable across the CHI proto
   login -> brand setup -> business goals -> post-goal workspace -> studio / traceboard.
 - Business goals should be broad, outcome-based, and readable in plain language before any taxonomy appears.
 - Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
+- The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
 - Workspace panels should feel like an expert planning surface, not a chat toy or generic dashboard.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
 - Preserve the trace board's internal layout logic while restyling the shell around it.

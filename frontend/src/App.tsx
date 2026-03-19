@@ -114,9 +114,12 @@ function App() {
   };
 
   const handleOnboardingComplete = (result: OnboardingResult) => {
-    setWorkspace({
-      ...result,
-      postGoalFolders: []
+    setWorkspace(prev => {
+      const allowedGoalIds = new Set(result.selectedBusinessGoals.map(goal => goal.id));
+      return {
+        ...result,
+        postGoalFolders: prev?.postGoalFolders.filter(folder => allowedGoalIds.has(folder.businessGoalId)) ?? []
+      };
     });
     setSelectedFolder(null);
     setCurrentStage('workspace');
@@ -174,7 +177,7 @@ function App() {
       )}
 
       {currentStage === 'onboarding' && user && (
-        <BrandInfoStep onComplete={handleOnboardingComplete} />
+        <BrandInfoStep initialData={workspace} onComplete={handleOnboardingComplete} />
       )}
 
       {currentStage === 'workspace' && workspace && (
@@ -203,6 +206,10 @@ function App() {
                   }
                 : prev
             );
+          }}
+          onEditGoals={() => {
+            setSelectedFolder(null);
+            setCurrentStage('onboarding');
           }}
           onOpenPostGoal={folder => {
             setSelectedFolder(folder);

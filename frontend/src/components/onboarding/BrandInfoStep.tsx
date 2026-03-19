@@ -31,15 +31,25 @@ const INITIAL_BRAND_DATA: BrandData = {
 };
 
 interface Props {
+  initialData?: OnboardingResult | null;
   onComplete: (result: OnboardingResult) => void;
+}
+
+function deriveIdentityFromNarrative(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const [firstSentence] = trimmed.split(/(?<=[.!?])\s+/);
+  return (firstSentence || trimmed).trim();
 }
 
 function canGenerateGoals(brandData: BrandData) {
   return Boolean(
     brandData.name.trim() &&
       brandData.category.trim() &&
-      brandData.identity.trim().length > 12 &&
-      brandData.description.trim().length > 24
+      brandData.description.trim().length > 36
   );
 }
 
@@ -47,10 +57,12 @@ function canContinue(brandData: BrandData, selectedGoalIds: string[]) {
   return canGenerateGoals(brandData) && selectedGoalIds.length > 0;
 }
 
-const BrandInfoStep: React.FC<Props> = ({ onComplete }) => {
-  const [brandData, setBrandData] = useState<BrandData>(INITIAL_BRAND_DATA);
-  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([]);
-  const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>([]);
+const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
+  const [brandData, setBrandData] = useState<BrandData>(() => initialData?.brand ?? INITIAL_BRAND_DATA);
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>(() => initialData?.selectedBusinessGoals.map(goal => goal.id) ?? []);
+  const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>(() =>
+    initialData?.selectedBusinessGoals.filter(goal => goal.isCustom || goal.normalizedFrom) ?? []
+  );
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -196,7 +208,7 @@ const BrandInfoStep: React.FC<Props> = ({ onComplete }) => {
           <div className="screen-eyebrow">Onboarding</div>
           <h2>Tell the system who this brand is.</h2>
           <p className="brand-onboarding-subtitle">
-            Write enough that the AI can infer why this brand is posting in the first place.
+            Use one guided brand narrative field so the system can infer identity, positioning, and likely business goals together.
           </p>
 
           {submitError && <div className="brand-onboarding-error">{submitError}</div>}
@@ -231,22 +243,12 @@ const BrandInfoStep: React.FC<Props> = ({ onComplete }) => {
               </label>
             </div>
 
-            <label className="brand-onboarding-block">
-              <span>Brand identity</span>
-              <textarea
-                className="brand-onboarding-textarea"
-                rows={3}
-                value={brandData.identity}
-                onChange={event => handleFieldChange('identity', event.target.value)}
-                placeholder="Describe the brand identity in one or two sentences. e.g., premium natural skincare for women with sensitive skin, calm and science-backed."
-              />
-            </label>
-
             <div className="brand-onboarding-block">
-              <span>Brand background and positioning</span>
+              <span>Brand identity and positioning</span>
               <div className="brand-onboarding-tip">
                 <p>Use the autocomplete to explain:</p>
                 <ul>
+                  <li>what kind of brand this is</li>
                   <li>who the brand serves</li>
                   <li>what problem it solves</li>
                   <li>why it should feel different</li>
@@ -256,7 +258,13 @@ const BrandInfoStep: React.FC<Props> = ({ onComplete }) => {
               <BrandAutocomplete
                 brandContext={brandContext}
                 value={brandData.description}
-                onChange={text => handleFieldChange('description', text)}
+                onChange={text => {
+                  setBrandData(prev => ({
+                    ...prev,
+                    description: text,
+                    identity: deriveIdentityFromNarrative(text)
+                  }));
+                }}
                 showHeader={false}
               />
             </div>
@@ -279,8 +287,8 @@ const BrandInfoStep: React.FC<Props> = ({ onComplete }) => {
               <div className="brand-onboarding-requirements">
                 {!brandData.name.trim() && <span>Brand name required</span>}
                 {brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
-                {brandData.name.trim() && brandData.category.trim() && brandData.identity.trim().length <= 12 && (
-                  <span>Add a more specific brand identity sentence</span>
+                {brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
+                  <span>Add a fuller brand narrative so goals can be ranked properly</span>
                 )}
                 {canGenerateGoals(brandData) && selectedGoalIds.length === 0 && (
                   <span>Select at least one business goal</span>

@@ -237,6 +237,129 @@ const POST_GOAL_LIBRARY: Record<string, PostGoalSuggestion[]> = {
   ]
 };
 
+const POST_GOAL_PREVIEWS: Record<string, Pick<PostGoalSuggestion, 'previewTitle' | 'previewCaption' | 'previewBackground'>> = {
+  'trust-quality-process': {
+    previewTitle: 'Materials, hands, proof',
+    previewCaption: 'Close, credible details with process cues and restrained text.',
+    previewBackground: 'linear-gradient(135deg, #cbbca8 0%, #f4eadc 52%, #8ea39a 100%)'
+  },
+  'trust-founder-expert': {
+    previewTitle: 'Founder portrait',
+    previewCaption: 'An expert-centered frame with human presence and calm authority.',
+    previewBackground: 'linear-gradient(135deg, #8f6b57 0%, #dcc5b1 48%, #f5ede2 100%)'
+  },
+  'trust-customer-proof': {
+    previewTitle: 'Review + result',
+    previewCaption: 'Proof-led composition with a testimonial feel and outcome cues.',
+    previewBackground: 'linear-gradient(135deg, #9bb0a6 0%, #f5ede2 42%, #d8c2ae 100%)'
+  },
+  'trust-brand-stance': {
+    previewTitle: 'Quiet brand manifesto',
+    previewCaption: 'Clear statement, generous space, strong editorial confidence.',
+    previewBackground: 'linear-gradient(135deg, #233f3c 0%, #5d746d 42%, #efe5d8 100%)'
+  },
+  'awareness-brand-personality': {
+    previewTitle: 'Signature mood',
+    previewCaption: 'Distinctive brand texture and memorable tone over explanation.',
+    previewBackground: 'linear-gradient(135deg, #886650 0%, #dfc2a4 54%, #f7efe3 100%)'
+  },
+  'awareness-timely-conversation': {
+    previewTitle: 'Seasonal hook',
+    previewCaption: 'Time-sensitive framing that keeps the brand visually recognizable.',
+    previewBackground: 'linear-gradient(135deg, #d3a774 0%, #f6ead7 48%, #97aa9d 100%)'
+  },
+  'awareness-product-experience': {
+    previewTitle: 'In-use moment',
+    previewCaption: 'Sensory or lifestyle-led composition that makes the experience easy to picture.',
+    previewBackground: 'linear-gradient(135deg, #8ea39a 0%, #e7dbcc 45%, #f8f2ea 100%)'
+  },
+  'awareness-memorable-introduction': {
+    previewTitle: 'First impression post',
+    previewCaption: 'Brand-forward image for recognition, mood, and quick understanding.',
+    previewBackground: 'linear-gradient(135deg, #35514d 0%, #71887f 44%, #f1e5d5 100%)'
+  },
+  'educate-how-it-works': {
+    previewTitle: 'Explainer layout',
+    previewCaption: 'Clear steps, labeled objects, and a teaching-oriented frame.',
+    previewBackground: 'linear-gradient(135deg, #bda48a 0%, #f6ecdf 44%, #7b958b 100%)'
+  },
+  'educate-why-different': {
+    previewTitle: 'Why it is different',
+    previewCaption: 'A side-by-side or ingredient-led frame that clarifies differentiation.',
+    previewBackground: 'linear-gradient(135deg, #7b958b 0%, #efe4d7 45%, #d4bca5 100%)'
+  },
+  'educate-common-question': {
+    previewTitle: 'Question answered',
+    previewCaption: 'One concern, one calm answer, presented with visual clarity.',
+    previewBackground: 'linear-gradient(135deg, #a58064 0%, #f5eadf 50%, #8fa59e 100%)'
+  },
+  'educate-use-case': {
+    previewTitle: 'Best use case',
+    previewCaption: 'A practical, context-rich frame showing when the offer fits best.',
+    previewBackground: 'linear-gradient(135deg, #8fa59e 0%, #f7efe5 48%, #ceb59e 100%)'
+  },
+  'engagement-opinion-hook': {
+    previewTitle: 'Quick reaction prompt',
+    previewCaption: 'A playful but controlled question designed for easy audience response.',
+    previewBackground: 'linear-gradient(135deg, #ddbb91 0%, #fff5ea 52%, #8ea39a 100%)'
+  },
+  'engagement-personal-angle': {
+    previewTitle: 'Behind the scenes',
+    previewCaption: 'Human, close, and conversational rather than polished sales-first.',
+    previewBackground: 'linear-gradient(135deg, #8d6f5b 0%, #edd9c6 50%, #f8f3ec 100%)'
+  },
+  'engagement-community-prompt': {
+    previewTitle: 'Audience invitation',
+    previewCaption: 'An open prompt that makes participation feel easy and welcome.',
+    previewBackground: 'linear-gradient(135deg, #6b877f 0%, #f2e5d8 48%, #d4b18c 100%)'
+  },
+  'engagement-playful-moment': {
+    previewTitle: 'Playful brand moment',
+    previewCaption: 'Lighter, more energetic framing that still stays visually clean.',
+    previewBackground: 'linear-gradient(135deg, #d8a36f 0%, #f5e4cf 45%, #7f978e 100%)'
+  },
+  'sales-offer-highlight': {
+    previewTitle: 'Offer-first frame',
+    previewCaption: 'Clear product, concise value cue, and easy action-oriented hierarchy.',
+    previewBackground: 'linear-gradient(135deg, #29504b 0%, #708980 44%, #f3e3d1 100%)'
+  },
+  'sales-worth-buying': {
+    previewTitle: 'Reason to buy',
+    previewCaption: 'Balance aspiration and practical proof in one conversion-friendly image.',
+    previewBackground: 'linear-gradient(135deg, #9eb2a7 0%, #f8f2ea 42%, #caa787 100%)'
+  },
+  'sales-result-experience': {
+    previewTitle: 'Desired outcome',
+    previewCaption: 'Show the end state people want, not only the object itself.',
+    previewBackground: 'linear-gradient(135deg, #d1b18f 0%, #f7eee3 48%, #8ea39a 100%)'
+  },
+  'sales-objection-answer': {
+    previewTitle: 'Calm objection handling',
+    previewCaption: 'Reduce hesitation with reassuring composition and concrete cues.',
+    previewBackground: 'linear-gradient(135deg, #8a9f95 0%, #efe1d3 48%, #b28a69 100%)'
+  },
+  'community-customer-spotlight': {
+    previewTitle: 'Community spotlight',
+    previewCaption: 'Recognition-led post with warmth, names, and human belonging cues.',
+    previewBackground: 'linear-gradient(135deg, #8d6d58 0%, #ebd4bf 45%, #f8f2ea 100%)'
+  },
+  'community-shared-values': {
+    previewTitle: 'Shared values',
+    previewCaption: 'Editorial statement framing for brand values and community alignment.',
+    previewBackground: 'linear-gradient(135deg, #274440 0%, #6f877f 45%, #efe2d2 100%)'
+  },
+  'community-returning-routine': {
+    previewTitle: 'Recurring ritual',
+    previewCaption: 'Series-ready composition that feels consistent and recognizable.',
+    previewBackground: 'linear-gradient(135deg, #d5b28b 0%, #f7eee2 45%, #8ca198 100%)'
+  },
+  'community-feedback-loop': {
+    previewTitle: 'Feedback invitation',
+    previewCaption: 'Ask for reactions in a way that feels relational, not needy.',
+    previewBackground: 'linear-gradient(135deg, #98aca0 0%, #f5ede2 44%, #b89476 100%)'
+  }
+};
+
 const DEFAULT_GOAL_ORDER = ['trust', 'awareness', 'sales'] as const;
 
 function scoreGoal(definition: GoalDefinition, text: string) {
@@ -339,7 +462,10 @@ export function normalizeBusinessGoalInput(input: string): BusinessGoalOption {
 }
 
 export function getPostGoalSuggestionsForBusinessGoal(businessGoalId: string) {
-  return POST_GOAL_LIBRARY[businessGoalId] ?? [];
+  return (POST_GOAL_LIBRARY[businessGoalId] ?? []).map(goal => ({
+    ...goal,
+    ...POST_GOAL_PREVIEWS[goal.id]
+  }));
 }
 
 export function suggestPostGoalAutocomplete(input: string, businessGoalId: string) {
@@ -357,7 +483,7 @@ export function suggestPostGoalAutocomplete(input: string, businessGoalId: strin
 }
 
 export function createPostGoalFolder(
-  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt'>,
+  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground'>,
   businessGoal: Pick<BusinessGoalOption, 'id' | 'title'>,
   source: PostGoalFolder['source']
 ): PostGoalFolder {
@@ -370,6 +496,9 @@ export function createPostGoalFolder(
     description: suggestion.description,
     taxonomyTags: suggestion.taxonomyTags,
     assistantPrompt: suggestion.assistantPrompt,
+    previewTitle: suggestion.previewTitle,
+    previewCaption: suggestion.previewCaption,
+    previewBackground: suggestion.previewBackground,
     businessGoalId: businessGoal.id,
     businessGoalTitle: businessGoal.title,
     createdAt,
