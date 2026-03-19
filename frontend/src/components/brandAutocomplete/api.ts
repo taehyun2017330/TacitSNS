@@ -1,4 +1,4 @@
-import { BRAND_AUTOCOMPLETE_API_URL } from '../../config/api';
+import { autocompleteApiFetch } from '../../config/api';
 import type {
   BrandAutocompleteResponse,
   BrandContext,
@@ -22,7 +22,7 @@ export async function requestSuggestions({
   sessionId,
   modelConfig
 }: SuggestionRequestPayload): Promise<BrandAutocompleteResponse> {
-  const response = await fetch(`${BRAND_AUTOCOMPLETE_API_URL}/api/suggestions`, {
+  const response = await autocompleteApiFetch('/api/suggestions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -46,7 +46,7 @@ export async function requestSentenceAnnotation({
   sentenceText: string;
   modelConfig: ModelConfig;
 }): Promise<SentenceAnnotation> {
-  const response = await fetch(`${BRAND_AUTOCOMPLETE_API_URL}/api/annotate`, {
+  const response = await autocompleteApiFetch('/api/annotate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

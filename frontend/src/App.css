@@ -1,3 +1,359 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap');
+
+:root {
+  --app-bg: #f5f2ec;
+  --app-bg-accent: #ece5d9;
+  --surface-0: rgba(255, 253, 250, 0.78);
+  --surface-1: #fffdf9;
+  --surface-2: #f5eee3;
+  --surface-3: #ede3d4;
+  --ink-strong: #1e1d1a;
+  --ink-body: #4c473f;
+  --ink-soft: #746d62;
+  --line-strong: #c9bdab;
+  --line-soft: rgba(97, 81, 59, 0.14);
+  --accent: #214f4a;
+  --accent-strong: #163d39;
+  --accent-soft: #dce9e5;
+  --warn-soft: #f5e7d5;
+  --warn-ink: #8b5a1b;
+  --shadow-soft: 0 24px 60px rgba(77, 58, 35, 0.08);
+  --shadow-card: 0 18px 40px rgba(62, 50, 34, 0.08);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Manrope', 'Avenir Next', 'Helvetica Neue', sans-serif;
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 24rem),
+    linear-gradient(180deg, #f8f7f4 0%, var(--app-bg) 36%, #eeebe4 100%);
+  color: var(--ink-body);
+  font-family: var(--font-body);
+}
+
+.brand-onboarding-screen {
+  position: relative;
+  background: transparent !important;
+}
+
+.brand-onboarding-screen::before {
+  content: '';
+  position: absolute;
+  inset: 1.25rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(33, 79, 74, 0.08);
+  pointer-events: none;
+}
+
+.brand-onboarding-error {
+  margin-bottom: 1.35rem;
+  padding: 0.95rem 1.15rem;
+  border-radius: 1rem;
+  background: #fbede7;
+  border: 1px solid rgba(155, 61, 38, 0.14);
+  color: #9b3d26;
+  line-height: 1.55;
+}
+
+.brand-onboarding-card {
+  position: relative;
+  background: color-mix(in srgb, var(--surface-1) 88%, white 12%) !important;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-soft) !important;
+  overflow: hidden;
+}
+
+.brand-onboarding-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 0.45rem;
+  background: linear-gradient(90deg, #294a45 0%, #516d63 52%, #dcc3a3 100%);
+  opacity: 0.9;
+}
+
+.brand-onboarding-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.35rem, 4vw, 3.45rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink-strong);
+}
+
+.brand-onboarding-card > p {
+  max-width: 42rem;
+  color: var(--ink-soft) !important;
+  font-size: 1rem;
+}
+
+.brand-onboarding-form {
+  position: relative;
+}
+
+.brand-onboarding-form label {
+  color: var(--ink-body) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-onboarding-field {
+  height: 3.5rem;
+  border-radius: 999px !important;
+  border: 1px solid var(--line-strong) !important;
+  background: rgba(255, 250, 243, 0.94) !important;
+  color: var(--ink-strong) !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.brand-onboarding-field:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 4px rgba(33, 79, 74, 0.12) !important;
+}
+
+.brand-onboarding-tip {
+  background: linear-gradient(135deg, #f7f0e5 0%, #f4ebdc 100%) !important;
+  border: 1px solid rgba(125, 97, 54, 0.14) !important;
+  border-left: 4px solid #af8d5a !important;
+  border-radius: 1rem !important;
+}
+
+.brand-onboarding-tip p,
+.brand-onboarding-tip li {
+  color: #6a5740 !important;
+}
+
+.brand-onboarding-progress {
+  background: rgba(255, 250, 243, 0.7) !important;
+  border: 1px solid var(--line-soft) !important;
+  border-radius: 1rem !important;
+}
+
+.brand-onboarding-divider {
+  border-top-color: rgba(97, 81, 59, 0.12) !important;
+}
+
+.brand-onboarding-next-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.9rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-body);
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.brand-onboarding-next-btn.is-ready {
+  background: var(--accent);
+  color: #f8f4ee;
+  box-shadow: 0 16px 30px rgba(33, 79, 74, 0.18);
+}
+
+.brand-onboarding-next-btn.is-ready:hover {
+  transform: translateY(-1px);
+  background: var(--accent-strong);
+  box-shadow: 0 18px 34px rgba(22, 61, 57, 0.22);
+}
+
+.brand-onboarding-next-btn.is-disabled {
+  background: #d7d0c4;
+  color: #7b7468;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.brand-onboarding-next-btn svg {
+  flex-shrink: 0;
+}
+
+.brand-autocomplete .header h1,
+.post-studio-title,
+.initial-title {
+  font-family: var(--font-display);
+}
+
+.debug-drawer-toggle {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 1200;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5.5rem;
+  padding: 0.8rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(97, 81, 59, 0.14);
+  background: rgba(255, 250, 243, 0.92);
+  color: var(--ink-body);
+  box-shadow: 0 10px 24px rgba(62, 50, 34, 0.08);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.debug-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1190;
+  width: min(22rem, 88vw);
+  height: 100vh;
+  padding: 1.25rem;
+  background: rgba(255, 250, 243, 0.97);
+  border-right: 1px solid rgba(97, 81, 59, 0.1);
+  box-shadow: 0 24px 60px rgba(62, 50, 34, 0.12);
+  backdrop-filter: blur(18px);
+  transform: translateX(calc(-100% - 1.5rem));
+  transition: transform 220ms ease;
+  overflow-y: auto;
+}
+
+.debug-drawer.open {
+  transform: translateX(0);
+}
+
+.debug-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.debug-drawer-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+.debug-drawer-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink-strong);
+}
+
+.debug-drawer-close {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 247, 238, 1);
+  color: var(--ink-soft);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.debug-drawer-section {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(97, 81, 59, 0.1);
+  background: rgba(255, 250, 243, 0.85);
+}
+
+.debug-drawer-label {
+  margin-bottom: 0.8rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.debug-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.debug-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.debug-pill.subtle {
+  background: rgba(233, 226, 214, 0.9);
+  color: var(--ink-body);
+}
+
+.debug-action-list,
+.debug-sample-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.debug-action,
+.debug-sample-card {
+  width: 100%;
+  text-align: left;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 247, 238, 0.98);
+  color: var(--ink-body);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.debug-action:hover,
+.debug-sample-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 79, 74, 0.18);
+  background: rgba(255, 250, 243, 1);
+}
+
+.debug-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.debug-sample-title {
+  font-weight: 700;
+  color: var(--ink-strong);
+  margin-bottom: 0.35rem;
+}
+
+.debug-sample-description {
+  font-size: 0.87rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
@@ -14,6 +370,11 @@
     background: #ffffff !important;
     border: 2px solid #d1d5db !important;
     box-shadow: none !important;
+  }
+
+  .brand-onboarding-card::after,
+  .brand-onboarding-screen::before {
+    display: none !important;
   }
 
   .brand-onboarding-form input,

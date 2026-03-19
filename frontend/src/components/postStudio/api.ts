@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../../config/api';
+import { apiFetch } from '../../config/api';
 import type { FeedbackData, PostNode } from '../history/types';
 import type { EditOptions, PostStudioActionType } from './types';
 
@@ -23,7 +23,7 @@ export async function requestPostGeneration({
   actionType: PostStudioActionType;
   editOptions?: EditOptions;
 }) {
-  const response = await fetch(`${API_BASE_URL}/api/generate-post-images`, {
+  const response = await apiFetch('/api/generate-post-images', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -16,6 +16,13 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Mode target: light mode only for now
 - Anti-reference: should not feel like obviously vibe-coded UI
 
+## First Pass Decisions
+- Use warm paper backgrounds rather than cold white dashboards.
+- Use editorial serif headings with restrained sans-serif body text.
+- Use deep teal as the primary action color instead of generic bright blue.
+- Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
+- Preserve the trace board's internal layout logic while restyling the shell around it.
+
 ## Capture Checklist
 - Color tokens and semantic usage
 - Typography hierarchy

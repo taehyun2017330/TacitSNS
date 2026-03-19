@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { API_BASE_URL } from '../../config/api';
+import { apiFetch } from '../../config/api';
 import type { BrandData } from '../../types/brand';
 import BrandAutocomplete from '../BrandAutocomplete';
 
@@ -71,6 +71,7 @@ function canContinue(brandData: BrandData) {
 const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
   const [brandData, setBrandData] = useState<BrandData>(INITIAL_BRAND_DATA);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const isReadyToContinue = canContinue(brandData);
   const descriptionStatus = getDescriptionStatus(brandData.description.length);
@@ -86,9 +87,10 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
+    setSubmitError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/brand/create`, {
+      const response = await apiFetch('/brand/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(brandData)
@@ -102,6 +104,10 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
       onNext(data.brand);
     } catch (error) {
       console.error('Error creating brand:', error);
+      setSubmitError(
+        'The backend is not reachable, so the prototype is continuing with your local form data. Start `python main_simple.py` in `backend` when you want live generation.'
+      );
+      onNext(brandData);
     } finally {
       setLoading(false);
     }
@@ -114,6 +120,8 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Tell us about your brand</h1>
           <p className="text-gray-600 mb-8">Start with the basics, then describe it in your own words</p>
 
+          {submitError && <div className="brand-onboarding-error">{submitError}</div>}
+
           <form onSubmit={handleSubmit} className="brand-onboarding-form space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -123,8 +131,7 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
                 <input
                   type="text"
                   required
-                  className="brand-onboarding-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  style={{ fontWeight: 400, height: '48px', fontSize: '16px' }}
+                  className="brand-onboarding-input brand-onboarding-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={brandData.name}
                   onChange={event => handleFieldChange('name', event.target.value)}
                   placeholder="Enter your brand name"
@@ -137,8 +144,7 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
                 </label>
                 <select
                   required
-                  className="brand-onboarding-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  style={{ fontWeight: 400, height: '48px', fontSize: '16px' }}
+                  className="brand-onboarding-input brand-onboarding-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={brandData.category}
                   onChange={event => handleFieldChange('category', event.target.value)}
                 >
@@ -227,34 +233,8 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
 
                 <button
                   type="submit"
-                  className="brand-onboarding-next-btn"
+                  className={`brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
                   disabled={loading || !isReadyToContinue}
-                  style={{
-                    padding: '12px 32px',
-                    borderRadius: '8px',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    border: 'none',
-                    cursor: isReadyToContinue ? 'pointer' : 'not-allowed',
-                    backgroundColor: isReadyToContinue ? '#2563eb' : '#d1d5db',
-                    color: isReadyToContinue ? '#ffffff' : '#6b7280',
-                    transition: 'all 0.2s',
-                    fontSize: '16px'
-                  }}
-                  onMouseEnter={event => {
-                    if (isReadyToContinue) {
-                      event.currentTarget.style.backgroundColor = '#1d4ed8';
-                      event.currentTarget.style.transform = 'scale(1.05)';
-                    }
-                  }}
-                  onMouseLeave={event => {
-                    if (isReadyToContinue) {
-                      event.currentTarget.style.backgroundColor = '#2563eb';
-                      event.currentTarget.style.transform = 'scale(1)';
-                    }
-                  }}
                 >
                   {loading ? (
                     <span>Processing...</span>
