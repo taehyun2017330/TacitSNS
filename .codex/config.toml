@@ -105,3 +105,7 @@ config_file = "agents/architect.toml"
 [agents.trace_guardian]
 description = "Read-only specialist for trace/history lineage, persistence, and UI semantics."
 config_file = "agents/trace-guardian.toml"
+
+[agents.checkpoint_keeper]
+description = "Read-only checkpoint planner that keeps commits small, coherent, and recoverable."
+config_file = "agents/checkpoint-keeper.toml"

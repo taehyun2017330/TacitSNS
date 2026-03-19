@@ -12,6 +12,7 @@
 
 ## Persistent Agent Roles
 - `architect`: protects code boundaries, flags oversized context sinks, and recommends extractions before they become painful.
+- `checkpoint_keeper`: decides whether the current work should be committed now or split into smaller checkpoints first.
 - `explorer`: traces the real execution path and gathers file-level evidence.
 - `trace_guardian`: reviews lineage, node creation, feedback persistence, and history-board semantics.
 - `reviewer`: checks correctness, regressions, security, and missing tests before a checkpoint lands.
@@ -23,11 +24,22 @@
 - `image-generation`: `backend/main_simple.py`, `backend/image_generation_final.py`, `backend/services/gemini_service.py`
 - `design-system`: `frontend/src/index.css`, component CSS files, `docs/design-system/*`
 
+## Product Subsystems
+- `intent-elicitation`: onboarding, brand inputs, post goals, scenario framing, goal hierarchy
+- `goal-translation`: business goals to post goals to visual strategies
+- `generation-feedback`: 2x2 image batches, rationales, ratings, selective exploration
+- `dynamic-clarification`: summarize, probe, clarify, challenge, commit triggers and UI
+- `goal-visual-sensemaking`: explain why an image was suggested and which visual elements support which goals
+- `trace-memory`: branching history, revoked or reinforced preferences, deltas, remembered conversations
+- `publishing`: export, upload, and platform-specific post adaptation
+
 ## Default Allocation Rules
 - Do not have two workers edit the same ownership zone at the same time.
+- Do not split a single product subsystem across multiple workers unless the interfaces are already explicit.
 - If a task touches `workspace-trace`, run `trace_guardian` before closing it.
 - If a task touches an external library, model API, or framework behavior, run `docs_researcher` before relying on assumptions.
 - If a task adds logic to a file that already acts like a controller, ask `architect` first whether the logic should be extracted.
+- Ask `checkpoint_keeper` before a commit whenever the diff has grown across setup, refactor, feature, and style work.
 - Use `reviewer` before committing any non-trivial change.
 
 ## Current Refactor Pressure Points
@@ -65,22 +77,25 @@ Most relevant first skills for this repo:
 
 ## Recommended Next Sequence
 1. Run `architect` once on the current UI/backend hotspots before the next major feature slice.
-2. Run `$teach-impeccable` against the current UI and write `.impeccable.md`.
-3. Clean up the current interface without changing core behavior yet.
-4. Update `docs/design-system/design-sheet.html`.
-5. Update `docs/design-system/design-sheet.md`.
-6. Commit that design pass as its own checkpoint.
+2. Use `docs/system-ownership.md` as the canonical subsystem map for future planning.
+3. Run `$teach-impeccable` against the current UI and write `.impeccable.md`.
+4. Clean up the current interface without changing core behavior yet.
+5. Update `docs/design-system/design-sheet.html`.
+6. Update `docs/design-system/design-sheet.md`.
+7. Commit that design pass as its own checkpoint.
 
 ## Practical Workflow For This Repo
 1. Main agent scopes the task and assigns a single ownership zone.
 2. `explorer` or `architect` checks the affected files if the task is large.
 3. A worker implements only that bounded slice.
 4. `trace_guardian` runs if history or branching behavior changed.
-5. `reviewer` runs before commit.
-6. Main agent verifies build/compile behavior and creates a small commit.
+5. `checkpoint_keeper` decides whether the diff is one checkpoint or should be split.
+6. `reviewer` runs before commit.
+7. Main agent verifies build/compile behavior and creates a small commit.
 
 ## Design References
 - `docs/design-system/design-sheet.html`
 - `docs/design-system/design-sheet.md`
 - `AGENTS.md`
 - `.codex/AGENTS.md`
+- `docs/system-ownership.md`

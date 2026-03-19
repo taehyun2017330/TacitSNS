@@ -20,6 +20,8 @@ Treat the current workshop demo as the baseline system, not as throwaway code.
 - Use small, focused commits.
 - Separate setup commits from feature commits.
 - Do not rewrite branch history unless explicitly requested.
+- Prefer checkpoint commits at stable milestones over saving every tiny edit.
+- Before a commit, make sure the diff represents one coherent change: refactor, feature slice, bug fix, or design pass.
 
 ## Design Workflow
 - Keep a persistent design reference in `docs/design-system/design-sheet.html`.
