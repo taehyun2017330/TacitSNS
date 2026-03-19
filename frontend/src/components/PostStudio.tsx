@@ -396,7 +396,7 @@ const PostStudio: React.FC<Props> = ({
           </div>
 
           <button
-            className="primary"
+            className="primary studio-primary-cta"
             onClick={handleInitialGeneration}
             disabled={isGenerating}
           >

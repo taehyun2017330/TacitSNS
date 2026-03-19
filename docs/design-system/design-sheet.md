@@ -30,6 +30,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Typography hierarchy
 - Button variants
 - Button resting-state visibility and disabled-state treatment
+- Hero CTA treatment for the main generation action
 - Chips, badges, and feedback markers
 - Inputs, sliders, and form control focus states
 - Grid card behavior
@@ -44,5 +45,6 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Avoid introducing a second, conflicting design system.
 - Keep history/trace views visually explicit and stable.
 - Primary actions must remain clearly visible without hover.
+- The main generation CTA may use a stronger primary treatment than secondary primary buttons.
 - Scrollbars should feel integrated into the paper/editorial surface rather than staying browser-default.
 - Grids should read as quiet comparison tools, not loud gallery cards.
