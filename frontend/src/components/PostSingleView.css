@@ -10,43 +10,20 @@
 .single-view-header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   padding: 1rem 1.25rem;
   background: rgba(255, 253, 249, 0.86);
   border-bottom: 1px solid rgba(97, 81, 59, 0.1);
 }
 
 .back-btn {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  min-height: 2.85rem;
-  padding: 0.7rem 1rem;
-  background: rgba(255, 252, 248, 0.96);
-  border: 1px solid rgba(97, 81, 59, 0.12);
-  border-radius: 999px;
-  color: var(--ink-body);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
-}
-
-.back-btn:hover {
-  background: rgba(255, 247, 238, 1);
-  color: var(--ink-body);
 }
 
 .single-view-content {
   display: flex;
   flex: 1;
-  gap: 20px;
+  gap: 18px;
   padding: 1.25rem;
   overflow: auto;
 }
@@ -64,7 +41,7 @@
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(97, 81, 59, 0.08);
-  box-shadow: 0 14px 28px rgba(62, 50, 34, 0.05);
+  box-shadow: 0 10px 22px rgba(62, 50, 34, 0.04);
   aspect-ratio: 1 / 1;
   max-width: 600px;
   margin: 0 auto;
@@ -122,7 +99,7 @@
   width: 380px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .action-buttons {
@@ -132,35 +109,9 @@
 
 .action-btn {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 8px;
   min-height: 2.95rem;
   padding: 0.8rem 1rem;
-  -webkit-appearance: none;
-  appearance: none;
-  background: rgba(255, 250, 243, 0.9);
-  border: 1px solid rgba(97, 81, 59, 0.1);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-body);
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.action-btn:hover {
-  background: rgba(255, 247, 238, 1);
-  border-color: rgba(97, 81, 59, 0.18);
-  transform: translateY(-1px);
 }
 
 .action-btn.active {
@@ -169,32 +120,14 @@
   color: var(--accent);
 }
 
-.action-btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
-  box-shadow: 0 10px 20px rgba(33, 79, 74, 0.16);
-}
-
-.action-btn.primary:hover {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-  box-shadow: 0 16px 26px rgba(22, 61, 57, 0.16);
-}
-
-.action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Edit Panel */
 .edit-panel,
 .caption-panel {
   background: rgba(255, 252, 248, 0.9);
   border-radius: 18px;
-  padding: 1.1rem;
+  padding: 1rem;
   border: 1px solid rgba(97, 81, 59, 0.08);
-  box-shadow: 0 12px 24px rgba(62, 50, 34, 0.05);
+  box-shadow: 0 10px 22px rgba(62, 50, 34, 0.04);
 }
 
 .panel-title {
@@ -232,20 +165,10 @@
 
 .edit-chip {
   padding: 0.45rem 0.7rem;
-  -webkit-appearance: none;
-  appearance: none;
-  background: rgba(255, 250, 243, 0.92);
-  border: 1px solid rgba(97, 81, 59, 0.12);
   border-radius: 999px;
   font-size: 0.76rem;
   font-weight: 600;
   color: var(--ink-body);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.edit-chip:hover {
-  background: rgba(255, 247, 238, 1);
 }
 
 .edit-chip.selected {

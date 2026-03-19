@@ -23,6 +23,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Keep most surfaces neutral and let warmth appear as accent rather than full-screen tint.
 - Use pill-shaped controls, quieter borders, and lower-contrast cards for a cleaner expert feel.
 - Limit the system to three button families: primary CTA, secondary surface button, and choice/chip button.
+- Use sentence-case for primary and secondary buttons; reserve uppercase pressure for labels and compact choice controls.
+- Reduce right-rail and helper-panel chrome so guidance does not compete with the main workspace.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
 - Preserve the trace board's internal layout logic while restyling the shell around it.
 
