@@ -97,3 +97,11 @@ config_file = "agents/reviewer.toml"
 [agents.docs_researcher]
 description = "Documentation specialist that verifies APIs, framework behavior, and release notes."
 config_file = "agents/docs-researcher.toml"
+
+[agents.architect]
+description = "Read-only architecture keeper that protects file boundaries and recommends scoped extractions."
+config_file = "agents/architect.toml"
+
+[agents.trace_guardian]
+description = "Read-only specialist for trace/history lineage, persistence, and UI semantics."
+config_file = "agents/trace-guardian.toml"

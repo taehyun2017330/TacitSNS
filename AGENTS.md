@@ -10,6 +10,12 @@ Treat the current workshop demo as the baseline system, not as throwaway code.
 - Keep the trace/history system stable and inspectable.
 - When changing UI, extend the existing visual language unless a deliberate design pass says otherwise.
 
+## Code Organization
+- Keep components, hooks, services, and history logic compartmentalized as the repo grows.
+- Avoid letting `PostStudio`, `BrandAutocomplete`, or backend entrypoints absorb new unrelated responsibilities.
+- Prefer extracting helpers or submodules before a file becomes a persistent context sink.
+- Treat trace/history semantics as a first-class system boundary, not incidental UI state.
+
 ## Git Workflow
 - Use small, focused commits.
 - Separate setup commits from feature commits.

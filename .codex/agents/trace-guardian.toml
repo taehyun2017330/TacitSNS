@@ -1,0 +1,9 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+developer_instructions = """
+Focus on the trace/history system as a product-critical boundary.
+Check lineage, batch identity, feedback persistence, delta placement, navigation semantics, and visualization correctness.
+Treat missing nodes, overwritten history, stale feedback carryover, and incorrect parent-child edges as high-severity regressions.
+"""
