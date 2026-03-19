@@ -295,17 +295,28 @@ button.primary:disabled,
   width: 100%;
   min-height: 3.35rem;
   margin-top: 0.25rem;
-  background: linear-gradient(180deg, #245e57 0%, var(--accent) 100%);
-  border-color: #1a4742;
-  color: #fffaf4;
+  background: #163d39;
+  background-image: linear-gradient(180deg, #1c4a45 0%, #163d39 100%);
+  border: 1px solid #102f2c;
+  color: #fffdf8;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 14px 26px rgba(22, 61, 57, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(255, 253, 248, 0.14),
+    0 16px 28px rgba(22, 61, 57, 0.26);
 }
 
 .studio-primary-cta:hover {
-  background: linear-gradient(180deg, #1d514b 0%, var(--accent-strong) 100%);
-  border-color: #123633;
+  background: #123633;
+  background-image: linear-gradient(180deg, #18423e 0%, #123633 100%);
+  border-color: #0d2724;
+}
+
+.studio-primary-cta:focus-visible {
+  outline: 3px solid rgba(33, 79, 74, 0.18);
+  outline-offset: 3px;
 }
 
 /* Secondary Button */
