@@ -29,8 +29,11 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Color tokens and semantic usage
 - Typography hierarchy
 - Button variants
+- Button resting-state visibility and disabled-state treatment
 - Chips, badges, and feedback markers
+- Inputs, sliders, and form control focus states
 - Grid card behavior
+- Scrollbar treatment for panels and long workflows
 - Single-image editor layout
 - Trace board node rules
 - Modal spacing and sizing
@@ -40,3 +43,6 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Reuse the current workshop demo language where possible.
 - Avoid introducing a second, conflicting design system.
 - Keep history/trace views visually explicit and stable.
+- Primary actions must remain clearly visible without hover.
+- Scrollbars should feel integrated into the paper/editorial surface rather than staying browser-default.
+- Grids should read as quiet comparison tools, not loud gallery cards.

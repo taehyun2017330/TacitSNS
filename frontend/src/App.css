@@ -15,6 +15,7 @@
   --accent: #214f4a;
   --accent-strong: #163d39;
   --accent-soft: #dce9e5;
+  --accent-contrast: #f8f4ee;
   --warn-soft: #f5e7d5;
   --warn-ink: #8b5a1b;
   --shadow-soft: 0 24px 60px rgba(77, 58, 35, 0.08);
@@ -32,6 +33,35 @@ body {
     linear-gradient(180deg, #f8f7f4 0%, var(--app-bg) 36%, #eeebe4 100%);
   color: var(--ink-body);
   font-family: var(--font-body);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(33, 79, 74, 0.24) rgba(236, 229, 217, 0.9);
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(236, 229, 217, 0.76);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(33, 79, 74, 0.28);
+  border: 3px solid rgba(236, 229, 217, 0.76);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(22, 61, 57, 0.42);
 }
 
 .brand-onboarding-screen {
@@ -147,11 +177,12 @@ body {
   gap: 0.65rem;
   padding: 0.9rem 1.6rem;
   border-radius: 999px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(33, 79, 74, 0.22);
   font-family: var(--font-body);
-  font-size: 0.96rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
@@ -162,8 +193,8 @@ body {
 
 .brand-onboarding-next-btn.is-ready {
   background: var(--accent);
-  color: #f8f4ee;
-  box-shadow: 0 16px 30px rgba(33, 79, 74, 0.18);
+  color: var(--accent-contrast);
+  box-shadow: 0 10px 20px rgba(33, 79, 74, 0.18);
 }
 
 .brand-onboarding-next-btn.is-ready:hover {

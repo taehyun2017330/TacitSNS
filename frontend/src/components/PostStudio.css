@@ -250,7 +250,7 @@
 /* Primary Button */
 .primary {
   background: var(--accent);
-  color: #f8f4ee;
+  color: var(--accent-contrast);
   border: 1px solid var(--accent);
   min-height: 2.9rem;
   padding: 0.82rem 1.25rem;
@@ -259,6 +259,7 @@
   font-size: 0.84rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  box-shadow: 0 10px 20px rgba(33, 79, 74, 0.16);
   cursor: pointer;
   transition:
     transform 180ms ease,
@@ -282,7 +283,7 @@
 .secondary {
   background: rgba(255, 252, 248, 0.96);
   color: var(--ink-body);
-  border: 1px solid var(--line-soft);
+  border: 1px solid rgba(97, 81, 59, 0.18);
   min-height: 2.9rem;
   padding: 0.82rem 1.15rem;
   border-radius: 999px;

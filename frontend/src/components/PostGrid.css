@@ -673,7 +673,7 @@
   -webkit-appearance: none;
   appearance: none;
   background: var(--accent);
-  color: #f8f4ee;
+  color: var(--accent-contrast);
   border: 1px solid var(--accent);
   border-radius: 999px;
   font-weight: 700;
@@ -685,6 +685,7 @@
     box-shadow 180ms ease,
     background-color 180ms ease;
   margin-top: auto;
+  box-shadow: 0 10px 20px rgba(33, 79, 74, 0.16);
 }
 
 .explore-action-btn:hover:not(:disabled) {

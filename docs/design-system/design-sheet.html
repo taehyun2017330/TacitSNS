@@ -10,10 +10,10 @@
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg: #f3eee5;
-      --bg-accent: #ece4d7;
-      --surface: #fffaf3;
-      --surface-muted: #f6efe4;
+      --bg: #f5f2ec;
+      --bg-accent: #ece5d9;
+      --surface: #fffdf9;
+      --surface-muted: #f5eee3;
       --surface-strong: #ede3d4;
       --ink-strong: #1e1d1a;
       --ink-body: #4c473f;
@@ -21,6 +21,7 @@
       --line: #c9bdab;
       --accent: #214f4a;
       --accent-strong: #163d39;
+      --accent-contrast: #f8f4ee;
       --accent-soft: #dce9e5;
       --yes: #19856e;
       --no: #c85439;
@@ -34,8 +35,8 @@
       margin: 0;
       font-family: "Manrope", "Avenir Next", "Helvetica Neue", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.72), transparent 22rem),
-        linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 28%, #efe7dc 100%);
+        radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 22rem),
+        linear-gradient(180deg, #f8f7f4 0%, var(--bg) 36%, #eeebe4 100%);
       color: var(--ink-body);
     }
     .sheet {
@@ -189,22 +190,37 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 20px;
+      min-height: 46px;
+      padding: 12px 18px;
       border-radius: 999px;
       border: 1px solid transparent;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
     .btn-primary {
       background: var(--accent);
-      color: #f8f4ee;
-      box-shadow: 0 16px 28px rgba(22, 61, 57, 0.16);
+      color: var(--accent-contrast);
+      border-color: var(--accent);
+      box-shadow: 0 10px 20px rgba(22, 61, 57, 0.16);
     }
     .btn-secondary {
-      background: rgba(255, 250, 243, 0.9);
+      background: rgba(255, 253, 249, 0.96);
       color: var(--ink-body);
-      border-color: rgba(97, 81, 59, 0.12);
+      border-color: rgba(97, 81, 59, 0.18);
+    }
+    .btn-disabled {
+      background: #d7d0c4;
+      color: #7b7468;
+      border-color: #d7d0c4;
+      box-shadow: none;
+    }
+    .btn-rule {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--ink-soft);
     }
     .field {
       min-width: 260px;
@@ -252,6 +268,75 @@
     }
     .rules strong {
       color: var(--ink-strong);
+    }
+    .grid-demo {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .grid-tile {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(97, 81, 59, 0.12);
+      background: rgba(255, 253, 249, 0.96);
+      box-shadow: 0 12px 24px rgba(62, 50, 34, 0.05);
+    }
+    .grid-visual {
+      aspect-ratio: 1 / 1;
+      background: linear-gradient(135deg, #ddd3c5 0%, #efe7db 100%);
+    }
+    .grid-meta {
+      padding: 12px;
+      border-top: 1px solid rgba(97, 81, 59, 0.08);
+      font-size: 12px;
+      color: var(--ink-soft);
+    }
+    .grid-tile.selected {
+      border-color: rgba(33, 79, 74, 0.48);
+      box-shadow: 0 16px 28px rgba(33, 79, 74, 0.1);
+    }
+    .scrollbar-demo {
+      max-height: 120px;
+      overflow: auto;
+      padding-right: 8px;
+      display: grid;
+      gap: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(33, 79, 74, 0.24) rgba(236, 229, 217, 0.9);
+    }
+    .scrollbar-demo::-webkit-scrollbar {
+      width: 12px;
+    }
+    .scrollbar-demo::-webkit-scrollbar-track {
+      background: rgba(236, 229, 217, 0.76);
+      border-radius: 999px;
+    }
+    .scrollbar-demo::-webkit-scrollbar-thumb {
+      background: rgba(33, 79, 74, 0.28);
+      border: 3px solid rgba(236, 229, 217, 0.76);
+      border-radius: 999px;
+    }
+    .scrollbar-item {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 253, 249, 0.96);
+      border: 1px solid rgba(97, 81, 59, 0.1);
+      color: var(--ink-body);
+      font-size: 13px;
+    }
+    .subsection {
+      margin-top: 18px;
+    }
+    .subsection:first-child {
+      margin-top: 0;
+    }
+    .subsection-title {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
     }
   </style>
 </head>
@@ -347,15 +432,18 @@
         <article class="card">
           <h3>Buttons</h3>
           <div class="component-row">
-            <span class="btn btn-primary">Generate 4 Post Ideas</span>
+            <span class="btn btn-primary">Generate Ideas</span>
             <span class="btn btn-secondary">Regenerate</span>
+            <span class="btn btn-disabled">Unavailable</span>
           </div>
+          <div class="btn-rule">Primary buttons must be clearly visible at rest. Hover may enhance depth, but never supply the only contrast.</div>
         </article>
         <article class="card">
           <h3>Fields</h3>
           <div class="component-row">
             <span class="field">Enter your brand name</span>
           </div>
+          <div class="btn-rule">Inputs stay quiet and bright, with accent color appearing on focus rather than in the resting state.</div>
         </article>
         <article class="card">
           <h3>Feedback Chips</h3>
@@ -365,11 +453,34 @@
             <span class="chip chip-unsure">Unsure</span>
             <span class="chip chip-active">Selected rationale</span>
           </div>
+          <div class="btn-rule">Feedback semantics may stay vivid, but surrounding cards and chrome should remain quiet.</div>
         </article>
         <article class="card">
-          <h3>Cards</h3>
-          <p>Use soft paper surfaces, long shadows, and rounded geometry. Avoid shiny glass, harsh gradients, or generic dashboard cards.</p>
+          <h3>Text Hierarchy</h3>
+          <p>Display and heading text use serif for framing. Labels, chips, and button text use compact uppercase sans to keep workflow structure explicit.</p>
         </article>
+      </div>
+      <div class="subsection">
+        <div class="subsection-title">Grid Behavior</div>
+        <div class="grid-demo">
+          <div class="grid-tile">
+            <div class="grid-visual"></div>
+            <div class="grid-meta">Quiet comparison card with square media and restrained chrome</div>
+          </div>
+          <div class="grid-tile selected">
+            <div class="grid-visual"></div>
+            <div class="grid-meta">Selection should be visible through border and shadow, not noisy overlays</div>
+          </div>
+        </div>
+      </div>
+      <div class="subsection">
+        <div class="subsection-title">Scrollbars</div>
+        <div class="scrollbar-demo">
+          <div class="scrollbar-item">Use integrated paper-toned tracks and subdued accent thumbs.</div>
+          <div class="scrollbar-item">Panels may scroll often, so default browser chrome should be softened.</div>
+          <div class="scrollbar-item">Scrollbars should read as part of the surface system, not as unrelated OS chrome.</div>
+          <div class="scrollbar-item">Keep them visible enough for utility, but never dominant.</div>
+        </div>
       </div>
     </section>
 
@@ -379,6 +490,9 @@
         <div><strong>Trace board:</strong> preserve the exact internal layout logic, node sizing behavior, edge labels, and feedback-border semantics unless explicitly redesigned as a trace-specific task.</div>
         <div><strong>Preference capture:</strong> yes / no / unsure must remain visually explicit and easy to compare across the 2x2 grid.</div>
         <div><strong>Clarification moments:</strong> when the system asks follow-up questions later, those interactions should feel editorial and confident, not chatbot-like.</div>
+        <div><strong>Buttons:</strong> primary actions must remain legible and discoverable without hover. Secondary actions should stay visible through border and text contrast alone.</div>
+        <div><strong>Grids:</strong> grid cards should support comparison first, spectacle second. Keep media square, chrome light, and selection states precise.</div>
+        <div><strong>Scroll areas:</strong> long panels, debug surfaces, and history views should use integrated custom scrollbars that match the paper-toned surface system.</div>
         <div><strong>Anti-patterns:</strong> no purple AI gradients, no generic SaaS dashboard glass cards, no “vibe-coded” neon polish, no decorative metrics.</div>
       </div>
     </section>
