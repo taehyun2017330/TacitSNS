@@ -1,0 +1,72 @@
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .brand-onboarding-screen {
+    min-height: auto !important;
+    padding: 24px !important;
+    background: #f9fafb !important;
+  }
+
+  .brand-onboarding-card {
+    background: #ffffff !important;
+    border: 2px solid #d1d5db !important;
+    box-shadow: none !important;
+  }
+
+  .brand-onboarding-form input,
+  .brand-onboarding-form select,
+  .brand-onboarding-form textarea {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1.5px solid #9ca3af !important;
+    box-shadow: none !important;
+  }
+
+  .brand-onboarding-tip {
+    background: #eef2ff !important;
+    border: 1.5px solid #6366f1 !important;
+    border-left: 4px solid #6366f1 !important;
+  }
+
+  .brand-onboarding-progress {
+    background: #f9fafb !important;
+    border: 1.5px solid #d1d5db !important;
+  }
+
+  .brand-onboarding-divider {
+    border-top: 1px solid #d1d5db !important;
+  }
+
+  .brand-onboarding-next-btn {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+    border: 2px solid #1d4ed8 !important;
+    box-shadow: none !important;
+  }
+
+  .brand-onboarding-next-btn:disabled {
+    background: #f3f4f6 !important;
+    color: #6b7280 !important;
+    border: 1.5px solid #9ca3af !important;
+    opacity: 1 !important;
+  }
+
+  .brand-onboarding-next-btn svg {
+    stroke: currentColor !important;
+  }
+
+  .brand-onboarding-form button:hover,
+  .brand-onboarding-form input:hover,
+  .brand-onboarding-form select:hover,
+  .brand-onboarding-form textarea:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,0 +1,29 @@
+.DS_Store
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+
+# Trace board visualizer
+trace-board-visualizer/node_modules/
+trace-board-visualizer/dist/
+
+# Backend
+backend/node_modules/
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+
+# Local tooling
+.claude/
+.vscode/
+
+# Environment and credentials
+backend/.env
+frontend/.env
+frontend/.env.local
+backend/firebase-credentials.json
+backend/prj-tacitsns-server.pem
+
+# Generated assets
+*.log
