@@ -233,7 +233,7 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
 
                 <button
                   type="submit"
-                  className={`brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
+                  className={`ui-btn ui-btn--primary brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
                   disabled={loading || !isReadyToContinue}
                 >
                   {loading ? (

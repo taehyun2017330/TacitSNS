@@ -52,7 +52,7 @@ const PrototypeDebugDrawer: React.FC<Props> = ({
     <>
       <button
         type="button"
-        className={`debug-drawer-toggle ${isOpen ? 'open' : ''}`}
+        className={`ui-btn ui-btn--secondary debug-drawer-toggle ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(open => !open)}
       >
         Debug
@@ -64,7 +64,7 @@ const PrototypeDebugDrawer: React.FC<Props> = ({
             <div className="debug-drawer-eyebrow">Prototype Tools</div>
             <div className="debug-drawer-title">Jump between states</div>
           </div>
-          <button type="button" className="debug-drawer-close" onClick={() => setIsOpen(false)}>
+          <button type="button" className="ui-btn ui-btn--choice debug-drawer-close" onClick={() => setIsOpen(false)}>
             ×
           </button>
         </div>
@@ -80,12 +80,12 @@ const PrototypeDebugDrawer: React.FC<Props> = ({
         <div className="debug-drawer-section">
           <div className="debug-drawer-label">Navigation</div>
           <div className="debug-action-list">
-            <button type="button" className="debug-action" onClick={onJumpToBrand}>
+            <button type="button" className="ui-btn ui-btn--secondary debug-action" onClick={onJumpToBrand}>
               Back to onboarding
             </button>
             <button
               type="button"
-              className="debug-action"
+              className="ui-btn ui-btn--secondary debug-action"
               onClick={onJumpToPost}
               disabled={!brandData}
             >
@@ -101,7 +101,7 @@ const PrototypeDebugDrawer: React.FC<Props> = ({
               <button
                 key={sample.label}
                 type="button"
-                className="debug-sample-card"
+                className="ui-btn ui-btn--secondary debug-sample-card"
                 onClick={() => onLoadSampleBrand(sample.brand)}
               >
                 <div className="debug-sample-title">{sample.label}</div>

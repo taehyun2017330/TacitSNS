@@ -324,7 +324,7 @@ const PostStudio: React.FC<Props> = ({
     <div className="post-studio">
       <div className="post-studio-header">
         <button
-          className="back-button"
+          className="ui-btn ui-btn--secondary back-button"
           onClick={handleBack}
           disabled={isGenerating}
         >
@@ -341,7 +341,7 @@ const PostStudio: React.FC<Props> = ({
         <div className="post-studio-right-actions">
           {!showInitialInput && viewMode === 'grid' && currentGridPosts.length > 0 && (
             <button
-              className="secondary regenerate-btn"
+              className="ui-btn ui-btn--secondary secondary regenerate-btn"
               onClick={handleRegenerate}
               disabled={isGenerating}
             >
@@ -350,7 +350,7 @@ const PostStudio: React.FC<Props> = ({
           )}
           {selectedPost && viewMode === 'single' && (
             <button
-              className="primary finalize-btn"
+              className="ui-btn ui-btn--primary primary finalize-btn"
               onClick={handleFinalize}
             >
               Use This Post
@@ -396,7 +396,7 @@ const PostStudio: React.FC<Props> = ({
           </div>
 
           <button
-            className="primary studio-primary-cta"
+            className="ui-btn ui-btn--primary ui-btn--hero primary studio-primary-cta"
             onClick={handleInitialGeneration}
             disabled={isGenerating}
           >

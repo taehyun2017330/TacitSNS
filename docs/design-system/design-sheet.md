@@ -22,6 +22,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Use deep teal as the primary action color instead of generic bright blue.
 - Keep most surfaces neutral and let warmth appear as accent rather than full-screen tint.
 - Use pill-shaped controls, quieter borders, and lower-contrast cards for a cleaner expert feel.
+- Limit the system to three button families: primary CTA, secondary surface button, and choice/chip button.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
 - Preserve the trace board's internal layout logic while restyling the shell around it.
 
@@ -31,6 +32,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Button variants
 - Button resting-state visibility and disabled-state treatment
 - Hero CTA treatment for the main generation action
+- Mapping from component-specific class names to the three canonical button families
 - Chips, badges, and feedback markers
 - Inputs, sliders, and form control focus states
 - Grid card behavior
@@ -46,5 +48,6 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Keep history/trace views visually explicit and stable.
 - Primary actions must remain clearly visible without hover.
 - The main generation CTA should use a clearly higher-contrast hero treatment than secondary primary buttons.
+- Do not create new button looks for individual features; reuse one of the three canonical families.
 - Scrollbars should feel integrated into the paper/editorial surface rather than staying browser-default.
 - Grids should read as quiet comparison tools, not loud gallery cards.

@@ -63,7 +63,7 @@ const PostSingleView: React.FC<Props> = ({
   return (
     <div className="post-single-view">
       <div className="single-view-header">
-        <button className="back-btn" onClick={onBack}>
+        <button className="ui-btn ui-btn--secondary back-btn" onClick={onBack}>
           <ArrowLeft size={18} />
           Back to Grid
         </button>
@@ -87,7 +87,7 @@ const PostSingleView: React.FC<Props> = ({
         <div className="actions-panel">
           <div className="action-buttons">
             <button
-              className={`action-btn ${showEditPanel ? 'active' : ''}`}
+              className={`ui-btn ui-btn--secondary action-btn ${showEditPanel ? 'active' : ''}`}
               onClick={() => setShowEditPanel(!showEditPanel)}
               disabled={isGenerating}
             >
@@ -95,7 +95,7 @@ const PostSingleView: React.FC<Props> = ({
               Edit Image
             </button>
             <button
-              className="action-btn primary"
+              className="ui-btn ui-btn--primary action-btn primary"
               onClick={onFinalize}
               disabled={isGenerating}
             >
@@ -117,7 +117,7 @@ const PostSingleView: React.FC<Props> = ({
                   {suggestedEdits.map((edit, index) => (
                     <button
                       key={index}
-                      className={`edit-chip ${selectedSuggestedEdits.includes(edit) ? 'selected' : ''}`}
+                      className={`ui-btn ui-btn--choice edit-chip ${selectedSuggestedEdits.includes(edit) ? 'selected' : ''}`}
                       onClick={() => toggleSuggestedEdit(edit)}
                     >
                       {edit}
@@ -138,7 +138,7 @@ const PostSingleView: React.FC<Props> = ({
               </div>
 
               <button
-                className="submit-btn primary"
+                className="ui-btn ui-btn--primary submit-btn primary"
                 onClick={handleEditSubmit}
                 disabled={isGenerating || (selectedSuggestedEdits.length === 0 && !customEdit.trim())}
               >

@@ -229,7 +229,7 @@ const PostGrid: React.FC<Props> = ({
                 {/* Corner Action Buttons */}
                 <div className="corner-actions">
                   <button
-                    className="corner-btn edit"
+                    className="ui-btn ui-btn--choice corner-btn edit"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleEdit(index);
@@ -245,19 +245,19 @@ const PostGrid: React.FC<Props> = ({
               <div className="feedback-section">
                 <div className="feedback-toggle">
                   <button
-                    className={`feedback-btn yes ${feedback?.type === 'yes' ? 'active' : ''}`}
+                    className={`ui-btn ui-btn--choice feedback-btn yes ${feedback?.type === 'yes' ? 'active' : ''}`}
                     onClick={() => handleFeedbackToggle(index, 'yes')}
                   >
                     ✓
                   </button>
                   <button
-                    className={`feedback-btn unsure ${feedback?.type === 'unsure' ? 'active' : ''}`}
+                    className={`ui-btn ui-btn--choice feedback-btn unsure ${feedback?.type === 'unsure' ? 'active' : ''}`}
                     onClick={() => handleFeedbackToggle(index, 'unsure')}
                   >
                     ?
                   </button>
                   <button
-                    className={`feedback-btn no ${feedback?.type === 'no' ? 'active' : ''}`}
+                    className={`ui-btn ui-btn--choice feedback-btn no ${feedback?.type === 'no' ? 'active' : ''}`}
                     onClick={() => handleFeedbackToggle(index, 'no')}
                   >
                     ✗
@@ -270,7 +270,7 @@ const PostGrid: React.FC<Props> = ({
                     {availableReasons.map((reason) => (
                       <button
                         key={reason}
-                        className={`reason-chip ${
+                        className={`ui-btn ui-btn--choice reason-chip ${
                           feedback.reasons.includes(reason) ? 'selected' : ''
                         }`}
                         onClick={() => handleReasonToggle(index, reason)}
@@ -291,7 +291,7 @@ const PostGrid: React.FC<Props> = ({
       <div className="explore-panel">
         <div className="trace-action-wrap">
           <button
-            className="history-trace-btn"
+            className="ui-btn ui-btn--secondary history-trace-btn"
             onClick={onTraceClick}
             disabled={traceDisabled}
             title={traceDisabled ? 'Generate at least one set first' : 'Open creativity trace board'}
@@ -412,7 +412,7 @@ const PostGrid: React.FC<Props> = ({
                   .map(dir => (
                     <button
                       key={dir.id}
-                      className={`direction-btn ${explorationDirection === dir.id ? 'selected' : ''} ${suggestedDirs.includes(dir.id) ? 'suggested' : ''}`}
+                      className={`ui-btn ui-btn--choice direction-btn ${explorationDirection === dir.id ? 'selected' : ''} ${suggestedDirs.includes(dir.id) ? 'suggested' : ''}`}
                       onClick={() => setExplorationDirection(dir.id)}
                     >
                       {dir.label}
@@ -425,7 +425,7 @@ const PostGrid: React.FC<Props> = ({
 
           {/* Explore Button */}
           <button
-            className="explore-action-btn"
+            className="ui-btn ui-btn--primary explore-action-btn"
             onClick={confirmExplore}
             disabled={posts.length === 0}
           >
