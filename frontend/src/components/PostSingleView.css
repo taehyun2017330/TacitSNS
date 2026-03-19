@@ -11,8 +11,8 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 20px;
-  background: rgba(255, 250, 243, 0.82);
+  padding: 1rem 1.25rem;
+  background: rgba(255, 253, 249, 0.86);
   border-bottom: 1px solid rgba(97, 81, 59, 0.1);
 }
 
@@ -20,13 +20,22 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 250, 243, 0.86);
+  min-height: 2.85rem;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 252, 248, 0.96);
   border: 1px solid rgba(97, 81, 59, 0.12);
   border-radius: 999px;
-  color: var(--ink-soft);
+  color: var(--ink-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .back-btn:hover {
@@ -37,8 +46,8 @@
 .single-view-content {
   display: flex;
   flex: 1;
-  gap: 24px;
-  padding: 24px;
+  gap: 20px;
+  padding: 1.25rem;
   overflow: auto;
 }
 
@@ -52,10 +61,10 @@
 .image-display-card {
   position: relative;
   background: color-mix(in srgb, var(--surface-1) 90%, white 10%);
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(97, 81, 59, 0.08);
-  box-shadow: 0 16px 30px rgba(62, 50, 34, 0.06);
+  box-shadow: 0 14px 28px rgba(62, 50, 34, 0.05);
   aspect-ratio: 1 / 1;
   max-width: 600px;
   margin: 0 auto;
@@ -78,24 +87,28 @@
 }
 
 .keyword-badge {
-  padding: 4px 8px;
-  background: rgba(255, 250, 243, 0.95);
+  padding: 0.35rem 0.6rem;
+  background: rgba(255, 253, 249, 0.95);
   border: 1px solid rgba(97, 81, 59, 0.08);
   border-radius: 999px;
-  font-size: 11px;
-  color: var(--ink-soft);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-body);
 }
 
 .current-caption {
-  background: rgba(255, 250, 243, 0.88);
-  padding: 16px;
-  border-radius: 18px;
+  background: rgba(255, 252, 248, 0.9);
+  padding: 1rem;
+  border-radius: 16px;
   border: 1px solid rgba(97, 81, 59, 0.08);
 }
 
 .current-caption h4 {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-soft);
 }
 
@@ -106,10 +119,10 @@
 }
 
 .actions-panel {
-  width: 400px;
+  width: 380px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .action-buttons {
@@ -123,21 +136,31 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 16px;
+  min-height: 2.95rem;
+  padding: 0.8rem 1rem;
   -webkit-appearance: none;
   appearance: none;
   background: rgba(255, 250, 243, 0.9);
   border: 1px solid rgba(97, 81, 59, 0.1);
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ink-body);
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .action-btn:hover {
   background: rgba(255, 247, 238, 1);
   border-color: rgba(97, 81, 59, 0.18);
+  transform: translateY(-1px);
 }
 
 .action-btn.active {
@@ -155,6 +178,7 @@
 .action-btn.primary:hover {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
+  box-shadow: 0 16px 26px rgba(22, 61, 57, 0.16);
 }
 
 .action-btn:disabled {
@@ -165,24 +189,24 @@
 /* Edit Panel */
 .edit-panel,
 .caption-panel {
-  background: rgba(255, 250, 243, 0.88);
-  border-radius: 20px;
-  padding: 20px;
+  background: rgba(255, 252, 248, 0.9);
+  border-radius: 18px;
+  padding: 1.1rem;
   border: 1px solid rgba(97, 81, 59, 0.08);
-  box-shadow: 0 14px 26px rgba(62, 50, 34, 0.05);
+  box-shadow: 0 12px 24px rgba(62, 50, 34, 0.05);
 }
 
 .panel-title {
-  font-size: 18px;
+  font-size: 1.15rem;
   font-weight: 600;
   margin-bottom: 4px;
   color: var(--ink-strong);
 }
 
 .panel-subtitle {
-  font-size: 14px;
+  font-size: 0.86rem;
   color: var(--ink-soft);
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
 .suggested-edits {
@@ -191,10 +215,12 @@
 
 .edits-label,
 .captions-label {
-  font-size: 14px;
+  font-size: 0.74rem;
   font-weight: 500;
-  color: var(--ink-body);
-  margin-bottom: 10px;
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
 }
 
 .edits-list {
@@ -204,13 +230,14 @@
 }
 
 .edit-chip {
-  padding: 6px 12px;
+  padding: 0.45rem 0.7rem;
   -webkit-appearance: none;
   appearance: none;
   background: rgba(255, 250, 243, 0.92);
   border: 1px solid rgba(97, 81, 59, 0.12);
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 0.76rem;
+  font-weight: 600;
   color: var(--ink-body);
   cursor: pointer;
   transition: all 0.2s;
@@ -234,20 +261,31 @@
 .custom-edit-label,
 .custom-caption label {
   display: block;
-  font-size: 14px;
+  font-size: 0.74rem;
   font-weight: 500;
-  color: #374151;
-  margin-bottom: 8px;
+  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.55rem;
 }
 
 .custom-edit-textarea,
 .custom-caption textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(97, 81, 59, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.96);
+  font-size: 0.92rem;
+  line-height: 1.55;
   resize: vertical;
+}
+
+.custom-edit-textarea:focus,
+.custom-caption textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(33, 79, 74, 0.12);
 }
 
 /* Caption Panel */
@@ -371,19 +409,27 @@
 
 .submit-btn {
   width: 100%;
-  padding: 10px 16px;
-  background: #3b82f6;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
+  min-height: 3rem;
+  padding: 0.9rem 1rem;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: #f8f4ee;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .submit-btn:hover {
-  background: #2563eb;
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 26px rgba(22, 61, 57, 0.16);
 }
 
 .submit-btn:disabled {

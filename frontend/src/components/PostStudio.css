@@ -4,40 +4,43 @@
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.45), transparent 26rem),
-    linear-gradient(180deg, rgba(243, 238, 229, 0.78) 0%, rgba(239, 231, 220, 0.9) 100%);
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.38), transparent 26rem),
+    linear-gradient(180deg, rgba(247, 244, 238, 0.92) 0%, rgba(239, 234, 227, 0.98) 100%);
 }
 
 .post-studio-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.35rem 2rem;
-  background: color-mix(in srgb, var(--surface-1) 86%, white 14%);
+  padding: 1.1rem 1.5rem;
+  background: rgba(255, 253, 249, 0.86);
   border-bottom: 1px solid rgba(97, 81, 59, 0.12);
-  box-shadow: 0 10px 30px rgba(62, 50, 34, 0.04);
+  box-shadow: 0 10px 22px rgba(62, 50, 34, 0.04);
   position: relative;
   z-index: 10;
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(14px);
 }
 
 .back-button {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0.85rem 1.1rem;
-  background: rgba(255, 250, 243, 0.86);
+  min-height: 2.85rem;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 252, 248, 0.96);
   border: 1px solid var(--line-soft);
   border-radius: 999px;
   color: var(--ink-body);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   transition:
     transform 180ms ease,
     background-color 180ms ease,
-    border-color 180ms ease;
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .back-button:hover {
@@ -54,60 +57,51 @@
 .post-studio-title-section {
   flex: 1;
   text-align: center;
+  padding: 0 1rem;
 }
 
 .post-studio-title {
-  font-size: clamp(1.8rem, 2.5vw, 2.35rem);
+  font-size: clamp(1.55rem, 2.2vw, 2rem);
   font-weight: 600;
   letter-spacing: -0.04em;
   color: var(--ink-strong);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .post-studio-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   color: var(--ink-soft);
 }
 
 .post-studio-right-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .finalize-btn {
-  background: var(--accent);
-  color: #f8f4ee;
-  border: 1px solid transparent;
-  padding: 0.9rem 1.4rem;
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease;
-}
-
-.finalize-btn:hover {
-  transform: translateY(-1px);
-  background: var(--accent-strong);
-  box-shadow: 0 16px 28px rgba(22, 61, 57, 0.18);
+  min-height: 2.9rem;
 }
 
 .history-icon-btn {
-  padding: 10px 14px;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  min-height: 2.85rem;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 252, 248, 0.96);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: var(--ink-body);
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 16px;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .history-icon-btn:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #999;
+  background: rgba(255, 248, 238, 1);
+  border-color: rgba(33, 79, 74, 0.2);
+  transform: translateY(-1px);
 }
 
 .history-icon-btn:disabled {
@@ -118,48 +112,47 @@
 .error-banner {
   background: #fbede7;
   color: #9b3d26;
-  padding: 12px 24px;
-  margin: 0 32px;
+  padding: 0.9rem 1.25rem;
+  margin: 1rem 1.5rem 0;
   border-radius: 999px;
-  margin-top: 16px;
   border: 1px solid rgba(155, 61, 38, 0.12);
 }
 
 /* Initial Input Card */
 .initial-input-card {
-  max-width: 680px;
-  margin: 56px auto;
+  max-width: 640px;
+  margin: 3rem auto;
   background: color-mix(in srgb, var(--surface-1) 92%, white 8%);
-  border-radius: 28px;
-  padding: 36px;
-  box-shadow: var(--shadow-card);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 18px 40px rgba(62, 50, 34, 0.06);
   border: 1px solid rgba(97, 81, 59, 0.1);
 }
 
 .initial-title {
-  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-size: clamp(1.85rem, 2.8vw, 2.3rem);
   font-weight: 600;
   letter-spacing: -0.04em;
   color: var(--ink-strong);
-  margin-bottom: 8px;
+  margin-bottom: 0.45rem;
 }
 
 .initial-subtitle {
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   color: var(--ink-soft);
-  margin-bottom: 24px;
-  max-width: 36rem;
+  margin-bottom: 1.25rem;
+  max-width: 32rem;
 }
 
 .initial-textarea {
   width: 100%;
-  min-height: 116px;
-  padding: 1rem 1.1rem;
+  min-height: 7.5rem;
+  padding: 1rem;
   border: 1px solid var(--line-strong);
-  border-radius: 18px;
-  background: rgba(255, 250, 243, 0.88);
+  border-radius: 16px;
+  background: rgba(255, 252, 248, 0.94);
   font-family: inherit;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   line-height: 1.6;
   color: var(--ink-strong);
   resize: vertical;
@@ -176,14 +169,15 @@
 
 /* Similarity Control */
 .similarity-control {
-  margin: 24px 0;
+  margin: 1.35rem 0;
 }
 
 .similarity-label {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 0.8rem;
   font-weight: 600;
   color: var(--ink-body);
+  font-size: 0.88rem;
 }
 
 .similarity-value {
@@ -234,22 +228,12 @@
   justify-content: flex-end;
   align-items: center;
   gap: 16px;
-  padding: 16px 32px;
-  background: white;
+  padding: 1rem 1.5rem;
+  background: transparent;
 }
 
 .regenerate-btn {
-  padding: 0.85rem 1.1rem;
-  background: rgba(255, 250, 243, 0.86);
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  font-weight: 700;
-  color: var(--ink-body);
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease;
+  min-height: 2.9rem;
 }
 
 .regenerate-btn:hover {
@@ -267,12 +251,14 @@
 .primary {
   background: var(--accent);
   color: #f8f4ee;
-  border: 1px solid transparent;
-  padding: 0.95rem 1.55rem;
+  border: 1px solid var(--accent);
+  min-height: 2.9rem;
+  padding: 0.82rem 1.25rem;
   border-radius: 999px;
   font-weight: 700;
-  font-size: 0.96rem;
-  letter-spacing: 0.01em;
+  font-size: 0.84rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   transition:
     transform 180ms ease,
@@ -294,12 +280,16 @@
 
 /* Secondary Button */
 .secondary {
-  background: rgba(255, 250, 243, 0.9);
+  background: rgba(255, 252, 248, 0.96);
   color: var(--ink-body);
   border: 1px solid var(--line-soft);
-  padding: 0.85rem 1.25rem;
+  min-height: 2.9rem;
+  padding: 0.82rem 1.15rem;
   border-radius: 999px;
   font-weight: 700;
+  font-size: 0.84rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   transition:
     transform 180ms ease,

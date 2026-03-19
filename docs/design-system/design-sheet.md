@@ -7,7 +7,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 ## Current Status
 - Baseline scaffold created.
 - Design context captured in `.impeccable.md`.
-- First visual cleanup pass is still pending.
+- First visual cleanup pass completed on onboarding and post-creation surfaces.
 
 ## Current Direction
 - Primary users: small business owners with low design literacy
@@ -20,6 +20,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Use warm paper backgrounds rather than cold white dashboards.
 - Use editorial serif headings with restrained sans-serif body text.
 - Use deep teal as the primary action color instead of generic bright blue.
+- Keep most surfaces neutral and let warmth appear as accent rather than full-screen tint.
+- Use pill-shaped controls, quieter borders, and lower-contrast cards for a cleaner expert feel.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
 - Preserve the trace board's internal layout logic while restyling the shell around it.
 
