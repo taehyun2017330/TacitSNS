@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import PostGrid from './PostGrid';
 import PostSingleView from './PostSingleView';
@@ -16,6 +16,9 @@ interface Props {
   brandName: string;
   brandCategory: string;
   brandContext: string;
+  businessGoalTitle?: string;
+  postGoalTitle?: string;
+  postGoalDescription?: string;
   onBack: () => void;
   onFinalize: (postUrl: string, postData?: any) => void;
 }
@@ -24,6 +27,9 @@ const PostStudio: React.FC<Props> = ({
   brandName,
   brandCategory,
   brandContext,
+  businessGoalTitle,
+  postGoalTitle,
+  postGoalDescription,
   onBack,
   onFinalize
 }) => {
@@ -44,6 +50,12 @@ const PostStudio: React.FC<Props> = ({
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const history = useMemo(() => buildHistoryMap(historyNodes.values()), [historyNodes]);
+
+  useEffect(() => {
+    if (!initialDirection && (postGoalDescription || businessGoalTitle)) {
+      setInitialDirection([postGoalDescription, businessGoalTitle].filter(Boolean).join(' '));
+    }
+  }, [businessGoalTitle, initialDirection, postGoalDescription]);
 
   const upsertNodes = (nodes: PostNode[]) => {
     setHistoryNodes(prev => {
@@ -328,13 +340,24 @@ const PostStudio: React.FC<Props> = ({
           onClick={handleBack}
           disabled={isGenerating}
         >
-          ← {navigationStack.length === 0 && viewMode === 'grid' ? 'Back to Brand' : 'Back'}
+          ← {navigationStack.length === 0 && viewMode === 'grid' ? 'Back to Workspace' : 'Back'}
         </button>
 
         <div className="post-studio-title-section">
           <div className="post-studio-title">Post Creative Studio</div>
           <div className="post-studio-subtitle">
-            Generate and refine social media posts for {brandName}
+            {postGoalTitle
+              ? `${postGoalTitle} for ${brandName}`
+              : `Generate and refine social media posts for ${brandName}`}
+          </div>
+          {(businessGoalTitle || postGoalDescription) && (
+            <div className="post-studio-context-line">
+              {businessGoalTitle && <span>Business goal: {businessGoalTitle}</span>}
+              {postGoalDescription && <span>{postGoalDescription}</span>}
+            </div>
+          )}
+          <div className="post-studio-breadcrumb">
+            Goal hierarchy: {businessGoalTitle || 'Business goal'} → {postGoalTitle || 'Post goal'} → Visual strategies
           </div>
         </div>
 
@@ -363,9 +386,11 @@ const PostStudio: React.FC<Props> = ({
 
       {showInitialInput && (
         <div className="initial-input-card">
-          <div className="initial-title">Let's create your social media posts</div>
+          <div className="initial-title">
+            {postGoalTitle ? `Let's create visual directions for "${postGoalTitle}"` : "Let's create your social media posts"}
+          </div>
           <div className="initial-subtitle">
-            Describe the mood or style you're looking for
+            {postGoalDescription || 'Describe the mood or style you are looking for'}
           </div>
           <textarea
             className="initial-textarea"

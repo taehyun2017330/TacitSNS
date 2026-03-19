@@ -75,6 +75,29 @@
   margin: 0 auto;
 }
 
+.post-studio-context-line,
+.post-studio-breadcrumb {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.post-studio-context-line span,
+.post-studio-breadcrumb {
+  line-height: 1.45;
+}
+
+.post-studio-context-line span {
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(245, 238, 227, 0.88);
+  border: 1px solid rgba(97, 81, 59, 0.12);
+}
+
 .post-studio-right-actions {
   display: flex;
   gap: 10px;
@@ -242,6 +265,30 @@
 .studio-primary-cta {
   width: 100%;
   margin-top: 0.35rem;
+}
+
+@media (max-width: 960px) {
+  .post-studio-header {
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: stretch;
+  }
+
+  .post-studio-title-section {
+    text-align: left;
+    padding: 0;
+  }
+
+  .post-studio-subtitle,
+  .post-studio-context-line,
+  .post-studio-breadcrumb {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .post-studio-right-actions {
+    justify-content: flex-end;
+  }
 }
 
 /* Print Styles - Ensure colors show in PDF */

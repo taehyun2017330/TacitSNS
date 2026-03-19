@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
+import { inferBusinessGoalOptions } from '../../data/goalHierarchy';
 import { apiFetch } from '../../config/api';
 import type { BrandData } from '../../types/brand';
+import type { BusinessGoalOption, OnboardingResult } from '../../types/workspace';
 import BrandAutocomplete from '../BrandAutocomplete';
+import BusinessGoalSelector from './BusinessGoalSelector';
 
 const INDUSTRY_OPTIONS = [
   { value: 'technology', label: 'Technology' },
@@ -20,6 +23,7 @@ const INDUSTRY_OPTIONS = [
 const INITIAL_BRAND_DATA: BrandData = {
   name: '',
   category: '',
+  identity: '',
   description: '',
   style: 'modern',
   colors: [],
@@ -27,54 +31,53 @@ const INITIAL_BRAND_DATA: BrandData = {
 };
 
 interface Props {
-  onNext: (brandData: BrandData) => void;
+  onComplete: (result: OnboardingResult) => void;
 }
 
-function getDescriptionStatus(descriptionLength: number) {
-  if (descriptionLength < 50) {
-    return {
-      icon: '⚠️',
-      message: 'Keep writing - add more detail about your brand',
-      textColorClass: 'text-orange-600',
-      iconColorClass: 'text-orange-500',
-      barColorClass: 'bg-orange-400'
-    };
-  }
-
-  if (descriptionLength < 100) {
-    return {
-      icon: '💡',
-      message: 'Good start! Consider adding more about what makes you unique',
-      textColorClass: 'text-blue-600',
-      iconColorClass: 'text-blue-500',
-      barColorClass: 'bg-blue-400'
-    };
-  }
-
-  return {
-    icon: '✅',
-    message: 'Great description! Ready to continue',
-    textColorClass: 'text-green-600',
-    iconColorClass: 'text-green-500',
-    barColorClass: 'bg-green-400'
-  };
-}
-
-function canContinue(brandData: BrandData) {
+function canGenerateGoals(brandData: BrandData) {
   return Boolean(
-    brandData.name.trim().length > 0 &&
-      brandData.category.length > 0 &&
-      brandData.description.trim().length > 10
+    brandData.name.trim() &&
+      brandData.category.trim() &&
+      brandData.identity.trim().length > 12 &&
+      brandData.description.trim().length > 24
   );
 }
 
-const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
+function canContinue(brandData: BrandData, selectedGoalIds: string[]) {
+  return canGenerateGoals(brandData) && selectedGoalIds.length > 0;
+}
+
+const BrandInfoStep: React.FC<Props> = ({ onComplete }) => {
   const [brandData, setBrandData] = useState<BrandData>(INITIAL_BRAND_DATA);
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([]);
+  const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  const isReadyToContinue = canContinue(brandData);
-  const descriptionStatus = getDescriptionStatus(brandData.description.length);
+  const inferredGoals = useMemo(
+    () => inferBusinessGoalOptions(brandData),
+    [brandData]
+  );
+  const businessGoalOptions = useMemo(() => {
+    const merged = [...inferredGoals];
+    customGoalOverrides.forEach(customGoal => {
+      const existingIndex = merged.findIndex(goal => goal.id === customGoal.id);
+      if (existingIndex >= 0) {
+        merged[existingIndex] = {
+          ...merged[existingIndex],
+          ...customGoal,
+          isRecommended: true,
+          rank: 1
+        };
+      } else {
+        merged.unshift(customGoal);
+      }
+    });
+    return merged;
+  }, [customGoalOverrides, inferredGoals]);
+
+  const isReadyToContinue = canContinue(brandData, selectedGoalIds);
+  const canShowGoals = canGenerateGoals(brandData);
   const brandContext = {
     brandName: brandData.name || 'Your Brand',
     brandCategory: brandData.category || 'General'
@@ -84,10 +87,39 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
     setBrandData(prev => ({ ...prev, [field]: value }));
   };
 
+  const toggleGoalSelection = (goal: BusinessGoalOption) => {
+    setSelectedGoalIds(prev =>
+      prev.includes(goal.id)
+        ? prev.filter(goalId => goalId !== goal.id)
+        : [...prev, goal.id]
+    );
+  };
+
+  const addCustomGoal = (goal: BusinessGoalOption) => {
+    setCustomGoalOverrides(prev => {
+      const filtered = prev.filter(existingGoal => existingGoal.id !== goal.id);
+      return [
+        {
+          ...goal,
+          isRecommended: true,
+          rank: 1
+        },
+        ...filtered
+      ];
+    });
+    setSelectedGoalIds(prev => (prev.includes(goal.id) ? prev : [...prev, goal.id]));
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!isReadyToContinue) {
+      return;
+    }
+
     setLoading(true);
     setSubmitError('');
+
+    const selectedBusinessGoals = businessGoalOptions.filter(goal => selectedGoalIds.includes(goal.id));
 
     try {
       const response = await apiFetch('/brand/create', {
@@ -101,50 +133,91 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
       }
 
       const data = await response.json();
-      onNext(data.brand);
+      onComplete({
+        brand: {
+          ...brandData,
+          ...data.brand
+        },
+        selectedBusinessGoals,
+        activeBusinessGoalId: selectedBusinessGoals[0]?.id ?? businessGoalOptions[0]?.id ?? 'trust'
+      });
     } catch (error) {
       console.error('Error creating brand:', error);
       setSubmitError(
-        'The backend is not reachable, so the prototype is continuing with your local form data. Start `python main_simple.py` in `backend` when you want live generation.'
+        'The backend is not reachable, so the prototype is continuing with your local brand profile. Start `python main_simple.py` in `backend` when you want live generation.'
       );
-      onNext(brandData);
+      onComplete({
+        brand: brandData,
+        selectedBusinessGoals,
+        activeBusinessGoalId: selectedBusinessGoals[0]?.id ?? businessGoalOptions[0]?.id ?? 'trust'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="brand-onboarding-screen min-h-screen bg-gray-50 flex items-center justify-center p-8">
-      <div className="max-w-4xl w-full">
-        <div className="brand-onboarding-card bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Tell us about your brand</h1>
-          <p className="text-gray-600 mb-8">Start with the basics, then describe it in your own words</p>
+    <main className="brand-onboarding-screen">
+      <div className="brand-onboarding-layout">
+        <section className="brand-onboarding-intro">
+          <div className="screen-eyebrow">Brand setup</div>
+          <h1>Externalize the brand first. Then choose the goals this post system should optimize for.</h1>
+          <p>
+            Small business owners usually do not start with a clean creative brief. This onboarding turns
+            brand intuition into broad business goals that can later branch into post-goal folders and visual strategies.
+          </p>
+
+          <div className="brand-hierarchy-preview">
+            <div className="brand-hierarchy-step">
+              <span>1</span>
+              <div>
+                <strong>Brand identity</strong>
+                <p>Name the business, its audience, and the feeling it should carry.</p>
+              </div>
+            </div>
+            <div className="brand-hierarchy-step">
+              <span>2</span>
+              <div>
+                <strong>Business goals</strong>
+                <p>Choose broad outcomes like trust, awareness, education, engagement, or sales.</p>
+              </div>
+            </div>
+            <div className="brand-hierarchy-step">
+              <span>3</span>
+              <div>
+                <strong>Post-goal folders</strong>
+                <p>Create narrower content goals that open into the 2x2 generation workspace.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="brand-onboarding-card">
+          <div className="screen-eyebrow">Onboarding</div>
+          <h2>Tell the system who this brand is.</h2>
+          <p className="brand-onboarding-subtitle">
+            Write enough that the AI can infer why this brand is posting in the first place.
+          </p>
 
           {submitError && <div className="brand-onboarding-error">{submitError}</div>}
 
-          <form onSubmit={handleSubmit} className="brand-onboarding-form space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Brand Name *
-                </label>
+          <form onSubmit={handleSubmit} className="brand-onboarding-form">
+            <div className="brand-onboarding-grid">
+              <label className="brand-onboarding-block">
+                <span>Brand name</span>
                 <input
                   type="text"
-                  required
-                  className="brand-onboarding-input brand-onboarding-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="brand-onboarding-field"
                   value={brandData.name}
                   onChange={event => handleFieldChange('name', event.target.value)}
-                  placeholder="Enter your brand name"
+                  placeholder="e.g., Aster Vale"
                 />
-              </div>
+              </label>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Industry *
-                </label>
+              <label className="brand-onboarding-block">
+                <span>Industry</span>
                 <select
-                  required
-                  className="brand-onboarding-input brand-onboarding-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="brand-onboarding-field"
                   value={brandData.category}
                   onChange={event => handleFieldChange('category', event.target.value)}
                 >
@@ -155,104 +228,78 @@ const BrandInfoStep: React.FC<Props> = ({ onNext }) => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </label>
             </div>
 
-            {brandData.name && brandData.category ? (
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Brand Description * (Use AI autocomplete to help craft your story)
-                </label>
-                <div className="brand-onboarding-tip bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg mb-4">
-                  <p className="text-sm text-indigo-900 font-medium mb-2">💡 What to include:</p>
-                  <ul className="text-sm text-indigo-800 space-y-1">
-                    <li>• What your brand does and who it's for</li>
-                    <li>• The problem you solve or need you address</li>
-                    <li>• What makes your brand unique and special</li>
-                    <li>• The feeling or values you want to convey</li>
-                  </ul>
-                </div>
+            <label className="brand-onboarding-block">
+              <span>Brand identity</span>
+              <textarea
+                className="brand-onboarding-textarea"
+                rows={3}
+                value={brandData.identity}
+                onChange={event => handleFieldChange('identity', event.target.value)}
+                placeholder="Describe the brand identity in one or two sentences. e.g., premium natural skincare for women with sensitive skin, calm and science-backed."
+              />
+            </label>
 
-                <BrandAutocomplete
-                  brandContext={brandContext}
-                  value={brandData.description}
-                  onChange={text => handleFieldChange('description', text)}
-                  showHeader={false}
-                />
-
-                <div className="mt-4 space-y-3">
-                  {brandData.description.length > 0 && (
-                    <div className="brand-onboarding-progress bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className={`${descriptionStatus.iconColorClass} text-xl`}>
-                            {descriptionStatus.icon}
-                          </span>
-                          <span className={`${descriptionStatus.textColorClass} text-sm font-medium`}>
-                            {descriptionStatus.message}
-                          </span>
-                        </div>
-                        <span className="text-gray-500 text-sm">
-                          {brandData.description.length} characters
-                        </span>
-                      </div>
-
-                      <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 ${descriptionStatus.barColorClass}`}
-                          style={{
-                            width: `${Math.min((brandData.description.length / 100) * 100, 100)}%`
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <div className="brand-onboarding-block">
+              <span>Brand background and positioning</span>
+              <div className="brand-onboarding-tip">
+                <p>Use the autocomplete to explain:</p>
+                <ul>
+                  <li>who the brand serves</li>
+                  <li>what problem it solves</li>
+                  <li>why it should feel different</li>
+                  <li>what impression you want people to leave with</li>
+                </ul>
               </div>
+              <BrandAutocomplete
+                brandContext={brandContext}
+                value={brandData.description}
+                onChange={text => handleFieldChange('description', text)}
+                showHeader={false}
+              />
+            </div>
+
+            {canShowGoals ? (
+              <BusinessGoalSelector
+                options={businessGoalOptions}
+                selectedGoalIds={selectedGoalIds}
+                onToggleGoal={toggleGoalSelection}
+                onAddCustomGoal={addCustomGoal}
+              />
             ) : (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Brand Description
-                </label>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-                  Please enter your brand name and select an industry first to enable the AI-powered autocomplete feature.
-                </div>
+              <div className="brand-onboarding-gate">
+                Complete the brand identity and background first. The business-goal recommendations appear once the
+                system has enough context to rank them meaningfully.
               </div>
             )}
 
-            <div className="brand-onboarding-divider mt-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  {!brandData.name && <span>⚠️ Brand name required</span>}
-                  {brandData.name && !brandData.category && <span>⚠️ Industry required</span>}
-                  {brandData.name && brandData.category && brandData.description.length < 10 && (
-                    <span>⚠️ Add at least 10 characters to your description</span>
-                  )}
-                  {isReadyToContinue && <span className="text-green-600 font-medium">✓ All requirements met</span>}
-                </div>
-
-                <button
-                  type="submit"
-                  className={`ui-btn ui-btn--primary brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
-                  disabled={loading || !isReadyToContinue}
-                >
-                  {loading ? (
-                    <span>Processing...</span>
-                  ) : (
-                    <>
-                      <span>Next</span>
-                      <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </>
-                  )}
-                </button>
+            <div className="brand-onboarding-divider">
+              <div className="brand-onboarding-requirements">
+                {!brandData.name.trim() && <span>Brand name required</span>}
+                {brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
+                {brandData.name.trim() && brandData.category.trim() && brandData.identity.trim().length <= 12 && (
+                  <span>Add a more specific brand identity sentence</span>
+                )}
+                {canGenerateGoals(brandData) && selectedGoalIds.length === 0 && (
+                  <span>Select at least one business goal</span>
+                )}
+                {isReadyToContinue && <span className="is-ready">Ready to create the goal workspace</span>}
               </div>
+
+              <button
+                type="submit"
+                className={`ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
+                disabled={loading || !isReadyToContinue}
+              >
+                {loading ? 'Preparing workspace...' : 'Continue to goal workspace'}
+              </button>
             </div>
           </form>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
 

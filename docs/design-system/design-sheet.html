@@ -194,10 +194,10 @@
       padding: 12px 18px;
       border-radius: 999px;
       border: 1px solid transparent;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      letter-spacing: 0.01em;
+      text-transform: none;
     }
     .btn-primary {
       background: var(--accent);
@@ -343,12 +343,34 @@
 <body>
   <main class="sheet">
     <h1>TacitSNS Design Sheet</h1>
-    <p class="subtitle">Baseline visual contract for the CHI prototype. The target is a premium editorial tool for small business owners with low design literacy: calm, clean, minimal, and clearly not generic AI UI.</p>
+    <p class="subtitle">Baseline visual contract for the CHI prototype. The target is a premium editorial tool for small business owners with low design literacy: calm, clean, minimal, and clearly not generic AI UI. The product flow is now hierarchy-first: login, brand setup, business goals, post-goal folders, then the 2x2 studio and traceboard.</p>
 
     <section class="section">
       <h2>Direction</h2>
       <div class="note">
         Design direction: premium editorial light mode. Use warm paper backgrounds, ink-forward typography, a restrained deep-teal action color, rounded but not toy-like geometry, and clear visual hierarchy. Preserve trace-board semantics and spatial precision even when surrounding surfaces are restyled.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Product Hierarchy</h2>
+      <div class="sheet-grid">
+        <article class="card">
+          <h3>Login</h3>
+          <p>Simple prototype entry. Calm, confident, and non-threatening. It should feel like the front door, not the whole product.</p>
+        </article>
+        <article class="card">
+          <h3>Brand Setup</h3>
+          <p>Brand identity and background come first so the system has enough context to infer broad business goals.</p>
+        </article>
+        <article class="card">
+          <h3>Business Goals</h3>
+          <p>Keep these broad and outcome-based: trust, awareness, education, engagement, sales, and community. Plain language first.</p>
+        </article>
+        <article class="card">
+          <h3>Post-Goal Folders</h3>
+          <p>Folders are narrower content directions under a business goal. Taxonomy tags support them, but do not lead the interaction.</p>
+        </article>
       </div>
     </section>
 
@@ -457,7 +479,7 @@
         </article>
         <article class="card">
           <h3>Text Hierarchy</h3>
-          <p>Display and heading text use serif for framing. Labels, chips, and button text use compact uppercase sans to keep workflow structure explicit.</p>
+          <p>Display and heading text use serif for framing. Labels and metadata may use compact uppercase sans, but primary and secondary buttons should stay in sentence case.</p>
         </article>
       </div>
       <div class="subsection">
@@ -485,8 +507,8 @@
       <div class="subsection">
         <div class="subsection-title">Button Mapping</div>
         <div class="rules">
-          <div><strong>Primary CTA:</strong> onboarding next, generate ideas, generate variations, use this post, apply edit.</div>
-          <div><strong>Secondary surface button:</strong> back, regenerate, history, debug navigation, drawer entry actions.</div>
+          <div><strong>Primary CTA:</strong> continue to goal workspace, create post-goal folder, generate ideas, generate variations, use this post, apply edit.</div>
+          <div><strong>Secondary surface button:</strong> back, open workspace state, regenerate, history, debug navigation, drawer entry actions.</div>
           <div><strong>Choice / chip button:</strong> feedback toggles, rationale chips, direction chips, edit chips, compact overlay actions.</div>
         </div>
       </div>
@@ -497,6 +519,8 @@
       <div class="rules">
         <div><strong>Trace board:</strong> preserve the exact internal layout logic, node sizing behavior, edge labels, and feedback-border semantics unless explicitly redesigned as a trace-specific task.</div>
         <div><strong>Preference capture:</strong> yes / no / unsure must remain visually explicit and easy to compare across the 2x2 grid.</div>
+        <div><strong>Goal hierarchy:</strong> business goals must be visible before post-goal folders, and post-goal folders must clearly nest under an active business goal.</div>
+        <div><strong>Workspace language:</strong> show plain-language goals first and keep taxonomy labels as quiet supporting metadata.</div>
         <div><strong>Clarification moments:</strong> when the system asks follow-up questions later, those interactions should feel editorial and confident, not chatbot-like.</div>
         <div><strong>Buttons:</strong> primary actions must remain legible and discoverable without hover. Secondary actions should stay visible through border and text contrast alone.</div>
         <div><strong>Grids:</strong> grid cards should support comparison first, spectacle second. Keep media square, chrome light, and selection states precise.</div>

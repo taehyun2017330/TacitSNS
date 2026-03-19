@@ -1,0 +1,368 @@
+.workspace-shell {
+  display: grid;
+  grid-template-columns: minmax(18rem, 23rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.workspace-sidebar,
+.workspace-main {
+  min-width: 0;
+}
+
+.workspace-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.workspace-brand-card,
+.workspace-sidebar-section,
+.goal-hierarchy-card,
+.workspace-chat-panel,
+.workspace-recommendation-panel,
+.workspace-folder-section {
+  background: rgba(255, 252, 247, 0.9);
+  border: 1px solid rgba(97, 81, 59, 0.1);
+  border-radius: 1.5rem;
+  box-shadow: 0 16px 40px rgba(62, 50, 34, 0.05);
+}
+
+.workspace-brand-card,
+.workspace-sidebar-section,
+.workspace-chat-panel,
+.workspace-recommendation-panel,
+.workspace-folder-section {
+  padding: 1.35rem;
+}
+
+.workspace-brand-card h1,
+.workspace-header h2,
+.workspace-panel-header h3,
+.workspace-folder-card h4,
+.post-goal-card h4 {
+  font-family: var(--font-display);
+  color: var(--ink-strong);
+  letter-spacing: -0.03em;
+}
+
+.workspace-brand-card h1 {
+  margin-top: 0.4rem;
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
+}
+
+.workspace-brand-card p,
+.workspace-header p,
+.post-goal-card p,
+.workspace-folder-card p,
+.workspace-empty-card,
+.workspace-empty-note,
+.assistant-message p,
+.custom-goal-copy {
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.workspace-sidebar-label,
+.assistant-message-role,
+.goal-hierarchy-step span,
+.workspace-folder-card-topline,
+.section-kicker {
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.workspace-goal-list,
+.workspace-folder-list,
+.post-goal-card-grid,
+.workspace-folder-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.workspace-goal-item,
+.workspace-folder-item {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  text-align: left;
+  border-radius: 1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 249, 241, 0.84);
+  transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.workspace-goal-item:hover,
+.workspace-folder-item:hover,
+.post-goal-card:hover,
+.workspace-folder-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 79, 74, 0.18);
+}
+
+.workspace-goal-item.is-active {
+  background: rgba(220, 233, 229, 0.52);
+  border-color: rgba(33, 79, 74, 0.2);
+}
+
+.workspace-goal-item-title,
+.workspace-folder-item-title {
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.workspace-goal-item-meta,
+.workspace-folder-item-meta {
+  margin-top: 0.3rem;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+
+.workspace-main {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.workspace-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 24rem);
+  gap: 1rem;
+}
+
+.workspace-header h2 {
+  margin-top: 0.35rem;
+  font-size: clamp(2rem, 3vw, 3rem);
+}
+
+.goal-hierarchy-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.2rem;
+}
+
+.goal-hierarchy-step {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.goal-hierarchy-step strong {
+  font-size: 0.98rem;
+  color: var(--ink-strong);
+  line-height: 1.45;
+}
+
+.workspace-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 1rem;
+}
+
+.workspace-panel-header {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.workspace-panel-header h3 {
+  font-size: 1.55rem;
+}
+
+.assistant-thread {
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.assistant-message {
+  padding: 1rem 1.05rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(97, 81, 59, 0.1);
+  background: rgba(248, 244, 237, 0.8);
+}
+
+.workspace-composer textarea,
+.custom-goal-composer input {
+  width: 100%;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(97, 81, 59, 0.16);
+  background: rgba(255, 252, 247, 0.96);
+  color: var(--ink-strong);
+  font: inherit;
+}
+
+.workspace-composer textarea {
+  min-height: 9rem;
+  resize: vertical;
+  padding: 1rem 1.05rem;
+  line-height: 1.6;
+}
+
+.workspace-composer-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.post-goal-card-grid,
+.workspace-folder-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.post-goal-card,
+.workspace-folder-card,
+.workspace-empty-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 249, 242, 0.84);
+}
+
+.post-goal-card-body {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.post-goal-tags,
+.autocomplete-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.post-goal-tag,
+.goal-rank-pill,
+.goal-normalized-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.68rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.post-goal-tag,
+.goal-rank-pill.subtle {
+  background: rgba(236, 229, 217, 0.74);
+  color: var(--ink-body);
+}
+
+.goal-rank-pill,
+.goal-normalized-pill {
+  background: rgba(220, 233, 229, 0.74);
+  color: var(--accent);
+}
+
+.workspace-folder-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-folder-card-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.goal-selector,
+.custom-goal-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.goal-selector-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+}
+
+.goal-selector-header p {
+  max-width: 24rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.goal-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.goal-card {
+  padding: 1.05rem;
+  text-align: left;
+  border-radius: 1.3rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 249, 242, 0.82);
+  transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.goal-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 79, 74, 0.18);
+}
+
+.goal-card.is-selected {
+  background: rgba(220, 233, 229, 0.5);
+  border-color: rgba(33, 79, 74, 0.22);
+}
+
+.goal-card-topline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.goal-card-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--ink-strong);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.goal-card-description {
+  margin-top: 0.45rem;
+  font-weight: 600;
+  color: var(--ink-body);
+}
+
+.goal-card-rationale {
+  margin-top: 0.7rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.custom-goal-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+}
+
+.custom-goal-composer input {
+  min-height: 3.35rem;
+  padding: 0.85rem 1rem;
+}
+
+@media (max-width: 1080px) {
+  .workspace-shell,
+  .workspace-header,
+  .workspace-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .post-goal-card-grid,
+  .workspace-folder-grid,
+  .goal-card-grid {
+    grid-template-columns: 1fr;
+  }
+}

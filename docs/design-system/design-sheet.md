@@ -7,7 +7,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 ## Current Status
 - Baseline scaffold created.
 - Design context captured in `.impeccable.md`.
-- First visual cleanup pass completed on onboarding and post-creation surfaces.
+- Product shell now includes mock login, brand setup, business-goal selection, post-goal workspace, and nested 2x2 studio entry.
+- The goal hierarchy is now a first-class structural pattern, not just a content idea.
 
 ## Current Direction
 - Primary users: small business owners with low design literacy
@@ -25,6 +26,11 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Limit the system to three button families: primary CTA, secondary surface button, and choice/chip button.
 - Use sentence-case for primary and secondary buttons; reserve uppercase pressure for labels and compact choice controls.
 - Reduce right-rail and helper-panel chrome so guidance does not compete with the main workspace.
+- Treat the product shell as a hierarchy-first experience:
+  login -> brand setup -> business goals -> post-goal workspace -> studio / traceboard.
+- Business goals should be broad, outcome-based, and readable in plain language before any taxonomy appears.
+- Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
+- Workspace panels should feel like an expert planning surface, not a chat toy or generic dashboard.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
 - Preserve the trace board's internal layout logic while restyling the shell around it.
 
@@ -37,6 +43,9 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Mapping from component-specific class names to the three canonical button families
 - Chips, badges, and feedback markers
 - Inputs, sliders, and form control focus states
+- Login shell and onboarding shell patterns
+- Goal hierarchy summary and sidebar hierarchy treatment
+- Workspace composer, recommendation cards, and folder cards
 - Grid card behavior
 - Scrollbar treatment for panels and long workflows
 - Single-image editor layout
@@ -53,3 +62,5 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Do not create new button looks for individual features; reuse one of the three canonical families.
 - Scrollbars should feel integrated into the paper/editorial surface rather than staying browser-default.
 - Grids should read as quiet comparison tools, not loud gallery cards.
+- The main workspace should privilege structure over decoration: one clear active business goal, visible post-goal folders, and a direct path into the studio.
+- Taxonomy language supports the interface but should not lead it; surface user-language goals first.
