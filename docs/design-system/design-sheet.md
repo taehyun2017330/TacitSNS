@@ -35,6 +35,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Use pill-shaped controls, quieter borders, and lower-contrast cards for a cleaner expert feel.
 - Limit the system to three button families: primary CTA, secondary surface button, and choice/chip button.
 - Use sentence-case for primary and secondary buttons; reserve uppercase pressure for labels and compact choice controls.
+- Do not use white or near-white text on small teal pills, chips, or status tags. Reserve inverted accent treatments for large primary CTAs only.
+- Small selected states should prefer light accent fills with dark teal text over dark accent fills with pale text.
 - Reduce right-rail and helper-panel chrome so guidance does not compete with the main workspace.
 - Treat the product shell as a hierarchy-first experience:
   login -> brand setup -> business goals -> post-goal workspace -> studio / traceboard.
