@@ -52,9 +52,12 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Reduce right-rail and helper-panel chrome so guidance does not compete with the main workspace.
 - Treat the product shell as a hierarchy-first experience:
   login -> brand setup -> business goals -> post-goal workspace -> studio / traceboard.
+- Onboarding is now the full hierarchy setup:
+  brand narrative -> business goal -> post goals -> workspace -> studio / traceboard.
 - Business goals should be broad, outcome-based, and readable in plain language before any taxonomy appears.
 - Business-goal recommendations must stay at the macro SNS marketing level and should never drift into obvious post-goal suggestions like founder intro, process showcase, or customer proof.
 - Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
+- Post-goal onboarding should preview concrete example directions visually, using example tiles or placeholder frames, before the user enters the workspace.
 - The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
 - Step markers and hierarchy numbers must have explicit resting-state contrast; progress indicators cannot rely on subtle tint alone.
 - Step markers must visually separate `active`, `completed`, and `upcoming` states. Active gets the strongest emphasis, completed resolves into a quieter confirmed state, and upcoming remains neutral.

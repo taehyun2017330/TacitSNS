@@ -247,6 +247,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.post-goal-card-grid--onboarding {
+  align-items: start;
+}
+
 .post-goal-card,
 .workspace-folder-card,
 .workspace-empty-card,
@@ -315,6 +319,43 @@
   isolation: isolate;
 }
 
+.post-goal-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.post-goal-example {
+  position: relative;
+  min-height: 5.7rem;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  display: flex;
+  align-items: end;
+  padding: 0.7rem;
+  color: #fffaf4;
+  isolation: isolate;
+}
+
+.post-goal-example::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(23, 22, 20, 0.08) 0%, rgba(23, 22, 20, 0.58) 100%);
+  z-index: -1;
+}
+
+.post-goal-example span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.post-goal-example--1,
+.post-goal-example--4 {
+  min-height: 6.1rem;
+}
+
 .post-goal-card.is-added {
   opacity: 0.78;
   border-color: rgba(33, 79, 74, 0.16);
@@ -348,6 +389,16 @@
 .post-goal-card-body {
   display: grid;
   gap: 0.55rem;
+}
+
+.post-goal-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.post-goal-card-actions > * {
+  flex: 1 1 12rem;
 }
 
 .post-goal-tags,
@@ -698,5 +749,9 @@
   .workspace-setup-banner {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .post-goal-example {
+    min-height: 5rem;
   }
 }

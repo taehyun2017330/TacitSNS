@@ -1,6 +1,6 @@
 import type { BrandData } from './brand';
 
-export type AppStage = 'auth' | 'onboarding' | 'post-goals' | 'workspace' | 'studio';
+export type AppStage = 'auth' | 'onboarding' | 'workspace' | 'studio';
 
 export interface PrototypeUser {
   id: string;
@@ -43,6 +43,7 @@ export interface OnboardingResult {
   brand: BrandData;
   selectedBusinessGoals: BusinessGoalOption[];
   activeBusinessGoalId: string;
+  postGoalFolders: PostGoalFolder[];
 }
 
 export interface WorkspaceSnapshot extends OnboardingResult {

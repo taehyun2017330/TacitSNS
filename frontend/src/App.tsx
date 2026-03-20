@@ -143,16 +143,10 @@ function App() {
   };
 
   const handleOnboardingComplete = (result: OnboardingResult) => {
-    setWorkspace(prev => {
-      const allowedGoalIds = new Set(result.selectedBusinessGoals.map(goal => goal.id));
-      return {
-        ...result,
-        postGoalFolders: prev?.postGoalFolders.filter(folder => allowedGoalIds.has(folder.businessGoalId)) ?? []
-      };
-    });
+    setWorkspace(result);
     setSelectedFolder(null);
     setOnboardingInitialStep(undefined);
-    transitionToStage('post-goals', 'forward');
+    transitionToStage('workspace', 'forward');
   };
 
   const handleLoadSampleWorkspace = (brand: BrandData) => {
@@ -220,50 +214,6 @@ function App() {
           onOpenPostGoal={folder => {
             setSelectedFolder(folder);
             transitionToStage('studio', 'forward');
-          }}
-        />
-      );
-    }
-
-    if (stage === 'post-goals' && workspace) {
-      return (
-        <PostGoalWorkspace
-          mode="setup"
-          brandName={workspace.brand.name}
-          brandIdentity={workspace.brand.identity}
-          businessGoals={workspace.selectedBusinessGoals}
-          activeBusinessGoalId={workspace.activeBusinessGoalId}
-          postGoalFolders={workspace.postGoalFolders}
-          onSelectBusinessGoal={goalId => {
-            setWorkspace(prev =>
-              prev
-                ? {
-                    ...prev,
-                    activeBusinessGoalId: goalId
-                  }
-                : prev
-            );
-          }}
-          onCreatePostGoal={folder => {
-            setWorkspace(prev =>
-              prev
-                ? {
-                    ...prev,
-                    postGoalFolders: [folder, ...prev.postGoalFolders]
-                  }
-                : prev
-            );
-          }}
-          onEditGoals={() => {
-            setSelectedFolder(null);
-            setOnboardingInitialStep('narrative');
-            transitionToStage('onboarding', 'backward');
-          }}
-          onContinueToWorkspace={() => {
-            transitionToStage('workspace', 'forward');
-          }}
-          onOpenPostGoal={() => {
-            transitionToStage('workspace', 'forward');
           }}
         />
       );
