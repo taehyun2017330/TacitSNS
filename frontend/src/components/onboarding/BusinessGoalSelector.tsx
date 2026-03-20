@@ -20,7 +20,9 @@ const BusinessGoalSelector: React.FC<Props> = ({
   onSelectGoal,
   onAddCustomGoal
 }) => {
-  const [customGoalInput, setCustomGoalInput] = useState('');
+  const [customGoalTitle, setCustomGoalTitle] = useState('');
+  const [customGoalDescription, setCustomGoalDescription] = useState('');
+  const [customGoalRationale, setCustomGoalRationale] = useState('');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const recommendedGoals = useMemo(
     () =>
@@ -43,28 +45,39 @@ const BusinessGoalSelector: React.FC<Props> = ({
   );
 
   const suggestions = useMemo(
-    () => suggestBusinessGoalAutocomplete(customGoalInput),
-    [customGoalInput]
+    () => suggestBusinessGoalAutocomplete(customGoalTitle),
+    [customGoalTitle]
   );
 
-  const handleAddCustomGoal = (value: string) => {
-    const trimmed = value.trim();
+  const resetComposer = () => {
+    setCustomGoalTitle('');
+    setCustomGoalDescription('');
+    setCustomGoalRationale('');
+    setIsComposerOpen(false);
+  };
+
+  const handleAddCustomGoal = () => {
+    const trimmed = customGoalTitle.trim();
     if (!trimmed) {
       return;
     }
 
-    onAddCustomGoal(normalizeBusinessGoalInput(trimmed));
-    setCustomGoalInput('');
-    setIsComposerOpen(false);
+    onAddCustomGoal(
+      normalizeBusinessGoalInput(trimmed, {
+        description: customGoalDescription,
+        rationale: customGoalRationale
+      })
+    );
+    resetComposer();
   };
 
   return (
     <div className="goal-selector">
       <div className="goal-selector-header">
-        <div className="section-kicker">System interpretation</div>
+        <div className="section-kicker">Business goal</div>
         <h3>What is the main reason for using SNS marketing right now?</h3>
         <p>
-          Choose the main reason this brand is posting on social media right now. Specific post directions come next.
+          Choose the main reason this brand is posting on social media right now. Post directions come next.
         </p>
       </div>
 
@@ -154,20 +167,43 @@ const BusinessGoalSelector: React.FC<Props> = ({
       </section>
 
       {isComposerOpen && (
-        <div className="goal-dialog-backdrop" onClick={() => setIsComposerOpen(false)}>
+        <div className="goal-dialog-backdrop" onClick={resetComposer}>
           <div className="goal-dialog" onClick={event => event.stopPropagation()}>
             <div className="section-kicker">Custom business goal</div>
             <h4>Add your own goal</h4>
             <p>
-              Keep it broad and outcome-based. Describe why the brand is using SNS marketing, not the exact post idea. If possible, the system will map your wording to one of the shared business-goal buckets.
+              Fill this out in the same structure as the suggested goals. Only the main goal is required.
             </p>
 
-            <textarea
-              value={customGoalInput}
-              onChange={event => setCustomGoalInput(event.target.value)}
-              placeholder='e.g., "help people understand why we cost more"'
-              rows={4}
-            />
+            <label className="goal-dialog-field">
+              <span>Main goal</span>
+              <input
+                type="text"
+                value={customGoalTitle}
+                onChange={event => setCustomGoalTitle(event.target.value)}
+                placeholder='e.g., "Help customers understand our premium pricing"'
+              />
+            </label>
+
+            <label className="goal-dialog-field">
+              <span>What this goal means</span>
+              <textarea
+                value={customGoalDescription}
+                onChange={event => setCustomGoalDescription(event.target.value)}
+                placeholder="Explain what success would look like for this marketing goal."
+                rows={3}
+              />
+            </label>
+
+            <label className="goal-dialog-field">
+              <span>Why this fits</span>
+              <textarea
+                value={customGoalRationale}
+                onChange={event => setCustomGoalRationale(event.target.value)}
+                placeholder="Optional note about why this goal fits the brand story."
+                rows={3}
+              />
+            </label>
 
             <div className="autocomplete-chip-row">
               {suggestions.map(suggestion => (
@@ -175,7 +211,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
                   type="button"
                   key={suggestion}
                   className="ui-btn ui-btn--choice"
-                  onClick={() => setCustomGoalInput(suggestion)}
+                  onClick={() => setCustomGoalTitle(suggestion)}
                 >
                   {suggestion}
                 </button>
@@ -186,15 +222,15 @@ const BusinessGoalSelector: React.FC<Props> = ({
               <button
                 type="button"
                 className="ui-btn ui-btn--secondary"
-                onClick={() => setIsComposerOpen(false)}
+                onClick={resetComposer}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 className="ui-btn ui-btn--primary"
-                onClick={() => handleAddCustomGoal(customGoalInput)}
-                disabled={!customGoalInput.trim()}
+                onClick={handleAddCustomGoal}
+                disabled={!customGoalTitle.trim()}
               >
                 Add goal
               </button>

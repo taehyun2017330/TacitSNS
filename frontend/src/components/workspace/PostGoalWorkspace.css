@@ -424,7 +424,7 @@
 }
 
 .goal-selector-header p {
-  max-width: 40rem;
+  max-width: 48rem;
   color: var(--ink-soft);
   line-height: 1.6;
   margin: 0;
@@ -615,7 +615,6 @@
 
 .goal-dialog textarea {
   width: 100%;
-  margin-top: 1rem;
   min-height: 8.5rem;
   resize: vertical;
   padding: 1rem 1.05rem;
@@ -627,10 +626,35 @@
   line-height: 1.6;
 }
 
+.goal-dialog input {
+  width: 100%;
+  padding: 0.95rem 1.05rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(97, 81, 59, 0.16);
+  background: rgba(255, 252, 247, 0.96);
+  color: var(--ink-strong);
+  font: inherit;
+}
+
+.goal-dialog input:focus,
 .goal-dialog textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(33, 79, 74, 0.12);
+}
+
+.goal-dialog-field {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.95rem;
+}
+
+.goal-dialog-field span {
+  color: var(--ink-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .goal-dialog-actions {

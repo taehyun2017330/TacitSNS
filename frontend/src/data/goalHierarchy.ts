@@ -428,7 +428,10 @@ export function suggestBusinessGoalAutocomplete(input: string) {
     .map(goal => goal.title);
 }
 
-export function normalizeBusinessGoalInput(input: string): BusinessGoalOption {
+export function normalizeBusinessGoalInput(
+  input: string,
+  overrides?: Partial<Pick<BusinessGoalOption, 'description' | 'rationale'>>
+): BusinessGoalOption {
   const trimmed = input.trim();
   const lowered = trimmed.toLowerCase();
   const matchedGoal = BUSINESS_GOAL_LIBRARY
@@ -443,8 +446,8 @@ export function normalizeBusinessGoalInput(input: string): BusinessGoalOption {
     return {
       id: `custom-${slug}`,
       title: trimmed,
-      description: `Use social content to support this broader business intention: ${trimmed}.`,
-      rationale: `Interpreted as "${matchedGoal.goal.title}" under the hood so the system can suggest relevant post goals next.`,
+      description: overrides?.description?.trim() || `Use social content to support this broader business intention: ${trimmed}.`,
+      rationale: overrides?.rationale?.trim() || `Interpreted as "${matchedGoal.goal.title}" under the hood so the system can suggest relevant post goals next.`,
       rank: 0,
       isRecommended: false,
       isCustom: true,
@@ -457,8 +460,8 @@ export function normalizeBusinessGoalInput(input: string): BusinessGoalOption {
   return {
     id: `custom-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'goal'}`,
     title: trimmed,
-    description: `Use social content to support this broader business intention: ${trimmed}.`,
-    rationale: `Added directly by the user because it does not cleanly fit one of the shared SNS marketing goal buckets.`,
+    description: overrides?.description?.trim() || `Use social content to support this broader business intention: ${trimmed}.`,
+    rationale: overrides?.rationale?.trim() || `Added directly by the user because it does not cleanly fit one of the shared SNS marketing goal buckets.`,
     rank: 0,
     isRecommended: false,
     isCustom: true
