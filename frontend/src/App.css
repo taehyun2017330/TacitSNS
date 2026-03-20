@@ -408,7 +408,7 @@ html {
 }
 
 .auth-field span,
-.brand-onboarding-block span:first-child,
+.brand-onboarding-block > span:first-child,
 .brand-onboarding-form label > span:first-child {
   color: var(--ink-body);
   font-size: 0.78rem;
