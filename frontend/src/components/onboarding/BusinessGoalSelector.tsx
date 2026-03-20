@@ -34,6 +34,13 @@ const BusinessGoalSelector: React.FC<Props> = ({
         .slice(0, 3),
     [options]
   );
+  const libraryGoals = useMemo(
+    () =>
+      options.filter(
+        goal => !goal.isCustom && !recommendedGoals.some(recommendedGoal => recommendedGoal.id === goal.id)
+      ),
+    [options, recommendedGoals]
+  );
 
   const suggestions = useMemo(
     () => suggestBusinessGoalAutocomplete(customGoalInput),
@@ -55,37 +62,47 @@ const BusinessGoalSelector: React.FC<Props> = ({
     <div className="goal-selector">
       <div className="goal-selector-header">
         <div>
-          <div className="section-kicker">Suggested business goals</div>
-          <h3>What should these posts help with first?</h3>
+          <div className="section-kicker">System interpretation</div>
+          <h3>Here&apos;s what this brand seems to be trying to achieve.</h3>
         </div>
         <p>
-          Start broad. Pick one to three parent goals, then turn them into more specific post-goal folders.
+          Confirm one to three broad goals that feel right. You can revise the system&apos;s read or add your own if something important is missing.
         </p>
       </div>
 
       <section className="goal-selected-strip">
         <div className="goal-selected-header">
-          <div className="section-kicker">Selected business goals</div>
+          <div className="section-kicker">Your chosen goals</div>
           <span className="goal-selected-count">
-            {selectedGoals.length} {selectedGoals.length === 1 ? 'selected' : 'selected'}
+            {selectedGoals.length} {selectedGoals.length === 1 ? 'goal' : 'goals'}
           </span>
         </div>
         {selectedGoals.length === 0 ? (
           <div className="goal-selected-empty">
-            Nothing selected yet. Choose one to three broad outcomes to guide the next step.
+            Nothing confirmed yet. Choose the broad outcomes that feel most true to this brand.
           </div>
         ) : (
-          <div className="goal-selected-list">
+          <div className="goal-selected-grid">
             {selectedGoals.map(goal => (
-              <button
-                type="button"
-                key={goal.id}
-                className="goal-selected-pill"
-                onClick={() => onToggleGoal(goal)}
-              >
-                <span>{goal.title}</span>
-                <span className="goal-selected-pill-close">Remove</span>
-              </button>
+              <article key={goal.id} className="goal-selected-card">
+                <div className="goal-card-topline">
+                  <span className={`goal-status-pill ${goal.isCustom ? 'goal-status-pill--custom' : 'goal-status-pill--confirmed'}`}>
+                    {goal.isCustom ? 'You added this' : 'Confirmed'}
+                  </span>
+                  {goal.normalizedFrom && (
+                    <span className="goal-normalized-pill">Normalized</span>
+                  )}
+                </div>
+                <div className="goal-card-title">{goal.title}</div>
+                <div className="goal-card-description">{goal.description}</div>
+                <button
+                  type="button"
+                  className="goal-selected-remove"
+                  onClick={() => onToggleGoal(goal)}
+                >
+                  Remove
+                </button>
+              </article>
             ))}
           </div>
         )}
@@ -93,8 +110,8 @@ const BusinessGoalSelector: React.FC<Props> = ({
 
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
-          <div className="section-kicker">Recommended for this brand</div>
-          <p>The system thinks these are the strongest broad directions based on the brand story.</p>
+          <div className="section-kicker">Our current read of the brand</div>
+          <p>These are the broad goals the system would prioritize first based on the brand story you wrote.</p>
         </div>
 
         <div className="goal-selector-recommended-grid">
@@ -103,48 +120,47 @@ const BusinessGoalSelector: React.FC<Props> = ({
 
             return (
               <button
-                type="button"
-                key={goal.id}
-                className={`goal-card goal-card--recommended ${isSelected ? 'is-selected' : ''}`}
-                onClick={() => onToggleGoal(goal)}
-              >
-                <div className="goal-card-topline">
-                  <span className="goal-rank-pill">Top {goal.rank}</span>
-                  {goal.normalizedFrom && (
-                    <span className="goal-normalized-pill">Normalized</span>
-                  )}
-                </div>
-                <div className="goal-card-title">{goal.title}</div>
-                <div className="goal-card-description">{goal.description}</div>
-                <div className="goal-card-rationale">{goal.rationale}</div>
-              </button>
-            );
+              type="button"
+              key={goal.id}
+              className={`goal-card goal-card--recommended ${isSelected ? 'is-selected' : ''}`}
+              onClick={() => onToggleGoal(goal)}
+            >
+              <div className="goal-card-topline">
+                <span className="goal-rank-pill">Recommended</span>
+                {isSelected && <span className="goal-status-pill goal-status-pill--confirmed">Chosen</span>}
+              </div>
+              <div className="goal-card-title">{goal.title}</div>
+              <div className="goal-card-description">{goal.description}</div>
+              <div className="goal-card-rationale">
+                <strong>Why this fits:</strong> {goal.rationale}
+              </div>
+            </button>
+          );
           })}
         </div>
       </section>
 
       <section className="goal-selector-section goal-selector-section--compact">
         <div className="goal-selector-section-header">
-          <div className="section-kicker">All broad business goals</div>
-          <p>If the recommendations are off, choose from the full set instead.</p>
+          <div className="section-kicker">Other broad goals</div>
+          <p>If the system&apos;s interpretation is off, choose from the rest of the goal library.</p>
         </div>
 
         <div className="goal-pill-row">
-          {options.map(goal => {
-          const isSelected = selectedGoalIds.includes(goal.id);
+          {libraryGoals.map(goal => {
+            const isSelected = selectedGoalIds.includes(goal.id);
 
-          return (
-            <button
-              type="button"
-              key={goal.id}
-              className={`goal-pill ${isSelected ? 'is-selected' : ''} ${goal.isRecommended ? 'is-recommended' : ''}`}
-              onClick={() => onToggleGoal(goal)}
-            >
-              <span>{goal.title}</span>
-              {goal.isRecommended && <span className="goal-pill-rank">Top {goal.rank}</span>}
-            </button>
-          );
-        })}
+            return (
+              <button
+                type="button"
+                key={goal.id}
+                className={`goal-pill ${isSelected ? 'is-selected' : ''}`}
+                onClick={() => onToggleGoal(goal)}
+              >
+                <span>{goal.title}</span>
+              </button>
+            );
+          })}
 
         <button
           type="button"

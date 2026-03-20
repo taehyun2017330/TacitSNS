@@ -472,6 +472,22 @@
   gap: 0.7rem;
 }
 
+.goal-selected-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.8rem;
+}
+
+.goal-selected-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(33, 79, 74, 0.14);
+  background: rgba(255, 252, 247, 0.98);
+  box-shadow: 0 10px 20px rgba(22, 61, 57, 0.05);
+}
+
 .goal-selected-pill,
 .goal-pill {
   display: inline-flex;
@@ -498,6 +514,28 @@
   background: rgba(220, 233, 229, 0.58);
   color: var(--accent-strong);
   border-color: rgba(33, 79, 74, 0.16);
+}
+
+.goal-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.goal-status-pill--confirmed {
+  background: rgba(220, 233, 229, 0.74);
+  color: var(--accent);
+}
+
+.goal-status-pill--custom {
+  background: rgba(245, 238, 227, 0.92);
+  color: var(--ink-body);
 }
 
 .goal-selected-pill-close,
@@ -562,6 +600,7 @@
   margin-top: 0.45rem;
   font-weight: 600;
   color: var(--ink-body);
+  line-height: 1.5;
 }
 
 .goal-card-rationale {
@@ -572,6 +611,22 @@
 
 .goal-card--recommended {
   min-height: 100%;
+}
+
+.goal-selected-remove {
+  justify-self: start;
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.goal-selected-remove:hover {
+  color: var(--accent-strong);
 }
 
 .goal-dialog-backdrop {
