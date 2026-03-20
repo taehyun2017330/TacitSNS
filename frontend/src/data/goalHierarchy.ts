@@ -439,14 +439,18 @@ export function normalizeBusinessGoalInput(input: string): BusinessGoalOption {
     .sort((a, b) => b.score - a.score)[0];
 
   if (matchedGoal && matchedGoal.score > 0) {
+    const slug = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || matchedGoal.goal.id;
     return {
-      id: matchedGoal.goal.id,
-      title: matchedGoal.goal.title,
-      description: matchedGoal.goal.description,
-      rationale: `Normalized from "${trimmed}" so the system can reuse a stable business-goal bucket.`,
+      id: `custom-${slug}`,
+      title: trimmed,
+      description: `Use social content to support this broader business intention: ${trimmed}.`,
+      rationale: `Interpreted as "${matchedGoal.goal.title}" under the hood so the system can suggest relevant post goals next.`,
       rank: 0,
-      isRecommended: true,
-      normalizedFrom: trimmed
+      isRecommended: false,
+      isCustom: true,
+      normalizedFrom: trimmed,
+      mappedGoalId: matchedGoal.goal.id,
+      mappedGoalTitle: matchedGoal.goal.title
     };
   }
 

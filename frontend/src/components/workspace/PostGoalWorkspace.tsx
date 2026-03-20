@@ -41,15 +41,16 @@ const PostGoalWorkspace: React.FC<Props> = ({
   );
   const [customPostGoalInput, setCustomPostGoalInput] = useState('');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const activeBusinessGoalSourceId = activeBusinessGoal?.mappedGoalId ?? activeBusinessGoal?.id ?? '';
 
   const suggestedPostGoals = useMemo(
-    () => (activeBusinessGoal ? getPostGoalSuggestionsForBusinessGoal(activeBusinessGoal.id) : []),
-    [activeBusinessGoal]
+    () => (activeBusinessGoal ? getPostGoalSuggestionsForBusinessGoal(activeBusinessGoalSourceId) : []),
+    [activeBusinessGoal, activeBusinessGoalSourceId]
   );
 
   const autocompleteSuggestions = useMemo(
-    () => suggestPostGoalAutocomplete(customPostGoalInput, activeBusinessGoal?.id ?? ''),
-    [activeBusinessGoal?.id, customPostGoalInput]
+    () => suggestPostGoalAutocomplete(customPostGoalInput, activeBusinessGoalSourceId),
+    [activeBusinessGoalSourceId, customPostGoalInput]
   );
 
   const foldersForActiveGoal = useMemo(

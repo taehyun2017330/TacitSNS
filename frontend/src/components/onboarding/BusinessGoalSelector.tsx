@@ -94,6 +94,11 @@ const BusinessGoalSelector: React.FC<Props> = ({
               </div>
               <div className="goal-card-title">{selectedGoal.title}</div>
               <div className="goal-card-description">{selectedGoal.description}</div>
+              {selectedGoal.mappedGoalTitle && (
+                <div className="goal-card-rationale">
+                  <strong>Treated as:</strong> {selectedGoal.mappedGoalTitle}
+                </div>
+              )}
               <button
                 type="button"
                 className="goal-selected-remove"

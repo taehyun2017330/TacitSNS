@@ -17,6 +17,8 @@ export interface BusinessGoalOption {
   isRecommended: boolean;
   isCustom?: boolean;
   normalizedFrom?: string;
+  mappedGoalId?: string;
+  mappedGoalTitle?: string;
 }
 
 export interface PostGoalSuggestion {

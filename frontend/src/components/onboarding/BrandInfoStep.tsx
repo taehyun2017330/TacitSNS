@@ -48,6 +48,15 @@ function deriveIdentityFromNarrative(text: string) {
   return (firstSentence || trimmed).trim();
 }
 
+function buildGoalSourceSignature(brandData: BrandData) {
+  return [
+    brandData.name.trim(),
+    brandData.category.trim(),
+    brandData.identity.trim(),
+    brandData.description.trim()
+  ].join('||');
+}
+
 function canGenerateGoals(brandData: BrandData) {
   return Boolean(
     brandData.name.trim() &&
@@ -84,6 +93,9 @@ const BrandInfoStep: React.FC<Props> = ({
     entering: OnboardingStep;
     direction: 'forward' | 'backward';
   } | null>(null);
+  const [goalSourceSignature, setGoalSourceSignature] = useState<string>(() =>
+    initialData?.brand ? buildGoalSourceSignature(initialData.brand) : ''
+  );
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -111,6 +123,7 @@ const BrandInfoStep: React.FC<Props> = ({
 
   const isReadyToContinue = canContinue(brandData, selectedGoalId);
   const canShowGoals = canGenerateGoals(brandData);
+  const currentGoalSourceSignature = buildGoalSourceSignature(brandData);
   const brandContext = {
     brandName: brandData.name || 'Your Brand',
     brandCategory: brandData.category || 'General'
@@ -154,6 +167,13 @@ const BrandInfoStep: React.FC<Props> = ({
   const handleReviewGoals = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+
+    if (currentGoalSourceSignature !== goalSourceSignature) {
+      setCustomGoalOverrides([]);
+      setSelectedGoalId(null);
+      setGoalSourceSignature(currentGoalSourceSignature);
+    }
+
     transitionStep('goals', 'forward');
   };
 
