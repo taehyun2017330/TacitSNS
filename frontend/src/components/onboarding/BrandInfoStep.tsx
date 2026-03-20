@@ -149,6 +149,12 @@ const BrandInfoStep: React.FC<Props> = ({
     }, 360);
   };
 
+  const handleReviewGoals = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    transitionStep('goals', 'forward');
+  };
+
   const toggleGoalSelection = (goal: BusinessGoalOption) => {
     setSelectedGoalIds(prev =>
       prev.includes(goal.id)
@@ -248,21 +254,21 @@ const BrandInfoStep: React.FC<Props> = ({
           </p>
 
           <div className="brand-hierarchy-preview">
-            <div className="brand-hierarchy-step">
+            <div className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'}`}>
               <span>1</span>
               <div>
                 <strong>Brand narrative</strong>
                 <p>Say what the brand is, who it serves, and how it should feel.</p>
               </div>
             </div>
-            <div className="brand-hierarchy-step">
+            <div className={`brand-hierarchy-step ${currentStep === 'goals' ? 'is-active' : 'is-upcoming'}`}>
               <span>2</span>
               <div>
                 <strong>Business goals</strong>
                 <p>Pick the broader outcome these posts should help achieve.</p>
               </div>
             </div>
-            <div className="brand-hierarchy-step">
+            <div className="brand-hierarchy-step is-upcoming">
               <span>3</span>
               <div>
                 <strong>Post goals</strong>
@@ -469,7 +475,7 @@ const BrandInfoStep: React.FC<Props> = ({
                   <button
                     type="button"
                     className="ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn"
-                    onClick={() => transitionStep('goals', 'forward')}
+                    onClick={handleReviewGoals}
                     disabled={!canGenerateGoals(brandData)}
                   >
                     Review suggested business goals

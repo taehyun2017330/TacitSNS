@@ -192,9 +192,6 @@ html {
 .app-stage-layer--exit {
   position: absolute;
   inset: 0;
-}
-
-.app-stage-layer--exit {
   pointer-events: none;
 }
 
@@ -323,9 +320,29 @@ html {
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  background: rgba(220, 233, 229, 0.88);
+  background: rgba(231, 222, 209, 0.92);
+  color: var(--ink-strong);
+  border: 1px solid rgba(97, 81, 59, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.brand-hierarchy-step.is-active span {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+  box-shadow: 0 10px 20px rgba(22, 61, 57, 0.16);
+}
+
+.brand-hierarchy-step.is-complete span {
+  background: rgba(220, 233, 229, 0.74);
   color: var(--accent);
-  font-weight: 700;
+  border-color: rgba(33, 79, 74, 0.16);
+}
+
+.brand-hierarchy-step.is-upcoming span {
+  color: var(--ink-body);
 }
 
 .brand-hierarchy-step strong {
@@ -424,9 +441,6 @@ html {
 .onboarding-step-layer--exit {
   position: absolute;
   inset: 0;
-}
-
-.onboarding-step-layer--exit {
   pointer-events: none;
 }
 

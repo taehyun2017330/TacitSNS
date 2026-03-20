@@ -9,6 +9,7 @@ import type { BusinessGoalOption, PostGoalFolder, PostGoalSuggestion } from '../
 import './PostGoalWorkspace.css';
 
 interface Props {
+  mode?: 'setup' | 'workspace';
   brandName: string;
   brandIdentity: string;
   businessGoals: BusinessGoalOption[];
@@ -17,10 +18,12 @@ interface Props {
   onSelectBusinessGoal: (goalId: string) => void;
   onCreatePostGoal: (folder: PostGoalFolder) => void;
   onEditGoals: () => void;
+  onContinueToWorkspace?: () => void;
   onOpenPostGoal: (folder: PostGoalFolder) => void;
 }
 
 const PostGoalWorkspace: React.FC<Props> = ({
+  mode = 'workspace',
   brandName,
   brandIdentity,
   businessGoals,
@@ -29,6 +32,7 @@ const PostGoalWorkspace: React.FC<Props> = ({
   onSelectBusinessGoal,
   onCreatePostGoal,
   onEditGoals,
+  onContinueToWorkspace,
   onOpenPostGoal
 }) => {
   const activeBusinessGoal = useMemo(
@@ -56,6 +60,8 @@ const PostGoalWorkspace: React.FC<Props> = ({
     () => new Set(foldersForActiveGoal.map(folder => folder.title)),
     [foldersForActiveGoal]
   );
+  const totalSelectedFolderCount = postGoalFolders.length;
+  const isSetupMode = mode === 'setup';
 
   useEffect(() => {
     setCustomPostGoalInput('');
@@ -103,11 +109,11 @@ const PostGoalWorkspace: React.FC<Props> = ({
     <main className="workspace-shell">
       <aside className="workspace-sidebar">
         <div className="workspace-brand-card">
-          <div className="screen-eyebrow">Brand hierarchy</div>
+          <div className="screen-eyebrow">{isSetupMode ? 'Post-goal setup' : 'Brand hierarchy'}</div>
           <h1>{brandName}</h1>
           <p>{brandIdentity}</p>
           <button type="button" className="ui-btn ui-btn--secondary workspace-edit-goals" onClick={onEditGoals}>
-            Edit brand and goals
+            {isSetupMode ? 'Back to brand and business goals' : 'Edit brand and goals'}
           </button>
         </div>
 
@@ -157,9 +163,13 @@ const PostGoalWorkspace: React.FC<Props> = ({
       <section className="workspace-main">
         <header className="workspace-header">
           <div>
-            <div className="screen-eyebrow">Post-goal selection</div>
+            <div className="screen-eyebrow">{isSetupMode ? 'Onboarding' : 'Post-goal selection'}</div>
             <h2>{activeBusinessGoal.title}</h2>
-            <p>{activeBusinessGoal.description}</p>
+            <p>
+              {isSetupMode
+                ? 'Choose a few specific image-post directions before entering the main workspace. These become the folders you can explore later.'
+                : activeBusinessGoal.description}
+            </p>
           </div>
 
           <div className="goal-hierarchy-card">
@@ -179,8 +189,32 @@ const PostGoalWorkspace: React.FC<Props> = ({
         </header>
 
         <section className="workspace-guidance-note">
-          <strong>Pick one or two folders to start.</strong> You can always come back and add more.
+          <strong>{isSetupMode ? 'Pick one or two folders to start.' : 'Pick one or two folders to start.'}</strong>{' '}
+          {isSetupMode
+            ? 'Then continue into the main directory where you can browse and open them.'
+            : 'You can always come back and add more.'}
         </section>
+
+        {isSetupMode && (
+          <section className="workspace-setup-banner">
+            <div>
+              <div className="section-kicker">Step 3</div>
+              <h3>Choose post goals before entering the workspace.</h3>
+              <p>
+                If you do not know exactly what to make yet, start with the suggested folders below. You can refine them later.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="ui-btn ui-btn--primary"
+              onClick={onContinueToWorkspace}
+              disabled={totalSelectedFolderCount === 0}
+            >
+              Continue to main workspace
+            </button>
+          </section>
+        )}
 
         <section className="workspace-folder-section workspace-folder-section--selected">
           <div className="workspace-panel-header workspace-panel-header--row">
@@ -222,9 +256,9 @@ const PostGoalWorkspace: React.FC<Props> = ({
                   <button
                     type="button"
                     className="ui-btn ui-btn--primary"
-                    onClick={() => onOpenPostGoal(folder)}
+                    onClick={() => (isSetupMode ? onContinueToWorkspace?.() : onOpenPostGoal(folder))}
                   >
-                    Open 2x2 studio
+                    {isSetupMode ? 'Keep for workspace' : 'Open 2x2 studio'}
                   </button>
                 </article>
               ))

@@ -343,7 +343,7 @@
 <body>
   <main class="sheet">
     <h1>TacitSNS Design Sheet</h1>
-    <p class="subtitle">Baseline visual contract for the CHI prototype. The target is a premium editorial tool for small business owners with low design literacy: calm, clean, minimal, and clearly not generic AI UI. The product flow is now hierarchy-first: login, brand setup, business goals, post-goal folders, then the 2x2 studio and traceboard.</p>
+    <p class="subtitle">Baseline visual contract for the CHI prototype. The target is a premium editorial tool for small business owners with low design literacy: calm, clean, minimal, and clearly not generic AI UI. The product flow is now hierarchy-first and staged: login, brand setup, business goals, post-goal setup, main workspace, then the 2x2 studio and traceboard.</p>
 
     <section class="section">
       <h2>Direction</h2>
@@ -507,7 +507,7 @@
       <div class="subsection">
         <div class="subsection-title">Button Mapping</div>
         <div class="rules">
-          <div><strong>Primary CTA:</strong> continue to goal workspace, create post-goal folder, generate ideas, generate variations, use this post, apply edit.</div>
+          <div><strong>Primary CTA:</strong> continue to business goals, continue to post goals, continue to main workspace, create post-goal folder, generate ideas, generate variations, use this post, apply edit.</div>
           <div><strong>Secondary surface button:</strong> back, open workspace state, regenerate, history, debug navigation, drawer entry actions.</div>
           <div><strong>Choice / chip button:</strong> feedback toggles, rationale chips, direction chips, edit chips, compact overlay actions.</div>
         </div>
@@ -529,6 +529,9 @@
         <div><strong>Trace board:</strong> preserve the exact internal layout logic, node sizing behavior, edge labels, and feedback-border semantics unless explicitly redesigned as a trace-specific task.</div>
         <div><strong>Preference capture:</strong> yes / no / unsure must remain visually explicit and easy to compare across the 2x2 grid.</div>
         <div><strong>Goal hierarchy:</strong> business goals must be visible before post-goal folders, and post-goal folders must clearly nest under an active business goal.</div>
+        <div><strong>Staged onboarding:</strong> brand narrative, business goals, and post goals should be separate steps before the user lands in the main directory workspace.</div>
+        <div><strong>Step markers:</strong> numbered progress markers need strong resting-state contrast and explicit active/completed states.</div>
+        <div><strong>Motion safety:</strong> entering or exiting panels must not be clickable during slide transitions.</div>
         <div><strong>Workspace language:</strong> show plain-language goals first and keep taxonomy labels as quiet supporting metadata.</div>
         <div><strong>Clarification moments:</strong> when the system asks follow-up questions later, those interactions should feel editorial and confident, not chatbot-like.</div>
         <div><strong>Buttons:</strong> primary actions must remain legible and discoverable without hover. Secondary actions should stay visible through border and text contrast alone.</div>

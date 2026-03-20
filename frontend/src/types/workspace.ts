@@ -1,6 +1,6 @@
 import type { BrandData } from './brand';
 
-export type AppStage = 'auth' | 'onboarding' | 'workspace' | 'studio';
+export type AppStage = 'auth' | 'onboarding' | 'post-goals' | 'workspace' | 'studio';
 
 export interface PrototypeUser {
   id: string;
