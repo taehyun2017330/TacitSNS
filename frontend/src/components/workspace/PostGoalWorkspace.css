@@ -232,8 +232,9 @@
   align-items: center;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: rgba(220, 233, 229, 0.72);
-  color: var(--accent);
+  background: #edf3f0;
+  color: #1f2423;
+  border: 1px solid rgba(22, 61, 57, 0.12);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -372,8 +373,9 @@
 
 .goal-rank-pill,
 .goal-normalized-pill {
-  background: rgba(220, 233, 229, 0.74);
-  color: var(--accent);
+  background: #edf3f0;
+  color: #1f2423;
+  border: 1px solid rgba(22, 61, 57, 0.12);
 }
 
 .workspace-folder-section {
@@ -452,8 +454,9 @@
   min-height: 1.9rem;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: rgba(220, 233, 229, 0.68);
-  color: var(--accent);
+  background: #edf3f0;
+  color: #1f2423;
+  border: 1px solid rgba(22, 61, 57, 0.12);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -529,14 +532,14 @@
 }
 
 .goal-status-pill--confirmed {
-  background: #dce9e5;
-  color: var(--accent-strong);
+  background: #edf3f0;
+  color: #1f2423;
   border: 1px solid rgba(22, 61, 57, 0.14);
 }
 
 .goal-status-pill--custom {
-  background: rgba(245, 238, 227, 0.92);
-  color: var(--ink-body);
+  background: #f6efe5;
+  color: #342f29;
   border: 1px solid rgba(97, 81, 59, 0.1);
 }
 
@@ -578,8 +581,9 @@
   width: 1.45rem;
   height: 1.45rem;
   border-radius: 999px;
-  background: rgba(220, 233, 229, 0.74);
-  color: var(--accent);
+  background: #edf3f0;
+  color: #1f2423;
+  border: 1px solid rgba(22, 61, 57, 0.12);
   font-size: 1rem;
   line-height: 1;
 }
@@ -617,18 +621,25 @@
 
 .goal-selected-remove {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: 0.3rem 0.62rem;
   appearance: none;
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: var(--accent);
-  font-size: 0.82rem;
+  border: 1px solid rgba(97, 81, 59, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.96);
+  color: #2a2926;
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.03em;
   cursor: pointer;
 }
 
 .goal-selected-remove:hover {
-  color: var(--accent-strong);
+  background: rgba(255, 247, 238, 1);
+  border-color: rgba(22, 61, 57, 0.18);
+  color: #1f2423;
 }
 
 .goal-dialog-backdrop {
