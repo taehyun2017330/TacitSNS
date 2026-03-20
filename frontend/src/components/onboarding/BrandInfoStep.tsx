@@ -99,8 +99,8 @@ const BrandInfoStep: React.FC<Props> = ({
         merged[existingIndex] = {
           ...merged[existingIndex],
           ...customGoal,
-          isRecommended: true,
-          rank: 1
+          isRecommended: merged[existingIndex].isRecommended,
+          rank: merged[existingIndex].rank
         };
       } else {
         merged.unshift(customGoal);

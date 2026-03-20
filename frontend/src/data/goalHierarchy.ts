@@ -453,8 +453,8 @@ export function normalizeBusinessGoalInput(input: string): BusinessGoalOption {
   return {
     id: `custom-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'goal'}`,
     title: trimmed,
-    description: 'Custom business goal supplied by the user.',
-    rationale: 'Kept as a custom goal because it did not clearly map onto one of the broad system goals.',
+    description: `Use social content to support this broader business intention: ${trimmed}.`,
+    rationale: `Added directly by the user because it does not cleanly fit one of the shared SNS marketing goal buckets.`,
     rank: 0,
     isRecommended: false,
     isCustom: true
