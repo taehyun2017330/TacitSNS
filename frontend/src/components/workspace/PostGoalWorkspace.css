@@ -384,7 +384,6 @@
 }
 
 .goal-card-corner-note {
-  margin-left: auto;
   color: var(--ink-soft);
   font-size: 0.68rem;
   font-weight: 700;
@@ -393,6 +392,7 @@
 }
 
 .goal-card-selection-note {
+  margin-left: auto;
   color: var(--accent-strong);
   font-size: 0.74rem;
   font-weight: 700;
@@ -447,6 +447,12 @@
 .goal-selector-section-header {
   display: grid;
   gap: 0.2rem;
+}
+
+.goal-selector-section-header--row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.9rem;
 }
 
 .goal-selector-section-header p {
@@ -590,6 +596,10 @@
   min-height: 100%;
 }
 
+.goal-card--custom {
+  min-height: 100%;
+}
+
 .goal-card.is-selected {
   border-color: rgba(22, 61, 57, 0.2);
   background: rgba(248, 253, 250, 0.98);
@@ -678,6 +688,11 @@
   .goal-selector-recommended-grid,
   .goal-selector-header {
     grid-template-columns: 1fr;
+  }
+
+  .goal-selector-section-header--row {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .workspace-setup-banner {

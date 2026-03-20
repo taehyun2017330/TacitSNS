@@ -336,10 +336,12 @@ const BrandInfoStep: React.FC<Props> = ({
           {currentStep === 'goals' && (
             <div className="brand-context-card">
               <div className="section-kicker">Your brand narrative</div>
+              <div className="brand-context-meta-label">Basic details</div>
               <div className="brand-context-row">
                 <span>{brandData.name || 'Your brand'}</span>
                 <span>{brandData.category || 'Industry'}</span>
               </div>
+              <div className="brand-context-meta-label">Narrative</div>
               <p>{brandData.description || 'Add a fuller brand story to help the system interpret your intent.'}</p>
             </div>
           )}

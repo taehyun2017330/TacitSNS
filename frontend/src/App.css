@@ -622,6 +622,14 @@ html {
   line-height: 1.65;
 }
 
+.brand-context-meta-label {
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .brand-context-row {
   display: flex;
   flex-wrap: wrap;

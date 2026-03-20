@@ -114,7 +114,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
       <section className="goal-selector-section goal-selector-section--compact">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Other ways to frame it</div>
-          <p>If these suggestions missed the mark, choose another broad marketing intention or write your own.</p>
+          <p>If these suggestions missed the mark, choose another broad marketing intention.</p>
         </div>
 
         <div className="goal-pill-row">
@@ -132,32 +132,51 @@ const BusinessGoalSelector: React.FC<Props> = ({
               </button>
             );
           })}
-
-          {customGoals.map(goal => {
-            const isSelected = selectedGoalId === goal.id;
-
-            return (
-              <button
-                type="button"
-                key={goal.id}
-                className={`goal-pill ${isSelected ? 'is-selected' : ''}`}
-                onClick={() => onSelectGoal(goal)}
-              >
-                <span>{goal.title}</span>
-                <span className="goal-pill-rank">Custom</span>
-              </button>
-            );
-          })}
-
-        <button
-          type="button"
-          className="goal-pill goal-pill--add"
-          onClick={() => setIsComposerOpen(true)}
-        >
-          <span className="goal-pill-add-icon">+</span>
-          <span>Add your own goal</span>
-        </button>
         </div>
+      </section>
+
+      <section className="goal-selector-section">
+        <div className="goal-selector-section-header goal-selector-section-header--row">
+          <div>
+            <div className="section-kicker">Add your own goal</div>
+            <p>Create a custom business goal if the suggested directions do not match what this brand is trying to achieve.</p>
+          </div>
+          <button
+            type="button"
+            className="goal-pill goal-pill--add"
+            onClick={() => setIsComposerOpen(true)}
+          >
+            <span className="goal-pill-add-icon">+</span>
+            <span>Add your own goal</span>
+          </button>
+        </div>
+
+        {customGoals.length > 0 && (
+          <div className="goal-selector-recommended-grid">
+            {customGoals.map(goal => {
+              const isSelected = selectedGoalId === goal.id;
+
+              return (
+                <button
+                  type="button"
+                  key={goal.id}
+                  className={`goal-card goal-card--custom ${isSelected ? 'is-selected' : ''}`}
+                  onClick={() => onSelectGoal(goal)}
+                >
+                  <div className="goal-card-topline">
+                    <span className="goal-card-corner-note">Custom goal</span>
+                    {isSelected && <span className="goal-card-selection-note">Selected</span>}
+                  </div>
+                  <div className="goal-card-title">{goal.title}</div>
+                  <div className="goal-card-description">{goal.description}</div>
+                  <div className="goal-card-rationale">
+                    <strong>Why this fits:</strong> {goal.rationale}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {isComposerOpen && (
