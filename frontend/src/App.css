@@ -528,6 +528,10 @@ html {
   padding-left: 1rem;
 }
 
+.brand-onboarding-block--industry {
+  position: relative;
+}
+
 .industry-chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -563,6 +567,11 @@ html {
 }
 
 .industry-picker-panel {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
   display: grid;
   gap: 0.7rem;
   padding: 0.85rem 0.9rem 0.9rem;
