@@ -78,7 +78,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Suggested business goals</div>
-          <p>These are some suggestions from your brand narrative: goals your business might have.</p>
+          <p>Based on your brand narrative, we brought some suggestions for your business goals.</p>
         </div>
 
         <div className="goal-selector-recommended-grid">
@@ -114,7 +114,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
       <section className="goal-selector-section goal-selector-section--compact">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Other ways to frame it</div>
-          <p>If these miss the mark, choose another broad marketing intention or write your own.</p>
+          <p>If these suggestions missed the mark, choose another broad marketing intention or write your own.</p>
         </div>
 
         <div className="goal-pill-row">

@@ -322,7 +322,7 @@ const BrandInfoStep: React.FC<Props> = ({
                   {stepTransition.exiting === 'narrative' ? (
                     <div className="onboarding-step-panel">
                       <div className="brand-onboarding-grid">
-                        <label className="brand-onboarding-block">
+                        <label className="brand-onboarding-block brand-onboarding-block--industry">
                           <span>Brand name</span>
                           <input
                             type="text"
@@ -399,7 +399,7 @@ const BrandInfoStep: React.FC<Props> = ({
                 {currentStep === 'narrative' ? (
                   <div className="onboarding-step-panel">
                     <div className="brand-onboarding-grid">
-                      <label className="brand-onboarding-block">
+                      <label className="brand-onboarding-block brand-onboarding-block--industry">
                         <span>Brand name</span>
                         <input
                           type="text"
