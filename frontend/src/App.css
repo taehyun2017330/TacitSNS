@@ -333,8 +333,8 @@ html {
   width: 2.35rem;
   height: 2.35rem;
   border-radius: 999px;
-  background: rgba(255, 251, 246, 0.98);
-  color: var(--ink-soft);
+  background-color: #fffaf4;
+  color: #4c473f;
   border: 1px solid rgba(97, 81, 59, 0.2);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -344,26 +344,27 @@ html {
 }
 
 .brand-hierarchy-step.is-active span {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  border-color: var(--accent);
+  background-color: #163d39;
+  color: #fffdf8;
+  border-color: #163d39;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
   box-shadow:
     0 0 0 6px rgba(220, 233, 229, 0.96),
     0 12px 22px rgba(22, 61, 57, 0.18);
 }
 
 .brand-hierarchy-step.is-complete span {
-  background: rgba(220, 233, 229, 0.44);
-  color: var(--accent-strong);
-  border-color: rgba(33, 79, 74, 0.18);
+  background-color: #e7f0ed;
+  color: #163d39;
+  border-color: rgba(22, 61, 57, 0.2);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
     0 6px 14px rgba(22, 61, 57, 0.08);
 }
 
 .brand-hierarchy-step.is-upcoming span {
-  color: var(--ink-body);
-  background: rgba(255, 251, 246, 0.9);
+  color: #3f3a33;
+  background-color: #fffaf4;
 }
 
 .brand-hierarchy-step.is-active strong {
