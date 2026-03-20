@@ -184,14 +184,7 @@ const BrandInfoStep: React.FC<Props> = ({
   const addCustomGoal = (goal: BusinessGoalOption) => {
     setCustomGoalOverrides(prev => {
       const filtered = prev.filter(existingGoal => existingGoal.id !== goal.id);
-      return [
-        {
-          ...goal,
-          isRecommended: true,
-          rank: 1
-        },
-        ...filtered
-      ];
+      return [goal, ...filtered];
     });
     setSelectedGoalId(goal.id);
   };

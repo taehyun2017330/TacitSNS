@@ -41,6 +41,10 @@ const BusinessGoalSelector: React.FC<Props> = ({
       ),
     [options, recommendedGoals]
   );
+  const customGoals = useMemo(
+    () => options.filter(goal => goal.isCustom),
+    [options]
+  );
 
   const suggestions = useMemo(
     () => suggestBusinessGoalAutocomplete(customGoalInput),
@@ -175,6 +179,33 @@ const BusinessGoalSelector: React.FC<Props> = ({
         </button>
         </div>
       </section>
+
+      {customGoals.length > 0 && (
+        <section className="goal-selector-section goal-selector-section--compact">
+          <div className="goal-selector-section-header">
+            <div className="section-kicker">Custom goals</div>
+            <p>Goals you added yourself stay separate from the system-recommended business goals.</p>
+          </div>
+
+          <div className="goal-pill-row">
+            {customGoals.map(goal => {
+              const isSelected = selectedGoalId === goal.id;
+
+              return (
+                <button
+                  type="button"
+                  key={goal.id}
+                  className={`goal-pill ${isSelected ? 'is-selected' : ''}`}
+                  onClick={() => onSelectGoal(goal)}
+                >
+                  <span>{goal.title}</span>
+                  <span className="goal-pill-rank">Custom</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {isComposerOpen && (
         <div className="goal-dialog-backdrop" onClick={() => setIsComposerOpen(false)}>

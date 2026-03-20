@@ -130,7 +130,7 @@ const PostGoalWorkspace: React.FC<Props> = ({
               >
                 <div className="workspace-goal-item-title">{goal.title}</div>
                 <div className="workspace-goal-item-meta">
-                  {goal.isRecommended ? `Top ${goal.rank}` : 'Selected'}
+                  {goal.isCustom ? 'Custom goal' : goal.isRecommended ? 'Recommended' : 'Business goal'}
                 </div>
               </button>
             ))}
