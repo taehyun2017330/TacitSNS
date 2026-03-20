@@ -411,15 +411,16 @@
 
 .goal-selector-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
-  gap: 1rem;
-  align-items: end;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+  align-items: start;
 }
 
 .goal-selector-header p {
-  max-width: 24rem;
+  max-width: 40rem;
   color: var(--ink-soft);
   line-height: 1.6;
+  margin: 0;
 }
 
 .goal-selector-section {
