@@ -38,6 +38,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
 - The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
 - Step markers and hierarchy numbers must have explicit resting-state contrast; progress indicators cannot rely on subtle tint alone.
+- Step markers must visually separate `active`, `completed`, and `upcoming` states. Active gets the strongest emphasis, completed resolves into a quieter confirmed state, and upcoming remains neutral.
 - Sliding transition layers should be non-interactive while they animate so one click can never trigger two steps.
 - Workspace panels should feel like an expert planning surface, not a chat toy or generic dashboard.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
