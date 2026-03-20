@@ -264,6 +264,16 @@ const BrandInfoStep: React.FC<Props> = ({
               : 'After this, you will choose post goals: specific kinds of posts to make under this business goal. This step is about why you are using SNS marketing right now.'}
           </p>
 
+          {currentStep === 'goals' && (
+            <div className="brand-context-card">
+              <div className="brand-context-row">
+                <span>{brandData.name || 'Your brand'}</span>
+                <span>{brandData.category || 'Industry'}</span>
+              </div>
+              <p>{brandData.description || 'Add a fuller brand story to help the system interpret your intent.'}</p>
+            </div>
+          )}
+
           <div className="brand-hierarchy-preview">
             <div className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'}`}>
               <span>1</span>
@@ -364,11 +374,6 @@ const BrandInfoStep: React.FC<Props> = ({
                     </div>
                   ) : (
                     <div className="onboarding-step-panel">
-                      <div className="goal-step-summary">
-                        <span>{brandData.name || 'Your brand'}</span>
-                        <span>{brandData.category || 'Industry'}</span>
-                        <span>{brandData.identity || 'Narrative ready'}</span>
-                      </div>
                       <BusinessGoalSelector
                         options={businessGoalOptions}
                         selectedGoalId={selectedGoalId}
@@ -439,11 +444,6 @@ const BrandInfoStep: React.FC<Props> = ({
                   </div>
                 ) : (
                   <div className="onboarding-step-panel">
-                    <div className="goal-step-summary">
-                      <span>{brandData.name || 'Your brand'}</span>
-                      <span>{brandData.category || 'Industry'}</span>
-                      <span>{brandData.identity || 'Narrative ready'}</span>
-                    </div>
                     <BusinessGoalSelector
                       options={businessGoalOptions}
                       selectedGoalId={selectedGoalId}

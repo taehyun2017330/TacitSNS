@@ -387,6 +387,13 @@
   text-transform: uppercase;
 }
 
+.goal-card-selection-note {
+  color: var(--accent-strong);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .workspace-folder-section {
   display: grid;
   gap: 1rem;
@@ -412,7 +419,7 @@
 .goal-selector-header {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.4rem;
+  gap: 0.28rem;
   align-items: start;
 }
 
@@ -443,43 +450,11 @@
   max-width: 42rem;
 }
 
-.goal-selected-strip {
-  display: grid;
-  gap: 0.65rem;
-  padding: 0;
-}
-
-.goal-selected-header {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.goal-selected-summary {
-  color: var(--ink-soft);
-  line-height: 1.5;
-}
-
 .goal-selected-list,
 .goal-pill-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-}
-
-.goal-selected-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.8rem;
-}
-
-.goal-selected-card {
-  display: grid;
-  gap: 0.55rem;
-  padding: 0.95rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(33, 79, 74, 0.14);
-  background: rgba(255, 252, 247, 0.98);
-  box-shadow: 0 10px 20px rgba(22, 61, 57, 0.05);
 }
 
 .goal-selected-pill,
@@ -610,39 +585,10 @@
   min-height: 100%;
 }
 
-.goal-selected-remove {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.9rem;
-  padding: 0.3rem 0.62rem;
-  appearance: none;
-  border: 1px solid rgba(97, 81, 59, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 250, 243, 0.96);
-  color: #2a2926;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-}
-
-.goal-selected-remove:hover {
-  background: rgba(255, 247, 238, 1);
-  border-color: rgba(22, 61, 57, 0.18);
-  color: #1f2423;
-}
-
 .goal-card.is-selected {
   border-color: rgba(22, 61, 57, 0.2);
   background: rgba(248, 253, 250, 0.98);
   box-shadow: 0 14px 28px rgba(22, 61, 57, 0.08);
-}
-
-.goal-card.is-selected .goal-rank-pill {
-  background: #edf3f0;
-  color: #1f2423;
-  border-color: rgba(22, 61, 57, 0.14);
 }
 
 .goal-dialog-backdrop {
@@ -702,10 +648,6 @@
   .goal-card-grid,
   .goal-selector-recommended-grid,
   .goal-selector-header {
-    grid-template-columns: 1fr;
-  }
-
-  .goal-selected-grid {
     grid-template-columns: 1fr;
   }
 

@@ -22,10 +22,6 @@ const BusinessGoalSelector: React.FC<Props> = ({
 }) => {
   const [customGoalInput, setCustomGoalInput] = useState('');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const selectedGoal = useMemo(
-    () => options.find(goal => goal.id === selectedGoalId) ?? null,
-    [options, selectedGoalId]
-  );
   const recommendedGoals = useMemo(
     () =>
       [...options]
@@ -65,51 +61,12 @@ const BusinessGoalSelector: React.FC<Props> = ({
   return (
     <div className="goal-selector">
       <div className="goal-selector-header">
-        <div>
-          <div className="section-kicker">System interpretation</div>
-          <h3>What is the main reason for using SNS marketing right now?</h3>
-        </div>
+        <div className="section-kicker">System interpretation</div>
+        <h3>What is the main reason for using SNS marketing right now?</h3>
         <p>
           Choose the main reason this brand is posting on social media right now. Specific post directions come next.
         </p>
       </div>
-
-      {selectedGoal && (
-        <section className="goal-selected-strip">
-          <div className="goal-selected-header">
-            <div>
-              <div className="section-kicker">Chosen business goal</div>
-              <p className="goal-selected-summary">This is the main outcome the system will optimize for next.</p>
-            </div>
-          </div>
-          <div className="goal-selected-grid">
-            <article key={selectedGoal.id} className="goal-selected-card">
-              <div className="goal-card-topline">
-                <span className={`goal-status-pill ${selectedGoal.isCustom ? 'goal-status-pill--custom' : 'goal-status-pill--confirmed'}`}>
-                  {selectedGoal.isCustom ? 'Custom goal' : 'Selected'}
-                </span>
-                {selectedGoal.mappedGoalTitle && (
-                  <span className="goal-normalized-pill subtle">Mapped for suggestions</span>
-                )}
-              </div>
-              <div className="goal-card-title">{selectedGoal.title}</div>
-              <div className="goal-card-description">{selectedGoal.description}</div>
-              {selectedGoal.mappedGoalTitle && (
-                <div className="goal-card-rationale">
-                  <strong>Treated as:</strong> {selectedGoal.mappedGoalTitle}
-                </div>
-              )}
-              <button
-                type="button"
-                className="goal-selected-remove"
-                onClick={() => onSelectGoal(selectedGoal)}
-              >
-                Clear choice
-              </button>
-            </article>
-          </div>
-        </section>
-      )}
 
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
@@ -130,6 +87,11 @@ const BusinessGoalSelector: React.FC<Props> = ({
               >
                 <div className="goal-card-topline">
                   <span className="goal-card-corner-note">Recommended</span>
+                  {isSelected && (
+                    <span className="goal-card-selection-note">
+                      {goal.isCustom ? 'Selected custom goal' : 'Selected'}
+                    </span>
+                  )}
                 </div>
                 <div className="goal-card-title">{goal.title}</div>
                 <div className="goal-card-description">{goal.description}</div>
@@ -144,8 +106,8 @@ const BusinessGoalSelector: React.FC<Props> = ({
 
       <section className="goal-selector-section goal-selector-section--compact">
         <div className="goal-selector-section-header">
-          <div className="section-kicker">Other broad goals</div>
-          <p>If these suggestions miss the mark, choose another broad marketing intention.</p>
+          <div className="section-kicker">Other ways to frame it</div>
+          <p>If the suggested goals miss the mark, choose another broad marketing intention or add your own.</p>
         </div>
 
         <div className="goal-pill-row">
@@ -164,6 +126,22 @@ const BusinessGoalSelector: React.FC<Props> = ({
             );
           })}
 
+          {customGoals.map(goal => {
+            const isSelected = selectedGoalId === goal.id;
+
+            return (
+              <button
+                type="button"
+                key={goal.id}
+                className={`goal-pill ${isSelected ? 'is-selected' : ''}`}
+                onClick={() => onSelectGoal(goal)}
+              >
+                <span>{goal.title}</span>
+                <span className="goal-pill-rank">Custom</span>
+              </button>
+            );
+          })}
+
         <button
           type="button"
           className="goal-pill goal-pill--add"
@@ -174,33 +152,6 @@ const BusinessGoalSelector: React.FC<Props> = ({
         </button>
         </div>
       </section>
-
-      {customGoals.length > 0 && (
-        <section className="goal-selector-section goal-selector-section--compact">
-          <div className="goal-selector-section-header">
-            <div className="section-kicker">Custom goals</div>
-            <p>Your own wording stays separate from the system suggestions.</p>
-          </div>
-
-          <div className="goal-pill-row">
-            {customGoals.map(goal => {
-              const isSelected = selectedGoalId === goal.id;
-
-              return (
-                <button
-                  type="button"
-                  key={goal.id}
-                  className={`goal-pill ${isSelected ? 'is-selected' : ''}`}
-                  onClick={() => onSelectGoal(goal)}
-                >
-                  <span>{goal.title}</span>
-                  <span className="goal-pill-rank">Custom</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       {isComposerOpen && (
         <div className="goal-dialog-backdrop" onClick={() => setIsComposerOpen(false)}>

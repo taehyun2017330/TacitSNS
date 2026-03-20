@@ -14,11 +14,13 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Post-goal recommendation cards should include visual preview blocks so the examples feel concrete before the user enters the studio.
 - Goal setup should be staged, not collapsed: brand narrative -> business goals -> post goals -> main workspace.
 - Business-goal selection should not be one large flat card grid. Use three layers instead: top recommendations, one compact row for the broader goal library, and a chosen-goal module that appears only after selection.
+- Business-goal selection should stay close to a single-decision surface. Avoid extra confirmation modules when the selected state can live directly on the card.
 - Business-goal selection should be framed as `system interpretation -> user confirmation`, not `ranked options -> pick one`.
 - Users should choose one primary business goal at this step, while still being able to add a custom goal if the shared library misses their intention.
 - The interface must explicitly distinguish `business goal` from `post goal`: business goal is why the brand is using SNS marketing, post goal is the specific kind of post to make next.
 - Do not use `Top 1 / Top 2 / Top 3` style ranking language for macro goals. Use a subtle `Recommended` cue and a short `Why this fits` explanation instead.
 - Keep the business-goal step visually light: avoid always-on summary strips, count chips, or multiple badges when one selected card can carry the state.
+- Put the current brand snapshot on the intro side of the onboarding layout during goal selection so the decision surface can stay focused on the right.
 - Custom or user-added goals must appear explicitly as the user’s own confirmed goals, not be visually absorbed into the recommendation language.
 - Custom business goals should live in a separate `Custom goals` area and must not displace or rewrite the system-recommended business goals.
 - The selected post-goal folders should read as the primary working set, with recommendations visually demoted beneath them.
