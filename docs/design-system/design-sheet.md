@@ -13,6 +13,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Custom business goals and custom post goals should use add-cards that open focused dialogs, not long inline form rows.
 - Post-goal recommendation cards should include visual preview blocks so the examples feel concrete before the user enters the studio.
 - Goal setup should be staged, not collapsed: brand narrative -> business goals -> post goals -> main workspace.
+- Business-goal selection should not be one large flat card grid. Use three layers instead: selected goals strip, top recommendations, and one compact row for the full broad-goal set.
 - The selected post-goal folders should read as the primary working set, with recommendations visually demoted beneath them.
 - Onboarding should keep explanation light so the guided narrative field remains the dominant action on the page.
 
