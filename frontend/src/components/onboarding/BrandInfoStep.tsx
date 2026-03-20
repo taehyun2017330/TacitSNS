@@ -56,8 +56,8 @@ function canGenerateGoals(brandData: BrandData) {
   );
 }
 
-function canContinue(brandData: BrandData, selectedGoalIds: string[]) {
-  return canGenerateGoals(brandData) && selectedGoalIds.length > 0;
+function canContinue(brandData: BrandData, selectedGoalId: string | null) {
+  return canGenerateGoals(brandData) && Boolean(selectedGoalId);
 }
 
 const BrandInfoStep: React.FC<Props> = ({
@@ -66,7 +66,9 @@ const BrandInfoStep: React.FC<Props> = ({
   initialStep
 }) => {
   const [brandData, setBrandData] = useState<BrandData>(() => initialData?.brand ?? INITIAL_BRAND_DATA);
-  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>(() => initialData?.selectedBusinessGoals.map(goal => goal.id) ?? []);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(
+    () => initialData?.selectedBusinessGoals[0]?.id ?? null
+  );
   const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>(() =>
     initialData?.selectedBusinessGoals.filter(goal => goal.isCustom || goal.normalizedFrom) ?? []
   );
@@ -107,7 +109,7 @@ const BrandInfoStep: React.FC<Props> = ({
     return merged;
   }, [customGoalOverrides, inferredGoals]);
 
-  const isReadyToContinue = canContinue(brandData, selectedGoalIds);
+  const isReadyToContinue = canContinue(brandData, selectedGoalId);
   const canShowGoals = canGenerateGoals(brandData);
   const brandContext = {
     brandName: brandData.name || 'Your Brand',
@@ -155,12 +157,8 @@ const BrandInfoStep: React.FC<Props> = ({
     transitionStep('goals', 'forward');
   };
 
-  const toggleGoalSelection = (goal: BusinessGoalOption) => {
-    setSelectedGoalIds(prev =>
-      prev.includes(goal.id)
-        ? prev.filter(goalId => goalId !== goal.id)
-        : [...prev, goal.id]
-    );
+  const selectGoal = (goal: BusinessGoalOption) => {
+    setSelectedGoalId(prev => (prev === goal.id ? null : goal.id));
   };
 
   const addCustomGoal = (goal: BusinessGoalOption) => {
@@ -175,7 +173,7 @@ const BrandInfoStep: React.FC<Props> = ({
         ...filtered
       ];
     });
-    setSelectedGoalIds(prev => (prev.includes(goal.id) ? prev : [...prev, goal.id]));
+    setSelectedGoalId(goal.id);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -195,7 +193,7 @@ const BrandInfoStep: React.FC<Props> = ({
     setLoading(true);
     setSubmitError('');
 
-    const selectedBusinessGoals = businessGoalOptions.filter(goal => selectedGoalIds.includes(goal.id));
+    const selectedBusinessGoals = businessGoalOptions.filter(goal => goal.id === selectedGoalId);
 
     try {
       const response = await apiFetch('/brand/create', {
@@ -245,12 +243,12 @@ const BrandInfoStep: React.FC<Props> = ({
           <p>
             {currentStep === 'narrative'
               ? 'Start with one guided brand story. Once the system understands the brand, it can suggest the business goals that matter most.'
-              : 'These are suggested business goals based on what you wrote. They represent the broader outcome you want these images to help with.'}
+              : 'These are suggested business goals for your SNS marketing effort. A business goal is the bigger reason you are posting, not the specific post yet.'}
           </p>
           <p>
             {currentStep === 'narrative'
               ? 'You do not need perfect wording. Give enough context about who the brand serves, what makes it different, and how it should come across.'
-              : 'After this, you will choose post goals: more specific image directions you might want to make. If nothing is concrete yet, you can use the suggestions or ask the system to choose for you.'}
+              : 'After this, you will choose post goals: specific kinds of posts to make under this business goal. This step is about why you are using SNS marketing right now.'}
           </p>
 
           <div className="brand-hierarchy-preview">
@@ -360,8 +358,8 @@ const BrandInfoStep: React.FC<Props> = ({
                       </div>
                       <BusinessGoalSelector
                         options={businessGoalOptions}
-                        selectedGoalIds={selectedGoalIds}
-                        onToggleGoal={toggleGoalSelection}
+                        selectedGoalId={selectedGoalId}
+                        onSelectGoal={selectGoal}
                         onAddCustomGoal={addCustomGoal}
                       />
                     </div>
@@ -435,8 +433,8 @@ const BrandInfoStep: React.FC<Props> = ({
                     </div>
                     <BusinessGoalSelector
                       options={businessGoalOptions}
-                      selectedGoalIds={selectedGoalIds}
-                      onToggleGoal={toggleGoalSelection}
+                      selectedGoalId={selectedGoalId}
+                      onSelectGoal={selectGoal}
                       onAddCustomGoal={addCustomGoal}
                     />
                   </div>
@@ -449,15 +447,15 @@ const BrandInfoStep: React.FC<Props> = ({
                 {!brandData.name.trim() && <span>Brand name required</span>}
                 {brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
                 {brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
-                  <span>Add a little more detail so the goals can be ranked well</span>
+                  <span>Add a little more detail so the business goal can be inferred well</span>
                 )}
                 {currentStep === 'narrative' && canGenerateGoals(brandData) && (
-                  <span>Ready to review suggested business goals</span>
+                  <span>Ready to review the suggested business goal</span>
                 )}
-                {currentStep === 'goals' && selectedGoalIds.length === 0 && (
-                  <span>Select at least one business goal</span>
+                {currentStep === 'goals' && !selectedGoalId && (
+                  <span>Choose one business goal for this SNS marketing effort</span>
                 )}
-                {currentStep === 'goals' && isReadyToContinue && <span className="is-ready">Ready to create the goal workspace</span>}
+                {currentStep === 'goals' && isReadyToContinue && <span className="is-ready">Ready to move into post-goal setup</span>}
               </div>
 
               <div className="brand-onboarding-actions">

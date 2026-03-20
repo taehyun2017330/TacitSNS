@@ -13,8 +13,10 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Custom business goals and custom post goals should use add-cards that open focused dialogs, not long inline form rows.
 - Post-goal recommendation cards should include visual preview blocks so the examples feel concrete before the user enters the studio.
 - Goal setup should be staged, not collapsed: brand narrative -> business goals -> post goals -> main workspace.
-- Business-goal selection should not be one large flat card grid. Use three layers instead: selected goals strip, top recommendations, and one compact row for the full broad-goal set.
+- Business-goal selection should not be one large flat card grid. Use three layers instead: chosen goal strip, top recommendations, and one compact row for the full broad-goal set.
 - Business-goal selection should be framed as `system interpretation -> user confirmation`, not `ranked options -> pick one`.
+- Users should choose one primary business goal at this step, while still being able to add a custom goal if the shared library misses their intention.
+- The interface must explicitly distinguish `business goal` from `post goal`: business goal is why the brand is using SNS marketing, post goal is the specific kind of post to make next.
 - Do not use `Top 1 / Top 2 / Top 3` style ranking language for macro goals. Use a subtle `Recommended` cue and a short `Why this fits` explanation instead.
 - Custom or user-added goals must appear explicitly as the user’s own confirmed goals, not be visually absorbed into the recommendation language.
 - The selected post-goal folders should read as the primary working set, with recommendations visually demoted beneath them.
@@ -42,6 +44,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Treat the product shell as a hierarchy-first experience:
   login -> brand setup -> business goals -> post-goal workspace -> studio / traceboard.
 - Business goals should be broad, outcome-based, and readable in plain language before any taxonomy appears.
+- Business-goal recommendations must stay at the macro SNS marketing level and should never drift into obvious post-goal suggestions like founder intro, process showcase, or customer proof.
 - Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
 - The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
 - Step markers and hierarchy numbers must have explicit resting-state contrast; progress indicators cannot rely on subtle tint alone.
