@@ -20,6 +20,7 @@ import type {
 import './App.css';
 
 const STORAGE_KEY = 'tacitsns-prototype-shell-v2';
+const STAGE_TRANSITION_MS = 360;
 
 type PersistedAppState = {
   user: PrototypeUser | null;
@@ -88,6 +89,11 @@ function App() {
   const [currentStage, setCurrentStage] = useState<AppStage>(() =>
     deriveStage(persisted.user, persisted.workspace)
   );
+  const [stageTransition, setStageTransition] = useState<{
+    exiting: AppStage;
+    entering: AppStage;
+    direction: 'forward' | 'backward';
+  } | null>(null);
   const [user, setUser] = useState<PrototypeUser | null>(persisted.user);
   const [workspace, setWorkspace] = useState<WorkspaceSnapshot | null>(persisted.workspace);
   const [selectedFolder, setSelectedFolder] = useState<PostGoalFolder | null>(null);
@@ -108,9 +114,28 @@ function App() {
 
   const brandData = workspace?.brand ?? null;
 
+  const transitionToStage = (nextStage: AppStage, direction: 'forward' | 'backward' = 'forward') => {
+    if (nextStage === currentStage) {
+      return;
+    }
+
+    setStageTransition({
+      exiting: currentStage,
+      entering: nextStage,
+      direction
+    });
+    setCurrentStage(nextStage);
+
+    window.setTimeout(() => {
+      setStageTransition(prev =>
+        prev?.entering === nextStage ? null : prev
+      );
+    }, STAGE_TRANSITION_MS);
+  };
+
   const handleLogin = (nextUser: PrototypeUser) => {
     setUser(nextUser);
-    setCurrentStage(workspace ? 'workspace' : 'onboarding');
+    transitionToStage(workspace ? 'workspace' : 'onboarding', 'forward');
   };
 
   const handleOnboardingComplete = (result: OnboardingResult) => {
@@ -122,7 +147,7 @@ function App() {
       };
     });
     setSelectedFolder(null);
-    setCurrentStage('workspace');
+    transitionToStage('workspace', 'forward');
   };
 
   const handleLoadSampleWorkspace = (brand: BrandData) => {
@@ -134,53 +159,20 @@ function App() {
       email: 'sample@prototype.local'
     });
     setSelectedFolder(null);
-    setCurrentStage('workspace');
+    transitionToStage('workspace', 'forward');
   };
 
-  return (
-    <>
-      <PrototypeDebugDrawer
-        currentStage={currentStage}
-        user={user}
-        workspace={workspace}
-        onJumpToAuth={() => {
-          setSelectedFolder(null);
-          setCurrentStage('auth');
-        }}
-        onJumpToOnboarding={() => {
-          setSelectedFolder(null);
-          setCurrentStage(user ? 'onboarding' : 'auth');
-        }}
-        onJumpToWorkspace={() => {
-          if (workspace) {
-            setSelectedFolder(null);
-            setCurrentStage('workspace');
-          }
-        }}
-        onJumpToStudio={() => {
-          if (workspace?.postGoalFolders.length) {
-            setSelectedFolder(workspace.postGoalFolders[0]);
-            setCurrentStage('studio');
-          }
-        }}
-        onLoadSampleWorkspace={handleLoadSampleWorkspace}
-        onResetPrototype={() => {
-          setSelectedFolder(null);
-          setWorkspace(null);
-          setUser(null);
-          setCurrentStage('auth');
-        }}
-      />
+  const renderStage = (stage: AppStage) => {
+    if (stage === 'auth') {
+      return <PrototypeLogin onLogin={handleLogin} />;
+    }
 
-      {currentStage === 'auth' && (
-        <PrototypeLogin onLogin={handleLogin} />
-      )}
+    if (stage === 'onboarding' && user) {
+      return <BrandInfoStep initialData={workspace} onComplete={handleOnboardingComplete} />;
+    }
 
-      {currentStage === 'onboarding' && user && (
-        <BrandInfoStep initialData={workspace} onComplete={handleOnboardingComplete} />
-      )}
-
-      {currentStage === 'workspace' && workspace && (
+    if (stage === 'workspace' && workspace) {
+      return (
         <PostGoalWorkspace
           brandName={workspace.brand.name}
           brandIdentity={workspace.brand.identity}
@@ -209,16 +201,18 @@ function App() {
           }}
           onEditGoals={() => {
             setSelectedFolder(null);
-            setCurrentStage('onboarding');
+            transitionToStage('onboarding', 'backward');
           }}
           onOpenPostGoal={folder => {
             setSelectedFolder(folder);
-            setCurrentStage('studio');
+            transitionToStage('studio', 'forward');
           }}
         />
-      )}
+      );
+    }
 
-      {currentStage === 'studio' && workspace && selectedFolder && (
+    if (stage === 'studio' && workspace && selectedFolder) {
+      return (
         <PostStudio
           brandName={workspace.brand.name}
           brandCategory={workspace.brand.category}
@@ -233,13 +227,66 @@ function App() {
           postGoalTitle={selectedFolder.title}
           postGoalDescription={selectedFolder.description}
           onBack={() => {
-            setCurrentStage('workspace');
+            transitionToStage('workspace', 'backward');
           }}
           onFinalize={() => {
             alert('Post finalized! Ready to publish.');
           }}
         />
-      )}
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <>
+      <PrototypeDebugDrawer
+        currentStage={currentStage}
+        user={user}
+        workspace={workspace}
+        onJumpToAuth={() => {
+          setSelectedFolder(null);
+          transitionToStage('auth', 'backward');
+        }}
+        onJumpToOnboarding={() => {
+          setSelectedFolder(null);
+          transitionToStage(user ? 'onboarding' : 'auth', 'backward');
+        }}
+        onJumpToWorkspace={() => {
+          if (workspace) {
+            setSelectedFolder(null);
+            transitionToStage('workspace', 'forward');
+          }
+        }}
+        onJumpToStudio={() => {
+          if (workspace?.postGoalFolders.length) {
+            setSelectedFolder(workspace.postGoalFolders[0]);
+            transitionToStage('studio', 'forward');
+          }
+        }}
+        onLoadSampleWorkspace={handleLoadSampleWorkspace}
+        onResetPrototype={() => {
+          setSelectedFolder(null);
+          setWorkspace(null);
+          setUser(null);
+          transitionToStage('auth', 'backward');
+        }}
+      />
+
+      <div className="app-stage-stack">
+        {stageTransition && (
+          <div className={`app-stage-layer app-stage-layer--exit app-stage-layer--${stageTransition.direction}`}>
+            {renderStage(stageTransition.exiting)}
+          </div>
+        )}
+
+        <div
+          className={`app-stage-layer ${stageTransition ? `app-stage-layer--enter app-stage-layer--${stageTransition.direction}` : 'app-stage-layer--static'}`}
+        >
+          {renderStage(currentStage)}
+        </div>
+      </div>
     </>
   );
 }

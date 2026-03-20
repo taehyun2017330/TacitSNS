@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { inferBusinessGoalOptions } from '../../data/goalHierarchy';
 import { apiFetch } from '../../config/api';
@@ -35,6 +35,8 @@ interface Props {
   onComplete: (result: OnboardingResult) => void;
 }
 
+type OnboardingStep = 'narrative' | 'goals';
+
 function deriveIdentityFromNarrative(text: string) {
   const trimmed = text.trim();
   if (!trimmed) {
@@ -63,12 +65,16 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
   const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>(() =>
     initialData?.selectedBusinessGoals.filter(goal => goal.isCustom || goal.normalizedFrom) ?? []
   );
-  const [showGoalSection, setShowGoalSection] = useState(() =>
-    (initialData?.selectedBusinessGoals.length ?? 0) > 0
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>(() =>
+    (initialData?.selectedBusinessGoals.length ?? 0) > 0 ? 'goals' : 'narrative'
   );
+  const [stepTransition, setStepTransition] = useState<{
+    exiting: OnboardingStep;
+    entering: OnboardingStep;
+    direction: 'forward' | 'backward';
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const goalSectionRef = useRef<HTMLDivElement | null>(null);
 
   const inferredGoals = useMemo(
     () => inferBusinessGoalOptions(brandData),
@@ -105,15 +111,28 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
 
   useEffect(() => {
     if (!canShowGoals) {
-      setShowGoalSection(false);
+      setCurrentStep('narrative');
     }
   }, [canShowGoals]);
 
-  useEffect(() => {
-    if (showGoalSection) {
-      goalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const transitionStep = (nextStep: OnboardingStep, direction: 'forward' | 'backward') => {
+    if (nextStep === currentStep) {
+      return;
     }
-  }, [showGoalSection]);
+
+    setStepTransition({
+      exiting: currentStep,
+      entering: nextStep,
+      direction
+    });
+    setCurrentStep(nextStep);
+
+    window.setTimeout(() => {
+      setStepTransition(prev =>
+        prev?.entering === nextStep ? null : prev
+      );
+    }, 360);
+  };
 
   const toggleGoalSelection = (goal: BusinessGoalOption) => {
     setSelectedGoalIds(prev =>
@@ -214,105 +233,169 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
 
         <section className="brand-onboarding-card">
           <div className="screen-eyebrow">Onboarding</div>
-          <h2>Tell the system who this brand is.</h2>
+          <h2>
+            {currentStep === 'narrative' ? 'Tell the system who this brand is.' : 'Review the suggested business goals.'}
+          </h2>
           <p className="brand-onboarding-subtitle">
-            Use one guided field. Then choose the goals that matter most.
+            {currentStep === 'narrative'
+              ? 'Use one guided field. Then move into business goals.'
+              : 'Choose the outcomes this system should optimize for next.'}
           </p>
 
           {submitError && <div className="brand-onboarding-error">{submitError}</div>}
 
           <form onSubmit={handleSubmit} className="brand-onboarding-form">
-            <div className="brand-onboarding-grid">
-              <label className="brand-onboarding-block">
-                <span>Brand name</span>
-                <input
-                  type="text"
-                  className="brand-onboarding-field"
-                  value={brandData.name}
-                  onChange={event => handleFieldChange('name', event.target.value)}
-                  placeholder="e.g., Aster Vale"
-                />
-              </label>
+            <div className="onboarding-step-shell">
+              {stepTransition && (
+                <div className={`onboarding-step-layer onboarding-step-layer--exit onboarding-step-layer--${stepTransition.direction}`}>
+                  {stepTransition.exiting === 'narrative' ? (
+                    <div className="onboarding-step-panel">
+                      <div className="brand-onboarding-grid">
+                        <label className="brand-onboarding-block">
+                          <span>Brand name</span>
+                          <input
+                            type="text"
+                            className="brand-onboarding-field"
+                            value={brandData.name}
+                            onChange={event => handleFieldChange('name', event.target.value)}
+                            placeholder="e.g., Aster Vale"
+                          />
+                        </label>
 
-              <label className="brand-onboarding-block">
-                <span>Industry</span>
-                <select
-                  className="brand-onboarding-field"
-                  value={brandData.category}
-                  onChange={event => handleFieldChange('category', event.target.value)}
-                >
-                  <option value="">Select an industry</option>
-                  {INDUSTRY_OPTIONS.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+                        <label className="brand-onboarding-block">
+                          <span>Industry</span>
+                          <select
+                            className="brand-onboarding-field"
+                            value={brandData.category}
+                            onChange={event => handleFieldChange('category', event.target.value)}
+                          >
+                            <option value="">Select an industry</option>
+                            {INDUSTRY_OPTIONS.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
 
-            <div className="brand-onboarding-block">
-              <span>Brand identity and positioning</span>
-              <div className="brand-onboarding-tip">
-                <p>Cover the essentials:</p>
-                <ul>
-                  <li>what the brand is</li>
-                  <li>who it serves</li>
-                  <li>what makes it different</li>
-                  <li>how it should come across</li>
-                </ul>
-              </div>
-              <BrandAutocomplete
-                brandContext={brandContext}
-                value={brandData.description}
-                onChange={text => {
-                  setBrandData(prev => ({
-                    ...prev,
-                    description: text,
-                    identity: deriveIdentityFromNarrative(text)
-                  }));
-                }}
-                showHeader={false}
-              />
-            </div>
-
-            {canShowGoals ? (
-              showGoalSection ? (
-                <div ref={goalSectionRef}>
-                  <BusinessGoalSelector
-                    options={businessGoalOptions}
-                    selectedGoalIds={selectedGoalIds}
-                    onToggleGoal={toggleGoalSelection}
-                    onAddCustomGoal={addCustomGoal}
-                  />
+                      <div className="brand-onboarding-block">
+                        <span>Brand identity and positioning</span>
+                        <div className="brand-onboarding-tip">
+                          <p>Cover the essentials:</p>
+                          <ul>
+                            <li>what the brand is</li>
+                            <li>who it serves</li>
+                            <li>what makes it different</li>
+                            <li>how it should come across</li>
+                          </ul>
+                        </div>
+                        <BrandAutocomplete
+                          brandContext={brandContext}
+                          value={brandData.description}
+                          onChange={text => {
+                            setBrandData(prev => ({
+                              ...prev,
+                              description: text,
+                              identity: deriveIdentityFromNarrative(text)
+                            }));
+                          }}
+                          showHeader={false}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="onboarding-step-panel">
+                      <div className="goal-step-summary">
+                        <span>{brandData.name || 'Your brand'}</span>
+                        <span>{brandData.category || 'Industry'}</span>
+                        <span>{brandData.identity || 'Narrative ready'}</span>
+                      </div>
+                      <BusinessGoalSelector
+                        options={businessGoalOptions}
+                        selectedGoalIds={selectedGoalIds}
+                        onToggleGoal={toggleGoalSelection}
+                        onAddCustomGoal={addCustomGoal}
+                      />
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="goal-transition-card">
-                  <div className="section-kicker">Next step</div>
-                  <h3>The system is ready to suggest business goals.</h3>
-                  <p>
-                    Your brand narrative is detailed enough. Review the suggested outcomes before continuing.
-                  </p>
+              )}
 
-                  <div className="goal-transition-summary">
-                    <span>Brand: {brandData.name || 'Unnamed brand'}</span>
-                    <span>Identity: {brandData.identity || 'Narrative ready'}</span>
+              <div className={`onboarding-step-layer ${stepTransition ? `onboarding-step-layer--enter onboarding-step-layer--${stepTransition.direction}` : 'onboarding-step-layer--static'}`}>
+                {currentStep === 'narrative' ? (
+                  <div className="onboarding-step-panel">
+                    <div className="brand-onboarding-grid">
+                      <label className="brand-onboarding-block">
+                        <span>Brand name</span>
+                        <input
+                          type="text"
+                          className="brand-onboarding-field"
+                          value={brandData.name}
+                          onChange={event => handleFieldChange('name', event.target.value)}
+                          placeholder="e.g., Aster Vale"
+                        />
+                      </label>
+
+                      <label className="brand-onboarding-block">
+                        <span>Industry</span>
+                        <select
+                          className="brand-onboarding-field"
+                          value={brandData.category}
+                          onChange={event => handleFieldChange('category', event.target.value)}
+                        >
+                          <option value="">Select an industry</option>
+                          {INDUSTRY_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="brand-onboarding-block">
+                      <span>Brand identity and positioning</span>
+                      <div className="brand-onboarding-tip">
+                        <p>Cover the essentials:</p>
+                        <ul>
+                          <li>what the brand is</li>
+                          <li>who it serves</li>
+                          <li>what makes it different</li>
+                          <li>how it should come across</li>
+                        </ul>
+                      </div>
+                      <BrandAutocomplete
+                        brandContext={brandContext}
+                        value={brandData.description}
+                        onChange={text => {
+                          setBrandData(prev => ({
+                            ...prev,
+                            description: text,
+                            identity: deriveIdentityFromNarrative(text)
+                          }));
+                        }}
+                        showHeader={false}
+                      />
+                    </div>
                   </div>
-
-                  <button
-                    type="button"
-                    className="ui-btn ui-btn--primary"
-                    onClick={() => setShowGoalSection(true)}
-                  >
-                    Review suggested business goals
-                  </button>
-                </div>
-              )
-            ) : (
-              <div className="brand-onboarding-gate">
-                Finish the brand narrative first. Then the goal suggestions will appear.
+                ) : (
+                  <div className="onboarding-step-panel">
+                    <div className="goal-step-summary">
+                      <span>{brandData.name || 'Your brand'}</span>
+                      <span>{brandData.category || 'Industry'}</span>
+                      <span>{brandData.identity || 'Narrative ready'}</span>
+                    </div>
+                    <BusinessGoalSelector
+                      options={businessGoalOptions}
+                      selectedGoalIds={selectedGoalIds}
+                      onToggleGoal={toggleGoalSelection}
+                      onAddCustomGoal={addCustomGoal}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             <div className="brand-onboarding-divider">
               <div className="brand-onboarding-requirements">
@@ -321,22 +404,45 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
                 {brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
                   <span>Add a little more detail so the goals can be ranked well</span>
                 )}
-                {canGenerateGoals(brandData) && !showGoalSection && (
-                  <span>Review the suggested business goals</span>
+                {currentStep === 'narrative' && canGenerateGoals(brandData) && (
+                  <span>Ready to review suggested business goals</span>
                 )}
-                {showGoalSection && selectedGoalIds.length === 0 && (
+                {currentStep === 'goals' && selectedGoalIds.length === 0 && (
                   <span>Select at least one business goal</span>
                 )}
-                {isReadyToContinue && <span className="is-ready">Ready to create the goal workspace</span>}
+                {currentStep === 'goals' && isReadyToContinue && <span className="is-ready">Ready to create the goal workspace</span>}
               </div>
 
-              <button
-                type="submit"
-                className={`ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
-                disabled={loading || !isReadyToContinue}
-              >
-                {loading ? 'Preparing workspace...' : 'Continue to goal workspace'}
-              </button>
+              <div className="brand-onboarding-actions">
+                {currentStep === 'goals' && (
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn--secondary"
+                    onClick={() => transitionStep('narrative', 'backward')}
+                  >
+                    Previous
+                  </button>
+                )}
+
+                {currentStep === 'narrative' ? (
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn"
+                    onClick={() => transitionStep('goals', 'forward')}
+                    disabled={!canGenerateGoals(brandData)}
+                  >
+                    Review suggested business goals
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className={`ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
+                    disabled={loading || !isReadyToContinue}
+                  >
+                    {loading ? 'Preparing post goals...' : 'Continue to post-goal selection'}
+                  </button>
+                )}
+              </div>
             </div>
           </form>
         </section>
