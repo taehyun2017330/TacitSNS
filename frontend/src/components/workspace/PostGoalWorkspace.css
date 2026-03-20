@@ -381,9 +381,9 @@
 .goal-card-corner-note {
   margin-left: auto;
   color: var(--ink-soft);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
@@ -424,7 +424,7 @@
 }
 
 .goal-selector-header p {
-  max-width: 48rem;
+  max-width: 56rem;
   color: var(--ink-soft);
   line-height: 1.6;
   margin: 0;
@@ -562,21 +562,21 @@
 
 .goal-card-title {
   font-family: var(--font-display);
-  font-size: 1.28rem;
+  font-size: 1.22rem;
   color: var(--ink-strong);
   line-height: 1.12;
   letter-spacing: -0.03em;
 }
 
 .goal-card-description {
-  margin-top: 0.3rem;
+  margin-top: 0.18rem;
   font-weight: 600;
   color: var(--ink-body);
   line-height: 1.45;
 }
 
 .goal-card-rationale {
-  margin-top: 0.05rem;
+  margin-top: 0;
   color: var(--ink-soft);
   line-height: 1.5;
 }

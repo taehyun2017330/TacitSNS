@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import {
-  normalizeBusinessGoalInput,
-  suggestBusinessGoalAutocomplete
+  normalizeBusinessGoalInput
 } from '../../data/goalHierarchy';
 import type { BusinessGoalOption } from '../../types/workspace';
 import '../workspace/PostGoalWorkspace.css';
@@ -44,11 +43,6 @@ const BusinessGoalSelector: React.FC<Props> = ({
     [options]
   );
 
-  const suggestions = useMemo(
-    () => suggestBusinessGoalAutocomplete(customGoalTitle),
-    [customGoalTitle]
-  );
-
   const resetComposer = () => {
     setCustomGoalTitle('');
     setCustomGoalDescription('');
@@ -84,7 +78,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Suggested business goals</div>
-          <p>These describe why the brand is using social media right now, not what exact post to make.</p>
+          <p>These are some suggestions from your brand narrative: goals your business might have.</p>
         </div>
 
         <div className="goal-selector-recommended-grid">
@@ -120,7 +114,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
       <section className="goal-selector-section goal-selector-section--compact">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Other ways to frame it</div>
-          <p>If the suggested goals miss the mark, choose another broad marketing intention or add your own.</p>
+          <p>If these miss the mark, choose another broad marketing intention or write your own.</p>
         </div>
 
         <div className="goal-pill-row">
@@ -204,19 +198,6 @@ const BusinessGoalSelector: React.FC<Props> = ({
                 rows={3}
               />
             </label>
-
-            <div className="autocomplete-chip-row">
-              {suggestions.map(suggestion => (
-                <button
-                  type="button"
-                  key={suggestion}
-                  className="ui-btn ui-btn--choice"
-                  onClick={() => setCustomGoalTitle(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
 
             <div className="goal-dialog-actions">
               <button

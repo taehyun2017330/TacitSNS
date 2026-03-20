@@ -446,7 +446,9 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
                   ))}
                 </div>
                 <div className="evaluation-note-inline">
-                  Click the circle to {guidanceOpen ? 'hide' : 'show'} highlights
+                  {guidanceOpen
+                    ? 'Click the circle to hide the writing guidance'
+                    : 'Click the circle to see what information to add next'}
                 </div>
               </div>
             </div>

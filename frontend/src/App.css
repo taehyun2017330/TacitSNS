@@ -528,6 +528,38 @@ html {
   padding-left: 1rem;
 }
 
+.industry-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.industry-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.1rem;
+  padding: 0.42rem 0.78rem;
+  border-radius: 999px;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 252, 247, 0.96);
+  color: var(--ink-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.industry-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 79, 74, 0.16);
+}
+
+.industry-chip.is-selected {
+  background: #edf3f0;
+  color: var(--accent-strong);
+  border-color: rgba(22, 61, 57, 0.18);
+}
+
 .brand-context-card {
   display: grid;
   gap: 0.7rem;

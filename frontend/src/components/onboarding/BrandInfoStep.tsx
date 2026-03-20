@@ -20,6 +20,8 @@ const INDUSTRY_OPTIONS = [
   { value: 'other', label: 'Other' }
 ] as const;
 
+const INDUSTRY_CHIPS = INDUSTRY_OPTIONS.filter(option => option.value !== 'other');
+
 const INITIAL_BRAND_DATA: BrandData = {
   name: '',
   category: '',
@@ -266,7 +268,7 @@ const BrandInfoStep: React.FC<Props> = ({
 
           {currentStep === 'goals' && (
             <div className="brand-context-card">
-              <div className="section-kicker">Your brand story</div>
+              <div className="section-kicker">Your brand narrative</div>
               <div className="brand-context-row">
                 <span>{brandData.name || 'Your brand'}</span>
                 <span>{brandData.category || 'Industry'}</span>
@@ -333,18 +335,25 @@ const BrandInfoStep: React.FC<Props> = ({
 
                         <label className="brand-onboarding-block">
                           <span>Industry</span>
-                          <select
+                          <input
+                            type="text"
                             className="brand-onboarding-field"
                             value={brandData.category}
                             onChange={event => handleFieldChange('category', event.target.value)}
-                          >
-                            <option value="">Select an industry</option>
-                            {INDUSTRY_OPTIONS.map(option => (
-                              <option key={option.value} value={option.value}>
+                            placeholder="e.g., Fashion, Food & Beverage, Wellness"
+                          />
+                          <div className="industry-chip-row">
+                            {INDUSTRY_CHIPS.map(option => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                className={`industry-chip ${brandData.category === option.label ? 'is-selected' : ''}`}
+                                onClick={() => handleFieldChange('category', option.label)}
+                              >
                                 {option.label}
-                              </option>
+                              </button>
                             ))}
-                          </select>
+                          </div>
                         </label>
                       </div>
 
@@ -403,18 +412,25 @@ const BrandInfoStep: React.FC<Props> = ({
 
                       <label className="brand-onboarding-block">
                         <span>Industry</span>
-                        <select
+                        <input
+                          type="text"
                           className="brand-onboarding-field"
                           value={brandData.category}
                           onChange={event => handleFieldChange('category', event.target.value)}
-                        >
-                          <option value="">Select an industry</option>
-                          {INDUSTRY_OPTIONS.map(option => (
-                            <option key={option.value} value={option.value}>
+                          placeholder="e.g., Fashion, Food & Beverage, Wellness"
+                        />
+                        <div className="industry-chip-row">
+                          {INDUSTRY_CHIPS.map(option => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              className={`industry-chip ${brandData.category === option.label ? 'is-selected' : ''}`}
+                              onClick={() => handleFieldChange('category', option.label)}
+                            >
                               {option.label}
-                            </option>
+                            </button>
                           ))}
-                        </select>
+                        </div>
                       </label>
                     </div>
 

@@ -22,7 +22,10 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Keep the business-goal step visually light: avoid always-on summary strips, count chips, or multiple badges when one selected card can carry the state.
 - Put the current brand snapshot on the intro side of the onboarding layout during goal selection so the decision surface can stay focused on the right.
 - Label that left-side snapshot explicitly as `Your brand story`, with only the basic brand name, category, and story summary.
+- Label that left-side snapshot explicitly as `Your brand narrative`, with only the basic brand name, category, and story summary.
 - Custom business-goal entry should mirror the recommended-card structure: main goal, what it means, and why it fits. Only the main goal is required.
+- Do not show recommendation chips inside the custom business-goal dialog.
+- The onboarding industry field should feel like the same system as the rest of the UI: styled text input plus suggestion chips, with custom entry always allowed.
 - Custom or user-added goals must appear explicitly as the user’s own confirmed goals, not be visually absorbed into the recommendation language.
 - Custom business goals should live in a separate `Custom goals` area and must not displace or rewrite the system-recommended business goals.
 - The selected post-goal folders should read as the primary working set, with recommendations visually demoted beneath them.
