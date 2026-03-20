@@ -240,6 +240,8 @@ html {
 
 .brand-onboarding-intro {
   align-self: start;
+  display: grid;
+  gap: 0.95rem;
   box-shadow: none;
   background: rgba(255, 252, 247, 0.62);
 }
@@ -256,7 +258,7 @@ html {
 .brand-onboarding-intro h1,
 .auth-panel h2,
 .brand-onboarding-card h2 {
-  margin-top: 0.45rem;
+  margin-top: 0.3rem;
   font-family: var(--font-display);
   color: var(--ink-strong);
   letter-spacing: -0.04em;
@@ -281,9 +283,12 @@ html {
   line-height: 1.65;
 }
 
+.brand-onboarding-intro p {
+  margin: 0;
+}
+
 .auth-copy-card,
 .brand-hierarchy-preview {
-  margin-top: 1rem;
   display: grid;
   gap: 0.8rem;
   padding: 1rem;

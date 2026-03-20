@@ -70,7 +70,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
           <h3>What is the main reason for using SNS marketing right now?</h3>
         </div>
         <p>
-          Choose one broad marketing intention. You will decide the specific post direction next.
+          Choose the main reason this brand is posting on social media right now. Specific post directions come next.
         </p>
       </div>
 
@@ -129,7 +129,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
                 onClick={() => onSelectGoal(goal)}
               >
                 <div className="goal-card-topline">
-                  <span className="goal-rank-pill">Recommended</span>
+                  <span className="goal-card-corner-note">Recommended</span>
                 </div>
                 <div className="goal-card-title">{goal.title}</div>
                 <div className="goal-card-description">{goal.description}</div>
