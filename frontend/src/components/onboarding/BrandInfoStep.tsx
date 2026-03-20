@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { inferBusinessGoalOptions } from '../../data/goalHierarchy';
 import { apiFetch } from '../../config/api';
@@ -63,8 +63,12 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
   const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>(() =>
     initialData?.selectedBusinessGoals.filter(goal => goal.isCustom || goal.normalizedFrom) ?? []
   );
+  const [showGoalSection, setShowGoalSection] = useState(() =>
+    (initialData?.selectedBusinessGoals.length ?? 0) > 0
+  );
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const goalSectionRef = useRef<HTMLDivElement | null>(null);
 
   const inferredGoals = useMemo(
     () => inferBusinessGoalOptions(brandData),
@@ -98,6 +102,18 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
   const handleFieldChange = <Key extends keyof BrandData>(field: Key, value: BrandData[Key]) => {
     setBrandData(prev => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    if (!canShowGoals) {
+      setShowGoalSection(false);
+    }
+  }, [canShowGoals]);
+
+  useEffect(() => {
+    if (showGoalSection) {
+      goalSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showGoalSection]);
 
   const toggleGoalSelection = (goal: BusinessGoalOption) => {
     setSelectedGoalIds(prev =>
@@ -261,12 +277,37 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
             </div>
 
             {canShowGoals ? (
-              <BusinessGoalSelector
-                options={businessGoalOptions}
-                selectedGoalIds={selectedGoalIds}
-                onToggleGoal={toggleGoalSelection}
-                onAddCustomGoal={addCustomGoal}
-              />
+              showGoalSection ? (
+                <div ref={goalSectionRef}>
+                  <BusinessGoalSelector
+                    options={businessGoalOptions}
+                    selectedGoalIds={selectedGoalIds}
+                    onToggleGoal={toggleGoalSelection}
+                    onAddCustomGoal={addCustomGoal}
+                  />
+                </div>
+              ) : (
+                <div className="goal-transition-card">
+                  <div className="section-kicker">Next step</div>
+                  <h3>The system is ready to suggest business goals.</h3>
+                  <p>
+                    Your brand narrative is detailed enough. Review the suggested outcomes before continuing.
+                  </p>
+
+                  <div className="goal-transition-summary">
+                    <span>Brand: {brandData.name || 'Unnamed brand'}</span>
+                    <span>Identity: {brandData.identity || 'Narrative ready'}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn--primary"
+                    onClick={() => setShowGoalSection(true)}
+                  >
+                    Review suggested business goals
+                  </button>
+                </div>
+              )
             ) : (
               <div className="brand-onboarding-gate">
                 Finish the brand narrative first. Then the goal suggestions will appear.
@@ -280,7 +321,10 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
                 {brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
                   <span>Add a little more detail so the goals can be ranked well</span>
                 )}
-                {canGenerateGoals(brandData) && selectedGoalIds.length === 0 && (
+                {canGenerateGoals(brandData) && !showGoalSection && (
+                  <span>Review the suggested business goals</span>
+                )}
+                {showGoalSection && selectedGoalIds.length === 0 && (
                   <span>Select at least one business goal</span>
                 )}
                 {isReadyToContinue && <span className="is-ready">Ready to create the goal workspace</span>}

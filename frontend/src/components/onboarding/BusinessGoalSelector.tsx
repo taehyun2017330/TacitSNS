@@ -43,11 +43,11 @@ const BusinessGoalSelector: React.FC<Props> = ({
     <div className="goal-selector">
       <div className="goal-selector-header">
         <div>
-          <div className="section-kicker">Business goals</div>
+          <div className="section-kicker">Suggested business goals</div>
           <h3>Choose the outcomes this brand should prioritize.</h3>
         </div>
         <p>
-          Start broad. These act as the parent goals for later post-goal folders.
+          Start broad. These become the parent goals for later post-goal folders.
         </p>
       </div>
 
