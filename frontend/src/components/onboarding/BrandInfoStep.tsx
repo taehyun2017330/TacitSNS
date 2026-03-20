@@ -33,6 +33,7 @@ const INITIAL_BRAND_DATA: BrandData = {
 interface Props {
   initialData?: OnboardingResult | null;
   onComplete: (result: OnboardingResult) => void;
+  initialStep?: OnboardingStep;
 }
 
 type OnboardingStep = 'narrative' | 'goals';
@@ -59,15 +60,23 @@ function canContinue(brandData: BrandData, selectedGoalIds: string[]) {
   return canGenerateGoals(brandData) && selectedGoalIds.length > 0;
 }
 
-const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
+const BrandInfoStep: React.FC<Props> = ({
+  initialData = null,
+  onComplete,
+  initialStep
+}) => {
   const [brandData, setBrandData] = useState<BrandData>(() => initialData?.brand ?? INITIAL_BRAND_DATA);
   const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>(() => initialData?.selectedBusinessGoals.map(goal => goal.id) ?? []);
   const [customGoalOverrides, setCustomGoalOverrides] = useState<BusinessGoalOption[]>(() =>
     initialData?.selectedBusinessGoals.filter(goal => goal.isCustom || goal.normalizedFrom) ?? []
   );
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>(() =>
-    (initialData?.selectedBusinessGoals.length ?? 0) > 0 ? 'goals' : 'narrative'
-  );
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>(() => {
+    if (initialStep) {
+      return initialStep;
+    }
+
+    return (initialData?.selectedBusinessGoals.length ?? 0) > 0 ? 'goals' : 'narrative';
+  });
   const [stepTransition, setStepTransition] = useState<{
     exiting: OnboardingStep;
     entering: OnboardingStep;
@@ -115,6 +124,12 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
     }
   }, [canShowGoals]);
 
+  useEffect(() => {
+    if (initialStep === 'narrative') {
+      setCurrentStep('narrative');
+    }
+  }, [initialStep]);
+
   const transitionStep = (nextStep: OnboardingStep, direction: 'forward' | 'backward') => {
     if (nextStep === currentStep) {
       return;
@@ -159,6 +174,14 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (currentStep !== 'goals') {
+      if (canShowGoals) {
+        transitionStep('goals', 'forward');
+      }
+      return;
+    }
+
     if (!isReadyToContinue) {
       return;
     }
@@ -208,9 +231,20 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
       <div className="brand-onboarding-layout">
         <section className="brand-onboarding-intro">
           <div className="screen-eyebrow">Brand setup</div>
-          <h1>Write the brand story first.</h1>
+          <h1>
+            {currentStep === 'narrative'
+              ? 'Write the brand story first.'
+              : 'Choose the bigger reason behind these posts.'}
+          </h1>
           <p>
-            Give the system enough context to suggest the right business goals.
+            {currentStep === 'narrative'
+              ? 'Start with one guided brand story. Once the system understands the brand, it can suggest the business goals that matter most.'
+              : 'These are suggested business goals based on what you wrote. They represent the broader outcome you want these images to help with.'}
+          </p>
+          <p>
+            {currentStep === 'narrative'
+              ? 'You do not need perfect wording. Give enough context about who the brand serves, what makes it different, and how it should come across.'
+              : 'After this, you will choose post goals: more specific image directions you might want to make. If nothing is concrete yet, you can use the suggestions or ask the system to choose for you.'}
           </p>
 
           <div className="brand-hierarchy-preview">
@@ -225,7 +259,14 @@ const BrandInfoStep: React.FC<Props> = ({ initialData = null, onComplete }) => {
               <span>2</span>
               <div>
                 <strong>Business goals</strong>
-                <p>Pick the outcomes this system should optimize for.</p>
+                <p>Pick the broader outcome these posts should help achieve.</p>
+              </div>
+            </div>
+            <div className="brand-hierarchy-step">
+              <span>3</span>
+              <div>
+                <strong>Post goals</strong>
+                <p>Turn that direction into specific kinds of image posts to explore.</p>
               </div>
             </div>
           </div>

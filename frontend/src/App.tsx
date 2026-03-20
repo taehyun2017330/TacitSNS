@@ -97,6 +97,9 @@ function App() {
   const [user, setUser] = useState<PrototypeUser | null>(persisted.user);
   const [workspace, setWorkspace] = useState<WorkspaceSnapshot | null>(persisted.workspace);
   const [selectedFolder, setSelectedFolder] = useState<PostGoalFolder | null>(null);
+  const [onboardingInitialStep, setOnboardingInitialStep] = useState<'narrative' | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -135,6 +138,7 @@ function App() {
 
   const handleLogin = (nextUser: PrototypeUser) => {
     setUser(nextUser);
+    setOnboardingInitialStep(undefined);
     transitionToStage(workspace ? 'workspace' : 'onboarding', 'forward');
   };
 
@@ -147,6 +151,7 @@ function App() {
       };
     });
     setSelectedFolder(null);
+    setOnboardingInitialStep(undefined);
     transitionToStage('workspace', 'forward');
   };
 
@@ -159,6 +164,7 @@ function App() {
       email: 'sample@prototype.local'
     });
     setSelectedFolder(null);
+    setOnboardingInitialStep(undefined);
     transitionToStage('workspace', 'forward');
   };
 
@@ -168,7 +174,13 @@ function App() {
     }
 
     if (stage === 'onboarding' && user) {
-      return <BrandInfoStep initialData={workspace} onComplete={handleOnboardingComplete} />;
+      return (
+        <BrandInfoStep
+          initialData={workspace}
+          initialStep={onboardingInitialStep}
+          onComplete={handleOnboardingComplete}
+        />
+      );
     }
 
     if (stage === 'workspace' && workspace) {
@@ -201,6 +213,7 @@ function App() {
           }}
           onEditGoals={() => {
             setSelectedFolder(null);
+            setOnboardingInitialStep('narrative');
             transitionToStage('onboarding', 'backward');
           }}
           onOpenPostGoal={folder => {
@@ -251,6 +264,7 @@ function App() {
         }}
         onJumpToOnboarding={() => {
           setSelectedFolder(null);
+          setOnboardingInitialStep('narrative');
           transitionToStage(user ? 'onboarding' : 'auth', 'backward');
         }}
         onJumpToWorkspace={() => {
@@ -270,6 +284,7 @@ function App() {
           setSelectedFolder(null);
           setWorkspace(null);
           setUser(null);
+          setOnboardingInitialStep(undefined);
           transitionToStage('auth', 'backward');
         }}
       />
