@@ -70,30 +70,26 @@ const BusinessGoalSelector: React.FC<Props> = ({
           <h3>What is the main reason for using SNS marketing right now?</h3>
         </div>
         <p>
-          Choose one business goal. This is the broader marketing intention behind posting, not the specific post you will make next.
+          Choose one broad marketing intention. You will decide the specific post direction next.
         </p>
       </div>
 
-      <section className="goal-selected-strip">
-        <div className="goal-selected-header">
-          <div className="section-kicker">Chosen business goal</div>
-          <span className="goal-selected-count">
-            {selectedGoal ? '1 goal' : 'None yet'}
-          </span>
-        </div>
-        {selectedGoal === null ? (
-          <div className="goal-selected-empty">
-            Nothing confirmed yet. Choose the main reason this brand is using SNS marketing right now.
+      {selectedGoal && (
+        <section className="goal-selected-strip">
+          <div className="goal-selected-header">
+            <div>
+              <div className="section-kicker">Chosen business goal</div>
+              <p className="goal-selected-summary">This is the main outcome the system will optimize for next.</p>
+            </div>
           </div>
-        ) : (
           <div className="goal-selected-grid">
             <article key={selectedGoal.id} className="goal-selected-card">
               <div className="goal-card-topline">
                 <span className={`goal-status-pill ${selectedGoal.isCustom ? 'goal-status-pill--custom' : 'goal-status-pill--confirmed'}`}>
-                  {selectedGoal.isCustom ? 'You added this' : 'Confirmed'}
+                  {selectedGoal.isCustom ? 'Custom goal' : 'Selected'}
                 </span>
-                {selectedGoal.normalizedFrom && (
-                  <span className="goal-normalized-pill">Normalized</span>
+                {selectedGoal.mappedGoalTitle && (
+                  <span className="goal-normalized-pill subtle">Mapped for suggestions</span>
                 )}
               </div>
               <div className="goal-card-title">{selectedGoal.title}</div>
@@ -112,13 +108,13 @@ const BusinessGoalSelector: React.FC<Props> = ({
               </button>
             </article>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
-          <div className="section-kicker">Our current read of the brand</div>
-          <p>These are macro business goals for social media marketing. They explain why the brand is posting, not what specific post to make.</p>
+          <div className="section-kicker">Suggested business goals</div>
+          <p>These describe why the brand is using social media right now, not what exact post to make.</p>
         </div>
 
         <div className="goal-selector-recommended-grid">
@@ -133,8 +129,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
                 onClick={() => onSelectGoal(goal)}
               >
                 <div className="goal-card-topline">
-                  <span className="goal-rank-pill">Recommended business goal</span>
-                  {isSelected && <span className="goal-status-pill goal-status-pill--confirmed">Chosen</span>}
+                  <span className="goal-rank-pill">Recommended</span>
                 </div>
                 <div className="goal-card-title">{goal.title}</div>
                 <div className="goal-card-description">{goal.description}</div>
@@ -150,7 +145,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
       <section className="goal-selector-section goal-selector-section--compact">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Other broad goals</div>
-          <p>If the system&apos;s interpretation is off, choose one broader marketing intention from the rest of the library.</p>
+          <p>If these suggestions miss the mark, choose another broad marketing intention.</p>
         </div>
 
         <div className="goal-pill-row">
@@ -184,7 +179,7 @@ const BusinessGoalSelector: React.FC<Props> = ({
         <section className="goal-selector-section goal-selector-section--compact">
           <div className="goal-selector-section-header">
             <div className="section-kicker">Custom goals</div>
-            <p>Goals you added yourself stay separate from the system-recommended business goals.</p>
+            <p>Your own wording stays separate from the system suggestions.</p>
           </div>
 
           <div className="goal-pill-row">
