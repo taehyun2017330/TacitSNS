@@ -424,11 +424,13 @@ const BrandInfoStep: React.FC<Props> = ({
                 <p>Say what the brand is, who it serves, and how it should feel.</p>
                 {canShowGoals && (
                   <div className="brand-hierarchy-step-summary">
-                    <div className="brand-hierarchy-summary-meta">
+                    <div className="brand-hierarchy-summary-teaser">
                       <strong>{brandData.name || 'Your brand'}</strong>
                       <span>{brandData.category || 'Industry'}</span>
                     </div>
-                    <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description, 135)}</div>
+                    <div className="brand-hierarchy-summary-detail">
+                      <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description, 135)}</div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -443,9 +445,13 @@ const BrandInfoStep: React.FC<Props> = ({
                 <p>Pick the broader outcome these posts should help achieve.</p>
                 {selectedBusinessGoal && (
                   <div className="brand-hierarchy-step-summary">
-                    <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
+                    <div className="brand-hierarchy-summary-teaser brand-hierarchy-summary-teaser--single">
                       <strong>{selectedBusinessGoal.title}</strong>
-                      <div>{selectedBusinessGoal.description}</div>
+                    </div>
+                    <div className="brand-hierarchy-summary-detail">
+                      <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
+                        <div>{selectedBusinessGoal.description}</div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -461,20 +467,25 @@ const BrandInfoStep: React.FC<Props> = ({
                 <p>Turn that direction into specific kinds of image posts to explore.</p>
                 {selectedBusinessGoal && (
                   <div className="brand-hierarchy-step-summary">
-                    {postGoalFolders.length > 0 ? (
-                      <div className="brand-hierarchy-summary-list">
-                        {postGoalFolders.slice(0, 2).map(folder => (
-                          <div key={folder.id} className="brand-hierarchy-summary-list-item">{folder.title}</div>
-                        ))}
-                        {postGoalFolders.length > 2 && (
-                          <div className="brand-hierarchy-summary-list-item brand-hierarchy-summary-list-item--muted">
-                            +{postGoalFolders.length - 2} more
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
-                        <div>No post goals chosen yet.</div>
+                    <div className="brand-hierarchy-summary-teaser brand-hierarchy-summary-teaser--single">
+                      <strong>
+                        {postGoalFolders.length > 0
+                          ? `${postGoalFolders.length} post goal${postGoalFolders.length === 1 ? '' : 's'} selected`
+                          : 'No post goals chosen yet'}
+                      </strong>
+                    </div>
+                    {postGoalFolders.length > 0 && (
+                      <div className="brand-hierarchy-summary-detail">
+                        <div className="brand-hierarchy-summary-list">
+                          {postGoalFolders.slice(0, 3).map(folder => (
+                            <div key={folder.id} className="brand-hierarchy-summary-list-item">{folder.title}</div>
+                          ))}
+                          {postGoalFolders.length > 3 && (
+                            <div className="brand-hierarchy-summary-list-item brand-hierarchy-summary-list-item--muted">
+                              +{postGoalFolders.length - 3} more
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
