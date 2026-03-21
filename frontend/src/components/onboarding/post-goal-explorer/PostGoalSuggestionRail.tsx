@@ -15,7 +15,7 @@ const PostGoalSuggestionRail: React.FC<Props> = ({
   selectedFolderTitles,
   onSelectSuggestion
 }) => (
-  <div className="post-goal-browser-list">
+  <div className="post-goal-browser-list" aria-label="Suggested post-goal directions">
     {suggestions.map(goal => {
       const isAdded = selectedFolderTitles.has(goal.title);
       const isActive = activeSuggestionId === goal.id;
@@ -27,13 +27,26 @@ const PostGoalSuggestionRail: React.FC<Props> = ({
           className={`post-goal-browser-item ${isActive ? 'is-active' : ''} ${isAdded ? 'is-added' : ''}`}
           onClick={() => onSelectSuggestion(goal.id)}
         >
-          <div className="post-goal-browser-item-topline">
-            <span className="goal-card-corner-note">{goal.sourceLabel === 'ai' ? 'AI suggested' : 'Suggested'}</span>
-            {isAdded && <span className="goal-card-selection-note">Chosen</span>}
+          <div
+            className="post-goal-browser-item-visual"
+            style={{ background: goal.previewBackground }}
+          >
+            <div className="post-goal-browser-item-topline">
+              <span className="goal-card-corner-note">
+                {goal.sourceLabel === 'ai' ? 'AI suggested' : 'Suggested'}
+              </span>
+              {isAdded ? <span className="goal-card-selection-note">Chosen</span> : null}
+            </div>
+            <div className="post-goal-browser-item-overlay">
+              <strong>{goal.previewTitle || goal.title}</strong>
+              <span>{goal.taxonomyTags.slice(0, 2).join(' · ')}</span>
+            </div>
           </div>
-          <div className="post-goal-browser-item-title">{goal.title}</div>
-          <div className="post-goal-browser-item-meta">{goal.taxonomyTags.join(' · ')}</div>
-          <p>{goal.description}</p>
+
+          <div className="post-goal-browser-item-copy">
+            <div className="post-goal-browser-item-title">{goal.title}</div>
+            <p>{goal.description}</p>
+          </div>
         </button>
       );
     })}

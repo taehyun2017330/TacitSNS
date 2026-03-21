@@ -268,24 +268,19 @@ const PostGoalSetupStep: React.FC<Props> = ({
     <div className="goal-selector">
       <div className="goal-selector-header">
         <div className="section-kicker">Post goals</div>
-        <h3>What kinds of image posts should support {businessGoal.title.toLowerCase()}?</h3>
+        <h3>Choose the post goals you want to start with.</h3>
         <p>
-          These are specific image directions, not final deliverables. Click through suggested directions, inspect what they could look like, and keep the ones you want to explore in the workspace.
+          These are the specific image directions that can support {businessGoal.title.toLowerCase()}. Browse the suggestions like a small post library, inspect the kinds of SNS posts that could live inside each one, and keep the directions you want to explore in the workspace.
         </p>
       </div>
 
-      <PostGoalSelectionTray
-        postGoalFolders={postGoalFolders}
-        onRemovePostGoal={onRemovePostGoal}
-      />
-
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
-        <div className="section-kicker">Suggested post goals</div>
+          <div className="section-kicker">Suggested post directions</div>
           <p>
             {suggestionSource === 'ai'
-              ? 'Suggested from your brand narrative, chosen business goal, and post taxonomy. Click one to inspect example imagery before choosing it.'
-              : 'Suggested from the current post-goal library. Click one to inspect example imagery before choosing it.'}
+              ? 'Based on your brand narrative, chosen business goal, and the post taxonomy, these are post directions your next images could take.'
+              : 'These suggestions come from the current post-goal library and are meant to give you a few concrete directions to inspect.'}
           </p>
         </div>
 
@@ -298,7 +293,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
             No suggested post goals are ready yet. Try adjusting the business goal or add your own post goal below.
           </div>
         ) : (
-          <div className="post-goal-browser">
+          <div className="post-goal-browser post-goal-browser--gallery">
             <PostGoalSuggestionRail
               suggestions={suggestedPostGoals}
               activeSuggestionId={activeSuggestionId}
@@ -325,7 +320,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
         <div className="goal-selector-section-header goal-selector-section-header--row">
           <div>
             <div className="section-kicker">Create your own</div>
-            <p>If the suggestions miss the mark, start from a reference image or write your own post-goal direction.</p>
+            <p>If the suggestions miss the mark, start from a reference image or write a direction of your own.</p>
           </div>
           <button
             type="button"
@@ -337,6 +332,11 @@ const PostGoalSetupStep: React.FC<Props> = ({
           </button>
         </div>
       </section>
+
+      <PostGoalSelectionTray
+        postGoalFolders={postGoalFolders}
+        onRemovePostGoal={onRemovePostGoal}
+      />
 
       {composer && (
         <PostGoalComposerDialog

@@ -29,7 +29,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - The onboarding industry field should feel like the same system as the rest of the UI: styled text input plus suggestion chips, with custom entry always allowed.
 - Custom or user-added goals must appear explicitly as the user’s own confirmed goals, not be visually absorbed into the recommendation language.
 - Custom business goals should live in a separate `Custom goals` area and must not displace or rewrite the system-recommended business goals.
-- The selected post-goal folders should read as the primary working set, with recommendations visually demoted beneath them.
+- Post-goal onboarding should behave like a visual browser, not another card picker: users browse suggestions, inspect larger SNS-style examples, then confirm which folders to start with.
 - Onboarding should keep explanation light so the guided narrative field remains the dominant action on the page.
 
 ## Current Direction
@@ -59,10 +59,12 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Business goals should be broad, outcome-based, and readable in plain language before any taxonomy appears.
 - Business-goal recommendations must stay at the macro SNS marketing level and should never drift into obvious post-goal suggestions like founder intro, process showcase, or customer proof.
 - Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
-- Post-goal onboarding should preview concrete example directions visually, using example tiles or placeholder frames, before the user enters the workspace.
+- Post-goal onboarding should preview concrete example directions visually using a large post-stage plus a small filmstrip of additional examples, before the user enters the workspace.
 - Post-goal onboarding must explicitly bridge from brand narrative + business goal -> specific image directions, so users understand that post goals are narrower visual explorations, not another broad strategy step.
 - Chosen post goals should feel like deliberate selections that will become workspace folders; users should be able to add, adjust, and remove them before entering the workspace.
 - Suggested post goals should be inspectable before selection: users should be able to click into a suggested direction, see example imagery and taxonomy meaning, and then choose it with confidence.
+- Example imagery should lead the post-goal step. Taxonomy remains explanatory support, not the primary thing users browse.
+- The chosen post-goal set should appear after or beneath exploration so discovery leads and management follows.
 - Suggested post goals should attempt an AI-backed pass first, but must always fall back to a deterministic library so the onboarding step never appears empty.
 - Users should also be able to attach their own reference image to a post goal; that uploaded reference should travel with the chosen folder as a visual anchor for later generation.
 - The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
