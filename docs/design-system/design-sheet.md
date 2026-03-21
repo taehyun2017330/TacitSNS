@@ -11,6 +11,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - The goal hierarchy is now a first-class structural pattern, not just a content idea.
 - Brand identity and brand positioning now live in one guided narrative field with autocomplete support.
 - Custom business goals and custom post goals should use add-cards that open focused dialogs, not long inline form rows.
+- Custom post-goal creation should branch first: `reference image` vs `text only`. Image-first creation should treat the uploaded example as the visual anchor for the resulting post-goal card.
 - Post-goal recommendation cards should include visual preview blocks so the examples feel concrete before the user enters the studio.
 - Goal setup should be staged, not collapsed: brand narrative -> business goals -> post goals -> main workspace.
 - Business-goal selection should not be one large flat card grid. Use three layers instead: top recommendations, one compact row for the broader goal library, and a chosen-goal module that appears only after selection.
@@ -49,6 +50,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Do not use white or near-white text on small teal pills, chips, or status tags. Reserve inverted accent treatments for large primary CTAs only.
 - Do not use soft teal text on tinted teal backgrounds for small UI either. Small badges, count chips, rank pills, and inline actions should use near-ink text with clear contrast.
 - Small selected states should prefer light accent fills with dark ink or dark teal text over dark accent fills with pale text.
+- Ready-state helper text on light surfaces should also use near-ink text, not accent-colored text alone.
 - Reduce right-rail and helper-panel chrome so guidance does not compete with the main workspace.
 - Treat the product shell as a hierarchy-first experience:
   login -> brand setup -> business goals -> post-goal workspace -> studio / traceboard.
@@ -61,6 +63,7 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Post-goal onboarding must explicitly bridge from brand narrative + business goal -> specific image directions, so users understand that post goals are narrower visual explorations, not another broad strategy step.
 - Chosen post goals should feel like deliberate selections that will become workspace folders; users should be able to add, adjust, and remove them before entering the workspace.
 - Suggested post goals should be inspectable before selection: users should be able to click into a suggested direction, see example imagery and taxonomy meaning, and then choose it with confidence.
+- Suggested post goals should attempt an AI-backed pass first, but must always fall back to a deterministic library so the onboarding step never appears empty.
 - Users should also be able to attach their own reference image to a post goal; that uploaded reference should travel with the chosen folder as a visual anchor for later generation.
 - The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
 - Step markers and hierarchy numbers must have explicit resting-state contrast; progress indicators cannot rely on subtle tint alone.
