@@ -170,6 +170,39 @@
   line-height: 1.65;
 }
 
+.post-studio-reference-panel {
+  margin-bottom: 1rem;
+}
+
+.post-studio-reference-card {
+  display: grid;
+  grid-template-columns: 5.25rem minmax(0, 1fr);
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 251, 246, 0.86);
+}
+
+.post-studio-reference-card img {
+  width: 100%;
+  height: 5.25rem;
+  object-fit: cover;
+  border-radius: 0.8rem;
+}
+
+.post-studio-reference-card strong {
+  color: var(--ink-strong);
+  font-size: 0.95rem;
+}
+
+.post-studio-reference-card p {
+  margin: 0.3rem 0 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
 .initial-textarea {
   width: 100%;
   min-height: 7.5rem;

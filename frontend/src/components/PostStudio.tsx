@@ -8,6 +8,7 @@ import { FeedbackData, Gen, PostNode } from './history/types';
 import { requestPostGeneration } from './postStudio/api';
 import type { EditOptions } from './postStudio/types';
 import { buildFallbackDelta, createGeneratedNodes, createPlaceholderNodes, findNearestGridBatch } from './postStudio/utils';
+import type { PostGoalReferenceAsset } from '../types/workspace';
 import './PostStudio.css';
 
 type ViewMode = 'grid' | 'single';
@@ -19,6 +20,7 @@ interface Props {
   businessGoalTitle?: string;
   postGoalTitle?: string;
   postGoalDescription?: string;
+  referenceAssets?: PostGoalReferenceAsset[];
   onBack: () => void;
   onFinalize: (postUrl: string, postData?: any) => void;
 }
@@ -30,6 +32,7 @@ const PostStudio: React.FC<Props> = ({
   businessGoalTitle,
   postGoalTitle,
   postGoalDescription,
+  referenceAssets = [],
   onBack,
   onFinalize
 }) => {
@@ -392,6 +395,18 @@ const PostStudio: React.FC<Props> = ({
           <div className="initial-subtitle">
             {postGoalDescription || 'Describe the mood or style you are looking for'}
           </div>
+          {referenceAssets.length > 0 && (
+            <div className="post-studio-reference-panel">
+              <div className="section-kicker">Reference image</div>
+              <div className="post-studio-reference-card">
+                <img src={referenceAssets[0].dataUrl} alt={referenceAssets[0].name} />
+                <div>
+                  <strong>{referenceAssets[0].name}</strong>
+                  <p>This uploaded example can anchor the intended visual direction for this post goal.</p>
+                </div>
+              </div>
+            </div>
+          )}
           <textarea
             className="initial-textarea"
             placeholder="e.g., 'warm and authentic lifestyle shots' or 'minimal product-focused with lots of white space'"

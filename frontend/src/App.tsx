@@ -229,11 +229,13 @@ function App() {
             workspace.brand.description,
             `Business goal: ${selectedFolder.businessGoalTitle}`,
             `Post goal: ${selectedFolder.title}`,
+            selectedFolder.referenceAssets?.[0] ? `Reference image attached: ${selectedFolder.referenceAssets[0].name}` : '',
             selectedFolder.assistantPrompt
           ].filter(Boolean).join(' ')}
           businessGoalTitle={selectedFolder.businessGoalTitle}
           postGoalTitle={selectedFolder.title}
           postGoalDescription={selectedFolder.description}
+          referenceAssets={selectedFolder.referenceAssets}
           onBack={() => {
             transitionToStage('workspace', 'backward');
           }}

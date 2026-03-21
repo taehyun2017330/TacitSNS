@@ -477,6 +477,64 @@
   line-height: 1.55;
 }
 
+.post-goal-reference-upload {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.post-goal-reference-trigger {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(97, 81, 59, 0.18);
+  background: rgba(255, 251, 246, 0.82);
+  color: var(--ink-body);
+  cursor: pointer;
+}
+
+.post-goal-reference-trigger small {
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.post-goal-reference-input {
+  display: none;
+}
+
+.post-goal-reference-preview-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.post-goal-reference-preview {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.8rem;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 252, 247, 0.9);
+}
+
+.post-goal-reference-preview img {
+  width: 100%;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: 0.8rem;
+}
+
+.post-goal-reference-meta {
+  display: grid;
+  align-content: space-between;
+  gap: 0.6rem;
+}
+
+.post-goal-reference-meta strong {
+  color: var(--ink-strong);
+  line-height: 1.4;
+}
+
 .post-goal-card-actions {
   display: flex;
   flex-wrap: wrap;
@@ -931,6 +989,11 @@
     border-left: none;
     border-top: 1px solid rgba(97, 81, 59, 0.12);
     padding-top: 0.9rem;
+  }
+
+  .post-goal-reference-preview,
+  .post-studio-reference-card {
+    grid-template-columns: 1fr;
   }
 
   .post-goal-example {

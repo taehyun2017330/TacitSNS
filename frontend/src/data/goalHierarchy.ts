@@ -565,7 +565,7 @@ export function suggestPostGoalAutocomplete(input: string, businessGoalId: strin
 }
 
 export function createPostGoalFolder(
-  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground'>,
+  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'referenceAssets'>,
   businessGoal: Pick<BusinessGoalOption, 'id' | 'title'>,
   source: PostGoalFolder['source']
 ): PostGoalFolder {
@@ -581,6 +581,7 @@ export function createPostGoalFolder(
     previewTitle: suggestion.previewTitle,
     previewCaption: suggestion.previewCaption,
     previewBackground: suggestion.previewBackground,
+    referenceAssets: suggestion.referenceAssets,
     businessGoalId: businessGoal.id,
     businessGoalTitle: businessGoal.title,
     createdAt,

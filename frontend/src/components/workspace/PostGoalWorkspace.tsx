@@ -238,7 +238,15 @@ const PostGoalWorkspace: React.FC<Props> = ({
                 <article key={folder.id} className="workspace-folder-card workspace-folder-card--selected">
                   <div
                     className="workspace-folder-preview"
-                    style={{ background: folder.previewBackground }}
+                    style={
+                      folder.referenceAssets?.[0]
+                        ? {
+                            backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.12) 0%, rgba(25, 25, 24, 0.55) 100%), url(${folder.referenceAssets[0].dataUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }
+                        : { background: folder.previewBackground }
+                    }
                   >
                     <div className="workspace-folder-preview-title">{folder.previewTitle || folder.title}</div>
                     <div className="workspace-folder-preview-caption">{folder.previewCaption || folder.description}</div>
@@ -253,6 +261,7 @@ const PostGoalWorkspace: React.FC<Props> = ({
                     {folder.taxonomyTags.map(tag => (
                       <span key={tag} className="post-goal-tag">{tag}</span>
                     ))}
+                    {folder.referenceAssets?.length ? <span className="post-goal-tag">Reference image</span> : null}
                   </div>
                   <button
                     type="button"

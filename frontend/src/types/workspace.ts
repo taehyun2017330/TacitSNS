@@ -30,6 +30,14 @@ export interface PostGoalSuggestion {
   previewTitle?: string;
   previewCaption?: string;
   previewBackground?: string;
+  referenceAssets?: PostGoalReferenceAsset[];
+}
+
+export interface PostGoalReferenceAsset {
+  id: string;
+  name: string;
+  dataUrl: string;
+  mimeType: string;
 }
 
 export interface PostGoalFolder extends PostGoalSuggestion {
