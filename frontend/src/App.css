@@ -329,7 +329,7 @@ html {
   background: rgba(97, 81, 59, 0.16);
 }
 
-.brand-hierarchy-step span {
+.brand-hierarchy-step > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -348,7 +348,7 @@ html {
   font-weight: 800;
 }
 
-.brand-hierarchy-step.is-active span {
+.brand-hierarchy-step.is-active > span {
   background-color: #163d39;
   color: #fffdf8;
   border-color: #163d39;
@@ -358,7 +358,7 @@ html {
     0 12px 22px rgba(22, 61, 57, 0.18);
 }
 
-.brand-hierarchy-step.is-complete span {
+.brand-hierarchy-step.is-complete > span {
   background-color: #e7f0ed;
   color: #163d39;
   border-color: rgba(22, 61, 57, 0.2);
@@ -367,7 +367,7 @@ html {
     0 6px 14px rgba(22, 61, 57, 0.08);
 }
 
-.brand-hierarchy-step.is-upcoming span {
+.brand-hierarchy-step.is-upcoming > span {
   color: #3f3a33;
   background-color: #fffaf4;
 }
@@ -413,25 +413,23 @@ html {
 
 .brand-hierarchy-step-summary {
   display: grid;
-  gap: 0.45rem;
-  margin-top: 0.5rem;
-  padding: 0.7rem 0.8rem;
-  border-radius: 0.95rem;
-  background: rgba(249, 244, 236, 0.72);
-  border: 1px solid rgba(97, 81, 59, 0.08);
+  gap: 0.28rem;
+  margin-top: 0.45rem;
+  padding-left: 0.05rem;
 }
 
 .brand-hierarchy-summary-copy {
   display: grid;
   gap: 0.22rem;
-  color: var(--ink-body);
-  line-height: 1.55;
-  font-size: 0.88rem;
+  color: var(--ink-soft);
+  line-height: 1.48;
+  font-size: 0.84rem;
 }
 
 .brand-hierarchy-summary-copy strong {
   margin-bottom: 0;
   color: var(--ink-strong);
+  font-size: 0.88rem;
 }
 
 .brand-hierarchy-summary-copy--compact {
@@ -439,33 +437,32 @@ html {
 }
 
 .brand-hierarchy-summary-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  display: grid;
+  gap: 0.05rem;
+}
+
+.brand-hierarchy-summary-meta strong,
+.brand-hierarchy-summary-meta span {
+  display: block;
+  min-width: 0;
+  color: var(--ink-body);
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .brand-hierarchy-summary-meta span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.8rem;
-  padding: 0.28rem 0.6rem;
-  border-radius: 999px;
-  background: rgba(255, 252, 247, 0.92);
-  color: var(--ink-body);
-  border: 1px solid rgba(97, 81, 59, 0.08);
-  font-size: 0.74rem;
-  font-weight: 700;
+  color: var(--ink-soft);
 }
 
 .brand-hierarchy-summary-list {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.16rem;
 }
 
 .brand-hierarchy-summary-list-item {
   color: var(--ink-body);
   font-size: 0.84rem;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .brand-hierarchy-summary-list-item--muted {

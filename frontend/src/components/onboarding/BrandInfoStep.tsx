@@ -425,7 +425,7 @@ const BrandInfoStep: React.FC<Props> = ({
                 {canShowGoals && (
                   <div className="brand-hierarchy-step-summary">
                     <div className="brand-hierarchy-summary-meta">
-                      <span>{brandData.name || 'Your brand'}</span>
+                      <strong>{brandData.name || 'Your brand'}</strong>
                       <span>{brandData.category || 'Industry'}</span>
                     </div>
                     <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description, 135)}</div>
@@ -445,7 +445,7 @@ const BrandInfoStep: React.FC<Props> = ({
                   <div className="brand-hierarchy-step-summary">
                     <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
                       <strong>{selectedBusinessGoal.title}</strong>
-                      <span>{selectedBusinessGoal.description}</span>
+                      <div>{selectedBusinessGoal.description}</div>
                     </div>
                   </div>
                 )}
@@ -474,7 +474,7 @@ const BrandInfoStep: React.FC<Props> = ({
                       </div>
                     ) : (
                       <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
-                        <span>No post goals chosen yet.</span>
+                        <div>No post goals chosen yet.</div>
                       </div>
                     )}
                   </div>
