@@ -429,7 +429,24 @@ const POST_GOAL_PREVIEWS: Record<string, Pick<PostGoalSuggestion, 'previewTitle'
   }
 };
 
+const TAXONOMY_PREVIEW_BACKGROUNDS: Record<string, string> = {
+  Functional: 'linear-gradient(135deg, #bda48a 0%, #f6ecdf 44%, #7b958b 100%)',
+  Educational: 'linear-gradient(135deg, #8fa59e 0%, #f7efe5 48%, #ceb59e 100%)',
+  Emotional: 'linear-gradient(135deg, #886650 0%, #dfc2a4 54%, #f7efe3 100%)',
+  'Brand resonance': 'linear-gradient(135deg, #35514d 0%, #71887f 44%, #f1e5d5 100%)',
+  Experiential: 'linear-gradient(135deg, #8ea39a 0%, #e7dbcc 45%, #f8f2ea 100%)',
+  'Current event': 'linear-gradient(135deg, #d3a774 0%, #f6ead7 48%, #97aa9d 100%)',
+  'Personal brand posts': 'linear-gradient(135deg, #8d6f5b 0%, #edd9c6 50%, #f8f3ec 100%)',
+  Employee: 'linear-gradient(135deg, #8f6b57 0%, #dcc5b1 48%, #f5ede2 100%)',
+  'Brand community': 'linear-gradient(135deg, #6b877f 0%, #f2e5d8 48%, #d4b18c 100%)',
+  'Customer relationship': 'linear-gradient(135deg, #9bb0a6 0%, #f5ede2 42%, #d8c2ae 100%)',
+  'Cause-related brand posts': 'linear-gradient(135deg, #274440 0%, #6f877f 45%, #efe2d2 100%)',
+  'Sales promotion': 'linear-gradient(135deg, #29504b 0%, #708980 44%, #f3e3d1 100%)',
+  Custom: 'linear-gradient(135deg, #35514d 0%, #8ca198 42%, #f1e5d5 100%)'
+};
+
 const DEFAULT_GOAL_ORDER = ['trust', 'awareness', 'sales'] as const;
+const DEFAULT_POST_GOAL_KEY = 'trust';
 
 function scoreGoal(definition: GoalDefinition, text: string) {
   const lowered = text.toLowerCase();
@@ -538,10 +555,57 @@ export function normalizeBusinessGoalInput(
 }
 
 export function getPostGoalSuggestionsForBusinessGoal(businessGoalId: string) {
-  return (POST_GOAL_LIBRARY[businessGoalId] ?? []).map(goal => ({
-    ...goal,
-    ...POST_GOAL_PREVIEWS[goal.id]
-  }));
+  const resolvedKey = POST_GOAL_LIBRARY[businessGoalId] ? businessGoalId : DEFAULT_POST_GOAL_KEY;
+  return (POST_GOAL_LIBRARY[resolvedKey] ?? []).map(goal => normalizePostGoalSuggestion(goal));
+}
+
+export function resolvePostGoalSuggestionKey(
+  businessGoal: Pick<BusinessGoalOption, 'id' | 'title' | 'description' | 'mappedGoalId'>
+) {
+  const explicitCandidates = [businessGoal.mappedGoalId, businessGoal.id].filter(Boolean) as string[];
+  for (const candidate of explicitCandidates) {
+    if (POST_GOAL_LIBRARY[candidate]) {
+      return candidate;
+    }
+  }
+
+  const normalizedGoal = normalizeBusinessGoalInput(`${businessGoal.title} ${businessGoal.description}`);
+  const inferredCandidates = [normalizedGoal.mappedGoalId, normalizedGoal.id].filter(Boolean) as string[];
+  for (const candidate of inferredCandidates) {
+    if (POST_GOAL_LIBRARY[candidate]) {
+      return candidate;
+    }
+  }
+
+  return DEFAULT_POST_GOAL_KEY;
+}
+
+export function normalizePostGoalSuggestion(
+  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'referenceAssets' | 'sourceLabel'>,
+  fallbackIndex = 0
+): PostGoalSuggestion {
+  const firstTag = suggestion.taxonomyTags[0] ?? 'Custom';
+  const derivedId =
+    suggestion.id?.trim() ||
+    suggestion.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') ||
+    `post-goal-${fallbackIndex + 1}`;
+
+  const preview = POST_GOAL_PREVIEWS[derivedId];
+
+  return {
+    ...suggestion,
+    id: derivedId,
+    previewTitle: suggestion.previewTitle || preview?.previewTitle || suggestion.title,
+    previewCaption: suggestion.previewCaption || preview?.previewCaption || suggestion.description,
+    previewBackground:
+      suggestion.previewBackground ||
+      preview?.previewBackground ||
+      TAXONOMY_PREVIEW_BACKGROUNDS[firstTag] ||
+      TAXONOMY_PREVIEW_BACKGROUNDS.Custom
+  };
 }
 
 export function getTaxonomyDefinitions(tags: string[]) {

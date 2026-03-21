@@ -28,7 +28,7 @@ const PostGoalSuggestionRail: React.FC<Props> = ({
           onClick={() => onSelectSuggestion(goal.id)}
         >
           <div className="post-goal-browser-item-topline">
-            <span className="goal-card-corner-note">Suggested</span>
+            <span className="goal-card-corner-note">{goal.sourceLabel === 'ai' ? 'AI suggested' : 'Suggested'}</span>
             {isAdded && <span className="goal-card-selection-note">Chosen</span>}
           </div>
           <div className="post-goal-browser-item-title">{goal.title}</div>

@@ -6,6 +6,7 @@ import type {
 
 export type PostGoalComposerState = {
   mode: 'custom' | 'edit';
+  inputMethod: 'reference' | 'text' | null;
   seed?: PostGoalSuggestion;
   title: string;
   description: string;

@@ -42,7 +42,7 @@ const PostGoalDetailPane: React.FC<Props> = ({
   return (
     <article className="post-goal-detail-card">
       <div className="goal-card-topline">
-        <span className="goal-card-corner-note">Suggested direction</span>
+        <span className="goal-card-corner-note">{goal.sourceLabel === 'ai' ? 'AI suggested direction' : 'Suggested direction'}</span>
         {isSelected && <span className="goal-card-selection-note">Chosen</span>}
       </div>
 

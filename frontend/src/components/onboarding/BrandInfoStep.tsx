@@ -497,6 +497,7 @@ const BrandInfoStep: React.FC<Props> = ({
                     <div className="onboarding-step-panel">
                       {selectedBusinessGoal && (
                         <PostGoalSetupStep
+                          brand={brandData}
                           businessGoal={selectedBusinessGoal}
                           postGoalFolders={postGoalFolders}
                           onCreatePostGoal={upsertPostGoalFolder}
@@ -564,6 +565,7 @@ const BrandInfoStep: React.FC<Props> = ({
                   <div className="onboarding-step-panel">
                     {selectedBusinessGoal && (
                       <PostGoalSetupStep
+                        brand={brandData}
                         businessGoal={selectedBusinessGoal}
                         postGoalFolders={postGoalFolders}
                         onCreatePostGoal={upsertPostGoalFolder}

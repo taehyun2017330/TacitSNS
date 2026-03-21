@@ -960,6 +960,51 @@
   gap: 0.7rem;
 }
 
+.goal-dialog-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.goal-dialog-choice-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 252, 247, 0.96);
+  text-align: left;
+  transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.goal-dialog-choice-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 79, 74, 0.18);
+}
+
+.goal-dialog-choice-card strong {
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  line-height: 1.08;
+}
+
+.goal-dialog-choice-card span {
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.goal-dialog-reference-intro {
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 251, 246, 0.8);
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
 @media (max-width: 1080px) {
   .workspace-shell,
   .workspace-header,
@@ -993,6 +1038,10 @@
 
   .post-goal-reference-preview,
   .post-studio-reference-card {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-dialog-choice-grid {
     grid-template-columns: 1fr;
   }
 

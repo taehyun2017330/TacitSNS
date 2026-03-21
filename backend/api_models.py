@@ -65,3 +65,30 @@ class AnnotateRequest(BaseModel):
     brandCategory: Optional[str] = None
     sentenceText: Optional[str] = None
     modelConfig: Dict[str, Any] = Field(default_factory=dict)
+
+
+class PostGoalSuggestionRequest(BaseModel):
+    brandName: Optional[str] = "your brand"
+    brandCategory: Optional[str] = "business"
+    brandIdentity: str = ""
+    brandNarrative: str = ""
+    businessGoalId: Optional[str] = None
+    businessGoalTitle: str
+    businessGoalDescription: str = ""
+    businessGoalRationale: str = ""
+
+
+class PostGoalSuggestionItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    taxonomyTags: List[str] = Field(default_factory=list)
+    assistantPrompt: str
+    previewTitle: Optional[str] = None
+    previewCaption: Optional[str] = None
+    previewBackground: Optional[str] = None
+
+
+class PostGoalSuggestionResponse(BaseModel):
+    suggestions: List[PostGoalSuggestionItem] = Field(default_factory=list)
+    source: str = "fallback"

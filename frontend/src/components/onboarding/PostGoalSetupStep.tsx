@@ -1,10 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { startTransition, useEffect, useMemo, useState } from 'react';
 
 import {
   createPostGoalFolder,
   getPostGoalSuggestionsForBusinessGoal,
-  getTaxonomyDefinitions
+  getTaxonomyDefinitions,
+  normalizePostGoalSuggestion,
+  resolvePostGoalSuggestionKey
 } from '../../data/goalHierarchy';
+import { apiFetch } from '../../config/api';
+import type { BrandData } from '../../types/brand';
 import type {
   BusinessGoalOption,
   PostGoalFolder,
@@ -19,6 +23,7 @@ import type { PostGoalComposerState } from './post-goal-explorer/postGoalExplore
 import '../workspace/PostGoalWorkspace.css';
 
 interface Props {
+  brand: BrandData;
   businessGoal: BusinessGoalOption;
   postGoalFolders: PostGoalFolder[];
   onCreatePostGoal: (folder: PostGoalFolder) => void;
@@ -26,6 +31,7 @@ interface Props {
 }
 
 const PostGoalSetupStep: React.FC<Props> = ({
+  brand,
   businessGoal,
   postGoalFolders,
   onCreatePostGoal,
@@ -34,8 +40,14 @@ const PostGoalSetupStep: React.FC<Props> = ({
   const [composer, setComposer] = useState<PostGoalComposerState | null>(null);
   const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
   const [referenceAssetsByGoal, setReferenceAssetsByGoal] = useState<Record<string, PostGoalReferenceAsset[]>>({});
-  const businessGoalSourceId = businessGoal.mappedGoalId ?? businessGoal.id;
-  const suggestedPostGoals = useMemo(
+  const [suggestedPostGoals, setSuggestedPostGoals] = useState<PostGoalSuggestion[]>([]);
+  const [suggestionSource, setSuggestionSource] = useState<'ai' | 'fallback'>('fallback');
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const businessGoalSourceId = useMemo(
+    () => resolvePostGoalSuggestionKey(businessGoal),
+    [businessGoal]
+  );
+  const fallbackSuggestedPostGoals = useMemo(
     () => getPostGoalSuggestionsForBusinessGoal(businessGoalSourceId),
     [businessGoalSourceId]
   );
@@ -48,6 +60,111 @@ const PostGoalSetupStep: React.FC<Props> = ({
     setComposer(null);
     setReferenceAssetsByGoal({});
   }, [businessGoal.id]);
+
+  useEffect(() => {
+    startTransition(() => {
+      setSuggestedPostGoals(fallbackSuggestedPostGoals);
+      setSuggestionSource('fallback');
+      setActiveSuggestionId(fallbackSuggestedPostGoals[0]?.id ?? null);
+    });
+  }, [fallbackSuggestedPostGoals]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingSuggestions(true);
+
+    const fetchSuggestions = async () => {
+      try {
+        const response = await apiFetch('/api/post-goal-suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            brandName: brand.name,
+            brandCategory: brand.category,
+            brandIdentity: brand.identity,
+            brandNarrative: brand.description,
+            businessGoalId: businessGoalSourceId,
+            businessGoalTitle: businessGoal.title,
+            businessGoalDescription: businessGoal.description,
+            businessGoalRationale: businessGoal.rationale
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Post goal suggestions failed with ${response.status}`);
+        }
+
+        const payload = await response.json() as {
+          suggestions?: Array<Partial<PostGoalSuggestion>>;
+          source?: 'ai' | 'fallback';
+        };
+
+        const normalizedSuggestions = (payload.suggestions ?? [])
+          .map((suggestion, index) =>
+            normalizePostGoalSuggestion(
+              {
+                id: suggestion.id || `suggested-${businessGoalSourceId}-${index + 1}`,
+                title: suggestion.title?.trim() || `Suggested post goal ${index + 1}`,
+                description: suggestion.description?.trim() || 'A suggested image-post direction for this business goal.',
+                taxonomyTags: suggestion.taxonomyTags?.length ? suggestion.taxonomyTags : ['Custom'],
+                assistantPrompt:
+                  suggestion.assistantPrompt?.trim() ||
+                  `Create a post direction for ${suggestion.title?.trim() || `this ${businessGoal.title.toLowerCase()} goal`}.`,
+                previewTitle: suggestion.previewTitle,
+                previewCaption: suggestion.previewCaption,
+                sourceLabel: payload.source === 'ai' ? 'ai' : 'fallback'
+              },
+              index
+            )
+          )
+          .slice(0, 4);
+
+        if (!cancelled && normalizedSuggestions.length > 0) {
+          startTransition(() => {
+            setSuggestedPostGoals(normalizedSuggestions);
+            setSuggestionSource(payload.source === 'ai' ? 'ai' : 'fallback');
+            setActiveSuggestionId(currentId =>
+              normalizedSuggestions.some(goal => goal.id === currentId)
+                ? currentId
+                : normalizedSuggestions[0]?.id ?? null
+            );
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          startTransition(() => {
+            setSuggestedPostGoals(fallbackSuggestedPostGoals);
+            setSuggestionSource('fallback');
+            setActiveSuggestionId(currentId =>
+              fallbackSuggestedPostGoals.some(goal => goal.id === currentId)
+                ? currentId
+                : fallbackSuggestedPostGoals[0]?.id ?? null
+            );
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingSuggestions(false);
+        }
+      }
+    };
+
+    void fetchSuggestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    brand.category,
+    brand.description,
+    brand.identity,
+    brand.name,
+    businessGoal.description,
+    businessGoal.rationale,
+    businessGoal.title,
+    businessGoalSourceId,
+    fallbackSuggestedPostGoals
+  ]);
 
   useEffect(() => {
     setActiveSuggestionId(suggestedPostGoals[0]?.id ?? null);
@@ -64,6 +181,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
   const openCustomComposer = () => {
     setComposer({
       mode: 'custom',
+      inputMethod: null,
       title: '',
       description: '',
       rationale: '',
@@ -74,6 +192,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
   const openEditComposer = (goal: PostGoalSuggestion) => {
     setComposer({
       mode: 'edit',
+      inputMethod: (referenceAssetsByGoal[goal.id] ?? []).length > 0 ? 'reference' : 'text',
       seed: goal,
       title: goal.title,
       description: goal.description,
@@ -105,12 +224,20 @@ const PostGoalSetupStep: React.FC<Props> = ({
 
   const handleSaveComposer = () => {
     if (!composer || !composer.title.trim()) {
-      return;
+      if (!(composer.inputMethod === 'reference' && composer.referenceAssets.length > 0)) {
+        return;
+      }
     }
 
     const baseGoal = composer.seed;
-    const title = composer.title.trim();
-    const description = composer.description.trim() || `A post direction focused on ${title.toLowerCase()}.`;
+    const title =
+      composer.title.trim() ||
+      `Reference-led ${businessGoal.title.toLowerCase()} direction`;
+    const description =
+      composer.description.trim() ||
+      (composer.inputMethod === 'reference' && composer.referenceAssets.length > 0
+        ? `A post direction anchored by the uploaded reference image to support ${businessGoal.title.toLowerCase()}.`
+        : `A post direction focused on ${title.toLowerCase()}.`);
     const rationale = composer.rationale.trim();
 
     handleCreateGoal(
@@ -118,11 +245,16 @@ const PostGoalSetupStep: React.FC<Props> = ({
         id: baseGoal?.id ?? `custom-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
         title,
         description,
-        taxonomyTags: baseGoal?.taxonomyTags ?? ['Custom'],
+        taxonomyTags:
+          baseGoal?.taxonomyTags ??
+          (composer.inputMethod === 'reference' ? ['Experiential', 'Brand resonance'] : ['Custom']),
         assistantPrompt:
           rationale
             ? `${baseGoal?.assistantPrompt ?? `Create a post direction for ${title}.`} Context: ${rationale}`
-            : baseGoal?.assistantPrompt ?? `Create a post direction for ${title}.`,
+            : baseGoal?.assistantPrompt ??
+              (composer.inputMethod === 'reference' && composer.referenceAssets.length > 0
+                ? `Create a post direction inspired by the uploaded reference image for ${title}.`
+                : `Create a post direction for ${title}.`),
         previewTitle: title,
         previewCaption: description,
         previewBackground:
@@ -173,44 +305,58 @@ const PostGoalSetupStep: React.FC<Props> = ({
 
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
-          <div className="section-kicker">Suggested post goals</div>
-          <p>Click through these suggested directions to inspect example images, supporting taxonomy, and attach your own reference if needed.</p>
+        <div className="section-kicker">Suggested post goals</div>
+          <p>
+            {suggestionSource === 'ai'
+              ? 'Suggested from your brand narrative, chosen business goal, and post taxonomy. Click one to inspect example imagery before choosing it.'
+              : 'Suggested from the current post-goal library. Click one to inspect example imagery before choosing it.'}
+          </p>
         </div>
 
-        <div className="post-goal-browser">
-          <PostGoalSuggestionRail
-            suggestions={suggestedPostGoals}
-            activeSuggestionId={activeSuggestionId}
-            selectedFolderTitles={selectedFolderTitles}
-            onSelectSuggestion={setActiveSuggestionId}
-          />
-
-          {activeSuggestedGoal && (
-            <PostGoalDetailPane
-              businessGoal={businessGoal}
-              goal={activeSuggestedGoal}
-              isSelected={selectedFolderTitles.has(activeSuggestedGoal.title)}
-              taxonomyDefinitions={activeTaxonomyDefinitions}
-              referenceAssets={activeReferenceAssets}
-              onReferenceAssetsChange={assets =>
-                setReferenceAssetsByGoal(prev => ({
-                  ...prev,
-                  [activeSuggestedGoal.id]: assets
-                }))
-              }
-              onEditGoal={openEditComposer}
-              onChooseGoal={handleCreateGoal}
-              onRemoveGoal={onRemovePostGoal}
+        {isLoadingSuggestions && suggestedPostGoals.length === 0 ? (
+          <div className="goal-selector-empty-note">
+            Generating suggested post goals from your brand narrative and chosen business goal…
+          </div>
+        ) : suggestedPostGoals.length === 0 ? (
+          <div className="goal-selector-empty-note">
+            No suggested post goals are ready yet. Try adjusting the business goal or add your own post goal below.
+          </div>
+        ) : (
+          <div className="post-goal-browser">
+            <PostGoalSuggestionRail
+              suggestions={suggestedPostGoals}
+              activeSuggestionId={activeSuggestionId}
+              selectedFolderTitles={selectedFolderTitles}
+              onSelectSuggestion={setActiveSuggestionId}
             />
-          )}
-        </div>
+
+            {activeSuggestedGoal && (
+              <PostGoalDetailPane
+                businessGoal={businessGoal}
+                goal={activeSuggestedGoal}
+                isSelected={selectedFolderTitles.has(activeSuggestedGoal.title)}
+                taxonomyDefinitions={activeTaxonomyDefinitions}
+                referenceAssets={activeReferenceAssets}
+                onReferenceAssetsChange={assets =>
+                  setReferenceAssetsByGoal(prev => ({
+                    ...prev,
+                    [activeSuggestedGoal.id]: assets
+                  }))
+                }
+                onEditGoal={openEditComposer}
+                onChooseGoal={handleCreateGoal}
+                onRemoveGoal={onRemovePostGoal}
+              />
+            )}
+          </div>
+        )}
       </section>
 
       <section className="goal-selector-section">
         <div className="goal-selector-section-header goal-selector-section-header--row">
           <div>
             <div className="section-kicker">Create your own</div>
-            <p>If the suggested directions miss the mark, write your own post goal and optionally attach a reference image that captures the look you want.</p>
+            <p>If the suggestions miss the mark, start from a reference image or write your own post-goal direction.</p>
           </div>
           <button
             type="button"
@@ -225,6 +371,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
 
       {composer && (
         <PostGoalComposerDialog
+          businessGoalTitle={businessGoal.title}
           composer={composer}
           onChange={setComposer}
           onClose={closeComposer}
