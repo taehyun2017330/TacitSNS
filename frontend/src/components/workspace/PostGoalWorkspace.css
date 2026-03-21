@@ -251,6 +251,82 @@
   align-items: start;
 }
 
+.post-goal-browser {
+  display: grid;
+  grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.post-goal-browser-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.post-goal-browser-item {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 250, 244, 0.88);
+  text-align: left;
+  transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.post-goal-browser-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 79, 74, 0.18);
+}
+
+.post-goal-browser-item.is-active {
+  background: rgba(255, 253, 249, 0.98);
+  border-color: rgba(33, 79, 74, 0.18);
+  box-shadow: 0 14px 28px rgba(28, 48, 45, 0.06);
+}
+
+.post-goal-browser-item.is-added {
+  border-color: rgba(33, 79, 74, 0.16);
+}
+
+.post-goal-browser-item-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.post-goal-browser-item-title {
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--ink-strong);
+}
+
+.post-goal-browser-item-meta {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.post-goal-browser-item p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.post-goal-detail-card {
+  display: grid;
+  gap: 0.95rem;
+  padding: 1rem;
+  border-radius: 1.3rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 252, 247, 0.96);
+  box-shadow: 0 18px 36px rgba(28, 48, 45, 0.06);
+}
+
 .post-goal-card,
 .workspace-folder-card,
 .workspace-empty-card,
@@ -389,6 +465,16 @@
 .post-goal-card-body {
   display: grid;
   gap: 0.55rem;
+}
+
+.post-goal-detail-header {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.post-goal-detail-note {
+  color: var(--ink-soft);
+  line-height: 1.55;
 }
 
 .post-goal-card-actions {
@@ -551,6 +637,44 @@
 .post-goal-card-meta {
   color: var(--ink-soft);
   line-height: 1.55;
+}
+
+.post-goal-taxonomy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.post-goal-taxonomy-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(97, 81, 59, 0.1);
+  background: rgba(255, 248, 240, 0.72);
+}
+
+.post-goal-taxonomy-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.post-goal-taxonomy-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.post-goal-taxonomy-theme {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.34rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(236, 229, 217, 0.82);
+  color: var(--ink-body);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .goal-selector-empty-note {
@@ -782,6 +906,8 @@
   .workspace-shell,
   .workspace-header,
   .post-goal-card-grid,
+  .post-goal-browser,
+  .post-goal-taxonomy-grid,
   .workspace-folder-grid,
   .goal-card-grid,
   .goal-selector-recommended-grid,

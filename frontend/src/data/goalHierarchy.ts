@@ -9,6 +9,12 @@ type GoalDefinition = {
   fallbackRationale: string;
 };
 
+type TaxonomyDefinition = {
+  label: string;
+  definition: string;
+  themes: string[];
+};
+
 const BUSINESS_GOAL_LIBRARY: GoalDefinition[] = [
   {
     id: 'awareness',
@@ -53,6 +59,69 @@ const BUSINESS_GOAL_LIBRARY: GoalDefinition[] = [
     fallbackRationale: 'The brand story suggests value in making customers feel included and remembered over time.'
   }
 ];
+
+const POST_TAXONOMY_LIBRARY: Record<string, TaxonomyDefinition> = {
+  Emotional: {
+    label: 'Emotional',
+    definition: 'Evokes feeling through mood, story, humor, or emotional language.',
+    themes: ['inspiring stories', 'humor', 'wonder', 'emotion-led framing']
+  },
+  Functional: {
+    label: 'Functional',
+    definition: 'Highlights concrete product or service attributes such as performance, quality, design, or claims.',
+    themes: ['feature claims', 'quality cues', 'reviews', 'proof of performance']
+  },
+  Educational: {
+    label: 'Educational',
+    definition: 'Helps people understand how something works or learn something useful around the brand.',
+    themes: ['tips', 'instructions', 'how it works', 'informative breakdowns']
+  },
+  'Brand resonance': {
+    label: 'Brand resonance',
+    definition: 'Directs attention to the brand promise, identity, personality, or what the brand stands for.',
+    themes: ['brand identity', 'personality', 'promise', 'brand image']
+  },
+  Experiential: {
+    label: 'Experiential',
+    definition: 'Focuses on the sensory or lived experience of the brand in use.',
+    themes: ['in-use moments', 'sensory appeal', 'atmosphere', 'events']
+  },
+  'Current event': {
+    label: 'Current event',
+    definition: 'Uses a timely cultural, seasonal, or conversational hook to make the post feel current.',
+    themes: ['seasonal hooks', 'holidays', 'cultural moments', 'timely trends']
+  },
+  'Personal brand posts': {
+    label: 'Personal brand posts',
+    definition: 'Centers personal stories, preferences, anecdotes, or personally meaningful everyday context.',
+    themes: ['personal anecdotes', 'preferences', 'future plans', 'friendship or family cues']
+  },
+  Employee: {
+    label: 'Employee',
+    definition: 'Uses employee or founder perspective to make expertise, worldview, or human presence visible.',
+    themes: ['founder stories', 'expert voice', 'team perspective', 'behind the scenes']
+  },
+  'Brand community': {
+    label: 'Brand community',
+    definition: 'Builds belonging and participation around the brand’s audience or community.',
+    themes: ['audience participation', 'member identity', 'UGC', 'community prompts']
+  },
+  'Customer relationship': {
+    label: 'Customer relationship',
+    definition: 'Asks for or presents customer feedback, proof, service, or customer experience.',
+    themes: ['testimonials', 'reviews', 'feedback', 'customer stories']
+  },
+  'Cause-related brand posts': {
+    label: 'Cause-related brand posts',
+    definition: 'Highlights social causes or initiatives the brand supports.',
+    themes: ['social causes', 'initiatives', 'values in action', 'community support']
+  },
+  'Sales promotion': {
+    label: 'Sales promotion',
+    definition: 'Encourages action toward a buying decision using clear transactional or offer-driven framing.',
+    themes: ['discounts', 'offers', 'availability', 'competitions']
+  }
+};
 
 const POST_GOAL_LIBRARY: Record<string, PostGoalSuggestion[]> = {
   trust: [
@@ -473,6 +542,12 @@ export function getPostGoalSuggestionsForBusinessGoal(businessGoalId: string) {
     ...goal,
     ...POST_GOAL_PREVIEWS[goal.id]
   }));
+}
+
+export function getTaxonomyDefinitions(tags: string[]) {
+  return tags
+    .map(tag => POST_TAXONOMY_LIBRARY[tag])
+    .filter((definition): definition is TaxonomyDefinition => Boolean(definition));
 }
 
 export function suggestPostGoalAutocomplete(input: string, businessGoalId: string) {

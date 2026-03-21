@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import {
   createPostGoalFolder,
-  getPostGoalSuggestionsForBusinessGoal
+  getPostGoalSuggestionsForBusinessGoal,
+  getTaxonomyDefinitions
 } from '../../data/goalHierarchy';
 import type { BusinessGoalOption, PostGoalFolder, PostGoalSuggestion } from '../../types/workspace';
 import '../workspace/PostGoalWorkspace.css';
@@ -57,6 +58,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
   onRemovePostGoal
 }) => {
   const [composer, setComposer] = useState<ComposerState | null>(null);
+  const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
   const businessGoalSourceId = businessGoal.mappedGoalId ?? businessGoal.id;
   const suggestedPostGoals = useMemo(
     () => getPostGoalSuggestionsForBusinessGoal(businessGoalSourceId),
@@ -70,6 +72,10 @@ const PostGoalSetupStep: React.FC<Props> = ({
   useEffect(() => {
     setComposer(null);
   }, [businessGoal.id]);
+
+  useEffect(() => {
+    setActiveSuggestionId(suggestedPostGoals[0]?.id ?? null);
+  }, [suggestedPostGoals]);
 
   const openCustomComposer = () => {
     setComposer({
@@ -129,6 +135,12 @@ const PostGoalSetupStep: React.FC<Props> = ({
 
     closeComposer();
   };
+
+  const activeSuggestedGoal = suggestedPostGoals.find(goal => goal.id === activeSuggestionId) ?? suggestedPostGoals[0] ?? null;
+  const activeExampleLabels = activeSuggestedGoal ? buildExampleLabels(activeSuggestedGoal) : [];
+  const activeTaxonomyDefinitions = activeSuggestedGoal
+    ? getTaxonomyDefinitions(activeSuggestedGoal.taxonomyTags)
+    : [];
 
   return (
     <div className="goal-selector">
@@ -205,70 +217,112 @@ const PostGoalSetupStep: React.FC<Props> = ({
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Suggested post goals</div>
-          <p>Based on the brand narrative and business goal, these are possible image directions to start with.</p>
+          <p>Click through these suggested directions to inspect the kinds of images they could lead to before choosing one.</p>
         </div>
 
-        <div className="post-goal-card-grid post-goal-card-grid--onboarding">
-          {suggestedPostGoals.map(goal => {
-            const isAdded = selectedFolderTitles.has(goal.title);
-            const exampleLabels = buildExampleLabels(goal);
+        <div className="post-goal-browser">
+          <div className="post-goal-browser-list">
+            {suggestedPostGoals.map(goal => {
+              const isAdded = selectedFolderTitles.has(goal.title);
+              const isActive = activeSuggestedGoal?.id === goal.id;
 
-            return (
-              <article key={goal.id} className={`post-goal-card ${isAdded ? 'is-added' : ''}`}>
-                <div className="goal-card-topline">
-                  <span className="goal-card-corner-note">Suggested</span>
-                  {isAdded && <span className="goal-card-selection-note">Added</span>}
+              return (
+                <button
+                  key={goal.id}
+                  type="button"
+                  className={`post-goal-browser-item ${isActive ? 'is-active' : ''} ${isAdded ? 'is-added' : ''}`}
+                  onClick={() => setActiveSuggestionId(goal.id)}
+                >
+                  <div className="post-goal-browser-item-topline">
+                    <span className="goal-card-corner-note">Suggested</span>
+                    {isAdded && <span className="goal-card-selection-note">Chosen</span>}
+                  </div>
+                  <div className="post-goal-browser-item-title">{goal.title}</div>
+                  <div className="post-goal-browser-item-meta">{goal.taxonomyTags.join(' · ')}</div>
+                  <p>{goal.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          {activeSuggestedGoal && (
+            <article className="post-goal-detail-card">
+              <div className="goal-card-topline">
+                <span className="goal-card-corner-note">Suggested direction</span>
+                {selectedFolderTitles.has(activeSuggestedGoal.title) && <span className="goal-card-selection-note">Chosen</span>}
+              </div>
+
+              <div className="post-goal-detail-header">
+                <div>
+                  <h4>{activeSuggestedGoal.title}</h4>
+                  <p>{activeSuggestedGoal.description}</p>
                 </div>
-
-                <div className="post-goal-visual-grid">
-                  {exampleLabels.map((label, index) => (
-                    <div
-                      key={`${goal.id}-${label}`}
-                      className={`post-goal-example post-goal-example--${(index % 4) + 1}`}
-                      style={{ background: goal.previewBackground }}
-                    >
-                      <span>{label}</span>
-                    </div>
+                <div className="post-goal-tags">
+                  {activeSuggestedGoal.taxonomyTags.map(tag => (
+                    <span key={tag} className="post-goal-tag">{tag}</span>
                   ))}
                 </div>
+              </div>
 
-                <div className="post-goal-card-body">
-                  <h4>{goal.title}</h4>
-                  <p>{goal.description}</p>
-                  <div className="post-goal-card-meta">This kind of post can support {businessGoal.title.toLowerCase()} through a more specific image exploration.</div>
-                  <div className="post-goal-tags">
-                    {goal.taxonomyTags.map(tag => (
-                      <span key={tag} className="post-goal-tag">{tag}</span>
-                    ))}
+              <div className="post-goal-visual-grid post-goal-visual-grid--detail">
+                {activeExampleLabels.map((label, index) => (
+                  <div
+                    key={`${activeSuggestedGoal.id}-${label}`}
+                    className={`post-goal-example post-goal-example--${(index % 4) + 1}`}
+                    style={{ background: activeSuggestedGoal.previewBackground }}
+                  >
+                    <span>{label}</span>
                   </div>
-                </div>
+                ))}
+              </div>
 
-                <div className="post-goal-card-actions">
-                  <button
-                    type="button"
-                    className="ui-btn ui-btn--secondary"
-                    onClick={() => openEditComposer(goal)}
-                  >
-                    Adjust details
-                  </button>
-                  <button
-                    type="button"
-                    className={isAdded ? 'ui-btn ui-btn--secondary' : 'ui-btn ui-btn--primary'}
-                    onClick={() => {
-                      if (isAdded) {
-                        onRemovePostGoal(goal.title);
-                        return;
-                      }
+              <div className="post-goal-detail-note">
+                These placeholders stand in for example image directions. Later this can show your curated example references for the chosen post type.
+              </div>
 
-                      handleCreateGoal(goal, 'recommended');
-                    }}
-                  >
-                    {isAdded ? 'Remove from selection' : 'Choose this post goal'}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+              <div className="post-goal-taxonomy-grid">
+                {activeTaxonomyDefinitions.map(item => (
+                  <article key={item.label} className="post-goal-taxonomy-card">
+                    <div className="section-kicker">{item.label}</div>
+                    <p>{item.definition}</p>
+                    <div className="post-goal-taxonomy-themes">
+                      {item.themes.map(theme => (
+                        <span key={theme} className="post-goal-taxonomy-theme">{theme}</span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="post-goal-card-meta">
+                This post goal gives the image generation step a more concrete direction under the business goal of {businessGoal.title.toLowerCase()}.
+              </div>
+
+              <div className="post-goal-card-actions">
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--secondary"
+                  onClick={() => openEditComposer(activeSuggestedGoal)}
+                >
+                  Adjust details
+                </button>
+                <button
+                  type="button"
+                  className={selectedFolderTitles.has(activeSuggestedGoal.title) ? 'ui-btn ui-btn--secondary' : 'ui-btn ui-btn--primary'}
+                  onClick={() => {
+                    if (selectedFolderTitles.has(activeSuggestedGoal.title)) {
+                      onRemovePostGoal(activeSuggestedGoal.title);
+                      return;
+                    }
+
+                    handleCreateGoal(activeSuggestedGoal, 'recommended');
+                  }}
+                >
+                  {selectedFolderTitles.has(activeSuggestedGoal.title) ? 'Remove from selection' : 'Choose this post goal'}
+                </button>
+              </div>
+            </article>
+          )}
         </div>
       </section>
 
