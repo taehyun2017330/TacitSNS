@@ -201,7 +201,7 @@ function App() {
               prev
                 ? {
                     ...prev,
-                    postGoalFolders: [folder, ...prev.postGoalFolders]
+                    postGoalFolders: [folder, ...prev.postGoalFolders.filter(existing => existing.title !== folder.title)]
                   }
                 : prev
             );

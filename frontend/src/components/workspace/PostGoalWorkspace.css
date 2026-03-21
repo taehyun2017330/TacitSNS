@@ -486,9 +486,44 @@
   margin: 0;
 }
 
+.post-goal-context-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+  gap: 0.9rem;
+  padding: 1rem 1.05rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(97, 81, 59, 0.12);
+  background: rgba(255, 252, 247, 0.94);
+}
+
+.post-goal-context-block {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.post-goal-context-block strong {
+  color: var(--ink-strong);
+  font-size: 1rem;
+}
+
+.post-goal-context-block p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.post-goal-context-block--guide {
+  padding-left: 0.95rem;
+  border-left: 1px solid rgba(97, 81, 59, 0.12);
+}
+
 .goal-selector-section {
   display: grid;
   gap: 0.8rem;
+}
+
+.goal-selector-section--selected {
+  gap: 0.7rem;
 }
 
 .goal-selector-section--compact {
@@ -510,6 +545,19 @@
   color: var(--ink-soft);
   line-height: 1.55;
   max-width: 42rem;
+}
+
+.goal-selector-empty-note,
+.post-goal-card-meta {
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.goal-selector-empty-note {
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(97, 81, 59, 0.16);
+  background: rgba(255, 251, 246, 0.74);
 }
 
 .goal-selected-list,
@@ -737,7 +785,8 @@
   .workspace-folder-grid,
   .goal-card-grid,
   .goal-selector-recommended-grid,
-  .goal-selector-header {
+  .goal-selector-header,
+  .post-goal-context-card {
     grid-template-columns: 1fr;
   }
 
@@ -749,6 +798,13 @@
   .workspace-setup-banner {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .post-goal-context-block--guide {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(97, 81, 59, 0.12);
+    padding-top: 0.9rem;
   }
 
   .post-goal-example {

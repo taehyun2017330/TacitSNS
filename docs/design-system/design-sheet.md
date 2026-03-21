@@ -58,6 +58,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Business-goal recommendations must stay at the macro SNS marketing level and should never drift into obvious post-goal suggestions like founder intro, process showcase, or customer proof.
 - Post goals should read like folders written in user language, with taxonomy tags shown as supporting metadata underneath.
 - Post-goal onboarding should preview concrete example directions visually, using example tiles or placeholder frames, before the user enters the workspace.
+- Post-goal onboarding must explicitly bridge from brand narrative + business goal -> specific image directions, so users understand that post goals are narrower visual explorations, not another broad strategy step.
+- Chosen post goals should feel like deliberate selections that will become workspace folders; users should be able to add, adjust, and remove them before entering the workspace.
 - The autocomplete field should look like the same editorial system as the rest of the app and must not clip its hover surfaces or tooltips.
 - Step markers and hierarchy numbers must have explicit resting-state contrast; progress indicators cannot rely on subtle tint alone.
 - Step markers must visually separate `active`, `completed`, and `upcoming` states. Active gets the strongest emphasis, completed resolves into a quieter confirmed state, and upcoming remains neutral.

@@ -152,6 +152,14 @@ const BrandInfoStep: React.FC<Props> = ({
     setBrandData(prev => ({ ...prev, [field]: value }));
   };
 
+  const upsertPostGoalFolder = (folder: PostGoalFolder) => {
+    setPostGoalFolders(prev => [folder, ...prev.filter(existing => existing.title !== folder.title)]);
+  };
+
+  const removePostGoalFolder = (title: string) => {
+    setPostGoalFolders(prev => prev.filter(existing => existing.title !== title));
+  };
+
   useEffect(() => {
     if (!canShowGoals) {
       setCurrentStep('narrative');
@@ -350,21 +358,21 @@ const BrandInfoStep: React.FC<Props> = ({
               ? 'Write the brand story first.'
               : currentStep === 'goals'
                 ? 'Choose the bigger reason behind these posts.'
-                : 'Choose the post directions to explore first.'}
+                : 'Choose what these posts should help the brand show.'}
           </h1>
           <p>
             {currentStep === 'narrative'
               ? 'Start with one guided brand story. Once the system understands the brand, it can suggest the business goals that matter most.'
               : currentStep === 'goals'
                 ? 'These are suggested business goals for your SNS marketing effort. A business goal is the bigger reason you are posting, not the specific post yet.'
-                : 'Now the system can suggest post goals: specific kinds of image posts to explore under the business goal you chose.'}
+                : 'You already told the system what this brand is and chose the main business goal. Now decide what kinds of image posts should support that goal.'}
           </p>
           <p>
             {currentStep === 'narrative'
               ? 'You do not need perfect wording. Give enough context about who the brand serves, what makes it different, and how it should come across.'
               : currentStep === 'goals'
                 ? 'After this, you will choose post goals: specific kinds of posts to make under this business goal. This step is about why you are using SNS marketing right now.'
-                : 'Pick at least one post goal you want in the first workspace. You can adjust the details or create your own if the suggestions are too generic.'}
+                : 'Each post goal is a different image exploration. Pick one or two to start, adjust the details if needed, or create your own if the suggestions are too generic.'}
           </p>
 
           {(currentStep === 'goals' || currentStep === 'post-goals') && (
@@ -377,6 +385,12 @@ const BrandInfoStep: React.FC<Props> = ({
               </div>
               <div className="brand-context-meta-label">Narrative</div>
               <p>{brandData.description || 'Add a fuller brand story to help the system interpret your intent.'}</p>
+              {currentStep === 'post-goals' && selectedBusinessGoal && (
+                <>
+                  <div className="brand-context-meta-label">Business goal</div>
+                  <p>{selectedBusinessGoal.title}: {selectedBusinessGoal.description}</p>
+                </>
+              )}
             </div>
           )}
 
@@ -485,9 +499,8 @@ const BrandInfoStep: React.FC<Props> = ({
                         <PostGoalSetupStep
                           businessGoal={selectedBusinessGoal}
                           postGoalFolders={postGoalFolders}
-                          onCreatePostGoal={folder =>
-                            setPostGoalFolders(prev => [folder, ...prev.filter(existing => existing.id !== folder.id)])
-                          }
+                          onCreatePostGoal={upsertPostGoalFolder}
+                          onRemovePostGoal={removePostGoalFolder}
                         />
                       )}
                     </div>
@@ -553,9 +566,8 @@ const BrandInfoStep: React.FC<Props> = ({
                       <PostGoalSetupStep
                         businessGoal={selectedBusinessGoal}
                         postGoalFolders={postGoalFolders}
-                        onCreatePostGoal={folder =>
-                          setPostGoalFolders(prev => [folder, ...prev.filter(existing => existing.id !== folder.id)])
-                        }
+                        onCreatePostGoal={upsertPostGoalFolder}
+                        onRemovePostGoal={removePostGoalFolder}
                       />
                     )}
                   </div>

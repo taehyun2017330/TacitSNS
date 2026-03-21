@@ -11,6 +11,7 @@ interface Props {
   businessGoal: BusinessGoalOption;
   postGoalFolders: PostGoalFolder[];
   onCreatePostGoal: (folder: PostGoalFolder) => void;
+  onRemovePostGoal: (title: string) => void;
 }
 
 type ComposerState = {
@@ -52,7 +53,8 @@ function buildExampleLabels(goal: PostGoalSuggestion) {
 const PostGoalSetupStep: React.FC<Props> = ({
   businessGoal,
   postGoalFolders,
-  onCreatePostGoal
+  onCreatePostGoal,
+  onRemovePostGoal
 }) => {
   const [composer, setComposer] = useState<ComposerState | null>(null);
   const businessGoalSourceId = businessGoal.mappedGoalId ?? businessGoal.id;
@@ -132,16 +134,78 @@ const PostGoalSetupStep: React.FC<Props> = ({
     <div className="goal-selector">
       <div className="goal-selector-header">
         <div className="section-kicker">Post goals</div>
-        <h3>Turn this direction into specific kinds of posts to explore.</h3>
+        <h3>What kinds of image posts should support {businessGoal.title.toLowerCase()}?</h3>
         <p>
-          These suggestions are based on the business goal you chose. Pick the post directions you want in your first workspace.
+          These are specific image directions, not final deliverables. Pick the post goals you want to explore first, and they will become folders in the workspace.
         </p>
       </div>
+
+      <section className="post-goal-context-card">
+        <div className="post-goal-context-block">
+          <div className="section-kicker">Business goal</div>
+          <strong>{businessGoal.title}</strong>
+          <p>{businessGoal.description}</p>
+        </div>
+        <div className="post-goal-context-block post-goal-context-block--guide">
+          <div className="section-kicker">How to choose</div>
+          <p>Think about what these images should help the brand do. Each post goal is one kind of image exploration under this broader goal.</p>
+        </div>
+      </section>
+
+      <section className="goal-selector-section goal-selector-section--selected">
+        <div className="goal-selector-section-header goal-selector-section-header--row">
+          <div>
+            <div className="section-kicker">Chosen post goals</div>
+            <p>These will become the first folders in the workspace.</p>
+          </div>
+          <div className="workspace-count-chip">
+            {postGoalFolders.length} {postGoalFolders.length === 1 ? 'goal' : 'goals'}
+          </div>
+        </div>
+
+        {postGoalFolders.length === 0 ? (
+          <div className="goal-selector-empty-note">
+            Nothing selected yet. Start by choosing one or two post goals that feel like the right image directions for this business goal.
+          </div>
+        ) : (
+          <div className="workspace-folder-grid">
+            {postGoalFolders.map(folder => (
+              <article key={folder.id} className="workspace-folder-card workspace-folder-card--selected">
+                <div
+                  className="workspace-folder-preview"
+                  style={{ background: folder.previewBackground }}
+                >
+                  <div className="workspace-folder-preview-title">{folder.previewTitle || folder.title}</div>
+                  <div className="workspace-folder-preview-caption">{folder.previewCaption || folder.description}</div>
+                </div>
+                <div className="workspace-folder-card-topline">
+                  <span>{folder.source === 'recommended' ? 'Suggested' : 'Custom'}</span>
+                  <span>{folder.businessGoalTitle}</span>
+                </div>
+                <h4>{folder.title}</h4>
+                <p>{folder.description}</p>
+                <div className="post-goal-tags">
+                  {folder.taxonomyTags.map(tag => (
+                    <span key={tag} className="post-goal-tag">{tag}</span>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--secondary"
+                  onClick={() => onRemovePostGoal(folder.title)}
+                >
+                  Remove
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Suggested post goals</div>
-          <p>These use plain language first and keep the taxonomy underneath as supporting detail.</p>
+          <p>Based on the brand narrative and business goal, these are possible image directions to start with.</p>
         </div>
 
         <div className="post-goal-card-grid post-goal-card-grid--onboarding">
@@ -171,6 +235,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
                 <div className="post-goal-card-body">
                   <h4>{goal.title}</h4>
                   <p>{goal.description}</p>
+                  <div className="post-goal-card-meta">This kind of post can support {businessGoal.title.toLowerCase()} through a more specific image exploration.</div>
                   <div className="post-goal-tags">
                     {goal.taxonomyTags.map(tag => (
                       <span key={tag} className="post-goal-tag">{tag}</span>
@@ -188,11 +253,17 @@ const PostGoalSetupStep: React.FC<Props> = ({
                   </button>
                   <button
                     type="button"
-                    className="ui-btn ui-btn--primary"
-                    disabled={isAdded}
-                    onClick={() => handleCreateGoal(goal, 'recommended')}
+                    className={isAdded ? 'ui-btn ui-btn--secondary' : 'ui-btn ui-btn--primary'}
+                    onClick={() => {
+                      if (isAdded) {
+                        onRemovePostGoal(goal.title);
+                        return;
+                      }
+
+                      handleCreateGoal(goal, 'recommended');
+                    }}
                   >
-                    {isAdded ? 'Added to workspace' : 'Add post goal'}
+                    {isAdded ? 'Remove from selection' : 'Choose this post goal'}
                   </button>
                 </div>
               </article>
@@ -215,49 +286,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
             <span className="goal-pill-add-icon">+</span>
             <span>Add your own post goal</span>
           </button>
-        </div>
-      </section>
-
-      <section className="workspace-folder-section workspace-folder-section--selected">
-        <div className="workspace-panel-header workspace-panel-header--row">
-          <div>
-            <div className="section-kicker">Selected post goals</div>
-            <h3>Your first workspace folders</h3>
-          </div>
-          <div className="workspace-count-chip">
-            {postGoalFolders.length} {postGoalFolders.length === 1 ? 'goal' : 'goals'}
-          </div>
-        </div>
-
-        <div className="workspace-folder-grid">
-          {postGoalFolders.length === 0 ? (
-            <div className="workspace-empty-card">
-              Nothing selected yet. Add at least one post goal to create the first workspace directory.
-            </div>
-          ) : (
-            postGoalFolders.map(folder => (
-              <article key={folder.id} className="workspace-folder-card workspace-folder-card--selected">
-                <div
-                  className="workspace-folder-preview"
-                  style={{ background: folder.previewBackground }}
-                >
-                  <div className="workspace-folder-preview-title">{folder.previewTitle || folder.title}</div>
-                  <div className="workspace-folder-preview-caption">{folder.previewCaption || folder.description}</div>
-                </div>
-                <div className="workspace-folder-card-topline">
-                  <span>{folder.source === 'recommended' ? 'Suggested' : 'Custom'}</span>
-                  <span>{folder.businessGoalTitle}</span>
-                </div>
-                <h4>{folder.title}</h4>
-                <p>{folder.description}</p>
-                <div className="post-goal-tags">
-                  {folder.taxonomyTags.map(tag => (
-                    <span key={tag} className="post-goal-tag">{tag}</span>
-                  ))}
-                </div>
-              </article>
-            ))
-          )}
         </div>
       </section>
 
