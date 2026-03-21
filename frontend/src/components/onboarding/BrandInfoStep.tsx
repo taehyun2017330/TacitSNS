@@ -220,28 +220,6 @@ const BrandInfoStep: React.FC<Props> = ({
     }, 360);
   };
 
-  const openStep = (nextStep: OnboardingStep) => {
-    if (nextStep === currentStep) {
-      return;
-    }
-
-    if (nextStep === 'goals' && !canShowGoals) {
-      return;
-    }
-
-    if (nextStep === 'post-goals' && !selectedBusinessGoal) {
-      return;
-    }
-
-    const stepOrder: Record<OnboardingStep, number> = {
-      narrative: 0,
-      goals: 1,
-      'post-goals': 2
-    };
-
-    transitionStep(nextStep, stepOrder[nextStep] >= stepOrder[currentStep] ? 'forward' : 'backward');
-  };
-
   const reviewGoalsWithExistingSelection = (mode: 'keep' | 'regenerate') => {
     if (mode === 'regenerate') {
       setCustomGoalOverrides([]);
@@ -436,83 +414,73 @@ const BrandInfoStep: React.FC<Props> = ({
           </p>
 
           <div className="brand-hierarchy-preview">
-            <button
-              type="button"
-              className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'} ${canShowGoals ? 'is-editable' : ''}`}
-              onClick={() => openStep('narrative')}
-            >
+            <div className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'}`}>
               <span>1</span>
               <div>
                 <div className="brand-hierarchy-step-heading">
                   <strong>Brand narrative</strong>
-                  {currentStep === 'narrative' ? <em>Current</em> : canShowGoals ? <em>Edit</em> : null}
+                  {currentStep === 'narrative' ? <em>Current</em> : canShowGoals ? <em>Saved</em> : null}
                 </div>
                 <p>Say what the brand is, who it serves, and how it should feel.</p>
                 {canShowGoals && (
                   <div className="brand-hierarchy-step-summary">
-                    <div className="brand-context-row">
+                    <div className="brand-hierarchy-summary-meta">
                       <span>{brandData.name || 'Your brand'}</span>
                       <span>{brandData.category || 'Industry'}</span>
                     </div>
-                    <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description)}</div>
+                    <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description, 135)}</div>
                   </div>
                 )}
               </div>
-            </button>
-            <button
-              type="button"
-              className={`brand-hierarchy-step ${currentStep === 'goals' ? 'is-active' : currentStep === 'post-goals' ? 'is-complete' : 'is-upcoming'} ${canShowGoals ? 'is-editable' : ''}`}
-              onClick={() => openStep('goals')}
-              disabled={!canShowGoals}
-            >
+            </div>
+            <div className={`brand-hierarchy-step ${currentStep === 'goals' ? 'is-active' : currentStep === 'post-goals' ? 'is-complete' : 'is-upcoming'}`}>
               <span>2</span>
               <div>
                 <div className="brand-hierarchy-step-heading">
                   <strong>Business goals</strong>
-                  {currentStep === 'goals' ? <em>Current</em> : selectedBusinessGoal ? <em>Edit</em> : null}
+                  {currentStep === 'goals' ? <em>Current</em> : selectedBusinessGoal ? <em>Saved</em> : null}
                 </div>
                 <p>Pick the broader outcome these posts should help achieve.</p>
                 {selectedBusinessGoal && (
                   <div className="brand-hierarchy-step-summary">
-                    <div className="brand-hierarchy-summary-copy">
+                    <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
                       <strong>{selectedBusinessGoal.title}</strong>
                       <span>{selectedBusinessGoal.description}</span>
                     </div>
                   </div>
                 )}
               </div>
-            </button>
-            <button
-              type="button"
-              className={`brand-hierarchy-step ${currentStep === 'post-goals' ? 'is-active' : 'is-upcoming'} ${selectedBusinessGoal ? 'is-editable' : ''}`}
-              onClick={() => openStep('post-goals')}
-              disabled={!selectedBusinessGoal}
-            >
+            </div>
+            <div className={`brand-hierarchy-step ${currentStep === 'post-goals' ? 'is-active' : 'is-upcoming'}`}>
               <span>3</span>
               <div>
                 <div className="brand-hierarchy-step-heading">
                   <strong>Post goals</strong>
-                  {currentStep === 'post-goals' ? <em>Current</em> : hasSavedPostGoals ? <em>Edit</em> : null}
+                  {currentStep === 'post-goals' ? <em>Current</em> : hasSavedPostGoals ? <em>Saved</em> : null}
                 </div>
                 <p>Turn that direction into specific kinds of image posts to explore.</p>
                 {selectedBusinessGoal && (
                   <div className="brand-hierarchy-step-summary">
                     {postGoalFolders.length > 0 ? (
-                      <div className="goal-step-summary">
+                      <div className="brand-hierarchy-summary-list">
                         {postGoalFolders.slice(0, 2).map(folder => (
-                          <span key={folder.id}>{folder.title}</span>
+                          <div key={folder.id} className="brand-hierarchy-summary-list-item">{folder.title}</div>
                         ))}
-                        {postGoalFolders.length > 2 && <span>+{postGoalFolders.length - 2} more</span>}
+                        {postGoalFolders.length > 2 && (
+                          <div className="brand-hierarchy-summary-list-item brand-hierarchy-summary-list-item--muted">
+                            +{postGoalFolders.length - 2} more
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className="brand-hierarchy-summary-copy">
+                      <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
                         <span>No post goals chosen yet.</span>
                       </div>
                     )}
                   </div>
                 )}
               </div>
-            </button>
+            </div>
           </div>
         </section>
 
