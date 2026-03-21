@@ -2,10 +2,8 @@ import React from 'react';
 
 import type {
   BusinessGoalOption,
-  PostGoalReferenceAsset,
   PostGoalSuggestion
 } from '../../../types/workspace';
-import PostGoalReferenceUpload from './PostGoalReferenceUpload';
 import { buildExampleLabels } from './postGoalExplorer.utils';
 
 type TaxonomyDefinition = {
@@ -19,10 +17,8 @@ interface Props {
   goal: PostGoalSuggestion;
   isSelected: boolean;
   taxonomyDefinitions: TaxonomyDefinition[];
-  referenceAssets: PostGoalReferenceAsset[];
-  onReferenceAssetsChange: (assets: PostGoalReferenceAsset[]) => void;
   onEditGoal: (goal: PostGoalSuggestion) => void;
-  onChooseGoal: (goal: PostGoalSuggestion, referenceAssets: PostGoalReferenceAsset[]) => void;
+  onChooseGoal: (goal: PostGoalSuggestion) => void;
   onRemoveGoal: (title: string) => void;
 }
 
@@ -31,8 +27,6 @@ const PostGoalDetailPane: React.FC<Props> = ({
   goal,
   isSelected,
   taxonomyDefinitions,
-  referenceAssets,
-  onReferenceAssetsChange,
   onEditGoal,
   onChooseGoal,
   onRemoveGoal
@@ -88,11 +82,6 @@ const PostGoalDetailPane: React.FC<Props> = ({
         ))}
       </div>
 
-      <PostGoalReferenceUpload
-        referenceAssets={referenceAssets}
-        onChange={onReferenceAssetsChange}
-      />
-
       <div className="post-goal-card-meta">
         This post goal gives the image generation step a more concrete direction under the business goal of {businessGoal.title.toLowerCase()}.
       </div>
@@ -114,7 +103,7 @@ const PostGoalDetailPane: React.FC<Props> = ({
               return;
             }
 
-            onChooseGoal(goal, referenceAssets);
+            onChooseGoal(goal);
           }}
         >
           {isSelected ? 'Remove from selection' : 'Choose this post goal'}

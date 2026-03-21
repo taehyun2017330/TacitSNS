@@ -312,11 +312,17 @@ html {
 }
 
 .brand-hierarchy-step {
+  appearance: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
   display: grid;
   grid-template-columns: 2.6rem 1fr;
   gap: 0.85rem;
   align-items: start;
   position: relative;
+  text-align: left;
 }
 
 .brand-hierarchy-step:not(:last-child)::after {
@@ -327,6 +333,18 @@ html {
   bottom: -0.9rem;
   width: 1px;
   background: rgba(97, 81, 59, 0.16);
+}
+
+.brand-hierarchy-step.is-editable {
+  cursor: pointer;
+}
+
+.brand-hierarchy-step.is-editable:hover strong {
+  color: var(--accent-strong);
+}
+
+.brand-hierarchy-step:disabled {
+  cursor: default;
 }
 
 .brand-hierarchy-step span {
@@ -393,6 +411,40 @@ html {
 
 .brand-hierarchy-step p {
   margin: 0;
+}
+
+.brand-hierarchy-step-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.brand-hierarchy-step-heading em {
+  font-style: normal;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-hierarchy-step-summary {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+}
+
+.brand-hierarchy-summary-copy {
+  display: grid;
+  gap: 0.22rem;
+  color: var(--ink-body);
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.brand-hierarchy-summary-copy strong {
+  margin-bottom: 0;
 }
 
 .auth-panel {
@@ -742,7 +794,7 @@ html {
 }
 
 .brand-onboarding-requirements .is-ready {
-  color: var(--accent);
+  color: var(--ink-strong);
   font-weight: 700;
 }
 
@@ -762,6 +814,12 @@ html {
   justify-content: flex-end;
   align-items: center;
   gap: 0.75rem;
+}
+
+.brand-onboarding-actions--inline {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
 }
 
 .brand-autocomplete .header h1,

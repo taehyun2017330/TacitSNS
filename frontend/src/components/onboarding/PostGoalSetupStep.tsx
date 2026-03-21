@@ -39,7 +39,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
 }) => {
   const [composer, setComposer] = useState<PostGoalComposerState | null>(null);
   const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
-  const [referenceAssetsByGoal, setReferenceAssetsByGoal] = useState<Record<string, PostGoalReferenceAsset[]>>({});
   const [suggestedPostGoals, setSuggestedPostGoals] = useState<PostGoalSuggestion[]>([]);
   const [suggestionSource, setSuggestionSource] = useState<'ai' | 'fallback'>('fallback');
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
@@ -58,7 +57,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
 
   useEffect(() => {
     setComposer(null);
-    setReferenceAssetsByGoal({});
   }, [businessGoal.id]);
 
   useEffect(() => {
@@ -174,9 +172,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
   const activeTaxonomyDefinitions = activeSuggestedGoal
     ? getTaxonomyDefinitions(activeSuggestedGoal.taxonomyTags)
     : [];
-  const activeReferenceAssets = activeSuggestedGoal
-    ? referenceAssetsByGoal[activeSuggestedGoal.id] ?? []
-    : [];
 
   const openCustomComposer = () => {
     setComposer({
@@ -192,12 +187,12 @@ const PostGoalSetupStep: React.FC<Props> = ({
   const openEditComposer = (goal: PostGoalSuggestion) => {
     setComposer({
       mode: 'edit',
-      inputMethod: (referenceAssetsByGoal[goal.id] ?? []).length > 0 ? 'reference' : 'text',
+      inputMethod: 'text',
       seed: goal,
       title: goal.title,
       description: goal.description,
       rationale: `This post goal supports "${businessGoal.title}" for this brand.`,
-      referenceAssets: referenceAssetsByGoal[goal.id] ?? []
+      referenceAssets: []
     });
   };
 
@@ -266,13 +261,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
       composer.referenceAssets
     );
 
-    if (baseGoal) {
-      setReferenceAssetsByGoal(prev => ({
-        ...prev,
-        [baseGoal.id]: composer.referenceAssets
-      }));
-    }
-
     closeComposer();
   };
 
@@ -285,18 +273,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
           These are specific image directions, not final deliverables. Click through suggested directions, inspect what they could look like, and keep the ones you want to explore in the workspace.
         </p>
       </div>
-
-      <section className="post-goal-context-card">
-        <div className="post-goal-context-block">
-          <div className="section-kicker">Business goal</div>
-          <strong>{businessGoal.title}</strong>
-          <p>{businessGoal.description}</p>
-        </div>
-        <div className="post-goal-context-block post-goal-context-block--guide">
-          <div className="section-kicker">How to choose</div>
-          <p>Each post goal is a different image exploration. Browse one direction at a time, inspect what kind of images it implies, then keep the ones you want as workspace folders.</p>
-        </div>
-      </section>
 
       <PostGoalSelectionTray
         postGoalFolders={postGoalFolders}
@@ -336,15 +312,8 @@ const PostGoalSetupStep: React.FC<Props> = ({
                 goal={activeSuggestedGoal}
                 isSelected={selectedFolderTitles.has(activeSuggestedGoal.title)}
                 taxonomyDefinitions={activeTaxonomyDefinitions}
-                referenceAssets={activeReferenceAssets}
-                onReferenceAssetsChange={assets =>
-                  setReferenceAssetsByGoal(prev => ({
-                    ...prev,
-                    [activeSuggestedGoal.id]: assets
-                  }))
-                }
                 onEditGoal={openEditComposer}
-                onChooseGoal={handleCreateGoal}
+                onChooseGoal={goal => handleCreateGoal(goal, 'recommended')}
                 onRemoveGoal={onRemovePostGoal}
               />
             )}

@@ -72,6 +72,19 @@ function canContinue(brandData: BrandData, selectedGoalId: string | null) {
   return canGenerateGoals(brandData) && Boolean(selectedGoalId);
 }
 
+function summarizeNarrative(text: string, maxLength = 180) {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return 'Add a fuller brand narrative so the system can interpret the direction well.';
+  }
+
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, maxLength).trimEnd()}...`;
+}
+
 const BrandInfoStep: React.FC<Props> = ({
   initialData = null,
   onComplete,
@@ -115,6 +128,7 @@ const BrandInfoStep: React.FC<Props> = ({
   );
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [goalRefreshDecisionOpen, setGoalRefreshDecisionOpen] = useState(false);
 
   const inferredGoals = useMemo(
     () => inferBusinessGoalOptions(brandData),
@@ -143,6 +157,9 @@ const BrandInfoStep: React.FC<Props> = ({
   const canShowGoals = canGenerateGoals(brandData);
   const currentGoalSourceSignature = buildGoalSourceSignature(brandData);
   const selectedBusinessGoal = businessGoalOptions.find(goal => goal.id === selectedGoalId) ?? null;
+  const hasSavedGoalSelection = Boolean(selectedGoalId);
+  const hasSavedPostGoals = postGoalFolders.length > 0;
+  const hasGoalSourceChanges = currentGoalSourceSignature !== goalSourceSignature;
   const brandContext = {
     brandName: brandData.name || 'Your Brand',
     brandCategory: brandData.category || 'General'
@@ -203,9 +220,52 @@ const BrandInfoStep: React.FC<Props> = ({
     }, 360);
   };
 
+  const openStep = (nextStep: OnboardingStep) => {
+    if (nextStep === currentStep) {
+      return;
+    }
+
+    if (nextStep === 'goals' && !canShowGoals) {
+      return;
+    }
+
+    if (nextStep === 'post-goals' && !selectedBusinessGoal) {
+      return;
+    }
+
+    const stepOrder: Record<OnboardingStep, number> = {
+      narrative: 0,
+      goals: 1,
+      'post-goals': 2
+    };
+
+    transitionStep(nextStep, stepOrder[nextStep] >= stepOrder[currentStep] ? 'forward' : 'backward');
+  };
+
+  const reviewGoalsWithExistingSelection = (mode: 'keep' | 'regenerate') => {
+    if (mode === 'regenerate') {
+      setCustomGoalOverrides([]);
+      setSelectedGoalId(null);
+      setPostGoalFolders([]);
+      setGoalSourceSignature(currentGoalSourceSignature);
+      setGoalRefreshDecisionOpen(false);
+      transitionStep('goals', 'forward');
+      return;
+    }
+
+    setGoalSourceSignature(currentGoalSourceSignature);
+    setGoalRefreshDecisionOpen(false);
+    transitionStep(selectedGoalId ? 'post-goals' : 'goals', 'forward');
+  };
+
   const handleReviewGoals = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+
+    if (hasSavedGoalSelection && hasGoalSourceChanges) {
+      setGoalRefreshDecisionOpen(true);
+      return;
+    }
 
     if (currentGoalSourceSignature !== goalSourceSignature) {
       setCustomGoalOverrides([]);
@@ -375,47 +435,84 @@ const BrandInfoStep: React.FC<Props> = ({
                 : 'Each post goal is a different image exploration. Pick one or two to start, adjust the details if needed, or create your own if the suggestions are too generic.'}
           </p>
 
-          {(currentStep === 'goals' || currentStep === 'post-goals') && (
-            <div className="brand-context-card">
-              <div className="section-kicker">Your brand narrative</div>
-              <div className="brand-context-meta-label">Basic details</div>
-              <div className="brand-context-row">
-                <span>{brandData.name || 'Your brand'}</span>
-                <span>{brandData.category || 'Industry'}</span>
-              </div>
-              <div className="brand-context-meta-label">Narrative</div>
-              <p>{brandData.description || 'Add a fuller brand story to help the system interpret your intent.'}</p>
-              {currentStep === 'post-goals' && selectedBusinessGoal && (
-                <>
-                  <div className="brand-context-meta-label">Business goal</div>
-                  <p>{selectedBusinessGoal.title}: {selectedBusinessGoal.description}</p>
-                </>
-              )}
-            </div>
-          )}
-
           <div className="brand-hierarchy-preview">
-            <div className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'}`}>
+            <button
+              type="button"
+              className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'} ${canShowGoals ? 'is-editable' : ''}`}
+              onClick={() => openStep('narrative')}
+            >
               <span>1</span>
               <div>
-                <strong>Brand narrative</strong>
+                <div className="brand-hierarchy-step-heading">
+                  <strong>Brand narrative</strong>
+                  {currentStep === 'narrative' ? <em>Current</em> : canShowGoals ? <em>Edit</em> : null}
+                </div>
                 <p>Say what the brand is, who it serves, and how it should feel.</p>
+                {canShowGoals && (
+                  <div className="brand-hierarchy-step-summary">
+                    <div className="brand-context-row">
+                      <span>{brandData.name || 'Your brand'}</span>
+                      <span>{brandData.category || 'Industry'}</span>
+                    </div>
+                    <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description)}</div>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className={`brand-hierarchy-step ${currentStep === 'goals' ? 'is-active' : currentStep === 'post-goals' ? 'is-complete' : 'is-upcoming'}`}>
+            </button>
+            <button
+              type="button"
+              className={`brand-hierarchy-step ${currentStep === 'goals' ? 'is-active' : currentStep === 'post-goals' ? 'is-complete' : 'is-upcoming'} ${canShowGoals ? 'is-editable' : ''}`}
+              onClick={() => openStep('goals')}
+              disabled={!canShowGoals}
+            >
               <span>2</span>
               <div>
-                <strong>Business goals</strong>
+                <div className="brand-hierarchy-step-heading">
+                  <strong>Business goals</strong>
+                  {currentStep === 'goals' ? <em>Current</em> : selectedBusinessGoal ? <em>Edit</em> : null}
+                </div>
                 <p>Pick the broader outcome these posts should help achieve.</p>
+                {selectedBusinessGoal && (
+                  <div className="brand-hierarchy-step-summary">
+                    <div className="brand-hierarchy-summary-copy">
+                      <strong>{selectedBusinessGoal.title}</strong>
+                      <span>{selectedBusinessGoal.description}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className={`brand-hierarchy-step ${currentStep === 'post-goals' ? 'is-active' : 'is-upcoming'}`}>
+            </button>
+            <button
+              type="button"
+              className={`brand-hierarchy-step ${currentStep === 'post-goals' ? 'is-active' : 'is-upcoming'} ${selectedBusinessGoal ? 'is-editable' : ''}`}
+              onClick={() => openStep('post-goals')}
+              disabled={!selectedBusinessGoal}
+            >
               <span>3</span>
               <div>
-                <strong>Post goals</strong>
+                <div className="brand-hierarchy-step-heading">
+                  <strong>Post goals</strong>
+                  {currentStep === 'post-goals' ? <em>Current</em> : hasSavedPostGoals ? <em>Edit</em> : null}
+                </div>
                 <p>Turn that direction into specific kinds of image posts to explore.</p>
+                {selectedBusinessGoal && (
+                  <div className="brand-hierarchy-step-summary">
+                    {postGoalFolders.length > 0 ? (
+                      <div className="goal-step-summary">
+                        {postGoalFolders.slice(0, 2).map(folder => (
+                          <span key={folder.id}>{folder.title}</span>
+                        ))}
+                        {postGoalFolders.length > 2 && <span>+{postGoalFolders.length - 2} more</span>}
+                      </div>
+                    ) : (
+                      <div className="brand-hierarchy-summary-copy">
+                        <span>No post goals chosen yet.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
+            </button>
           </div>
         </section>
 
@@ -579,6 +676,43 @@ const BrandInfoStep: React.FC<Props> = ({
 
             <div className="brand-onboarding-divider">
               <div className="brand-onboarding-requirements">
+                {goalRefreshDecisionOpen && (
+                  <div className="goal-transition-card">
+                    <h3>Update the saved business-goal step?</h3>
+                    <p>
+                      You changed the brand narrative after choosing a business goal. Keep the previous business goal and post goals, or regenerate a new business-goal set from the updated narrative.
+                    </p>
+                    <div className="goal-transition-summary">
+                      <span>{brandData.name || 'Your brand'}</span>
+                      <span>{selectedBusinessGoal?.title || 'Business goal selected'}</span>
+                    </div>
+                    <div className="brand-onboarding-actions brand-onboarding-actions--inline">
+                      <button
+                        type="button"
+                        className="ui-btn ui-btn--secondary"
+                        onClick={() => {
+                          setGoalRefreshDecisionOpen(false);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="ui-btn ui-btn--secondary"
+                        onClick={() => reviewGoalsWithExistingSelection('keep')}
+                      >
+                        Keep previous goal
+                      </button>
+                      <button
+                        type="button"
+                        className="ui-btn ui-btn--primary"
+                        onClick={() => reviewGoalsWithExistingSelection('regenerate')}
+                      >
+                        Regenerate goals
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {currentStep === 'narrative' && !brandData.name.trim() && <span>Brand name required</span>}
                 {currentStep === 'narrative' && brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
                 {currentStep === 'narrative' && brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
@@ -617,7 +751,7 @@ const BrandInfoStep: React.FC<Props> = ({
                     type="button"
                     className="ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn"
                     onClick={handleReviewGoals}
-                    disabled={!canGenerateGoals(brandData)}
+                    disabled={!canGenerateGoals(brandData) || goalRefreshDecisionOpen}
                   >
                     Review suggested business goals
                   </button>
