@@ -1,4 +1,6 @@
+import { getTaxonomyDefinitions } from '../../data/goalHierarchy';
 import type { Gen, PostNode } from '../history/types';
+import type { PostGoalFolder } from '../../types/workspace';
 import type { EditOptions, PostStudioActionType } from './types';
 
 export function findNearestGridBatch(history: Map<string, Gen>, startingBatchId: string | null): string | null {
@@ -18,6 +20,103 @@ export function findNearestGridBatch(history: Map<string, Gen>, startingBatchId:
   }
 
   return null;
+}
+
+export function findLatestGridBatchId(nodes: Iterable<PostNode>): string | null {
+  const batchMap = new Map<string, { timestamp: number; count: number }>();
+
+  for (const node of nodes) {
+    const batchId = node.metadata?.batchId;
+    if (!batchId) {
+      continue;
+    }
+
+    const current = batchMap.get(batchId);
+    if (!current) {
+      batchMap.set(batchId, { timestamp: node.timestamp, count: 1 });
+      continue;
+    }
+
+    current.count += 1;
+    if (node.timestamp > current.timestamp) {
+      current.timestamp = node.timestamp;
+    }
+  }
+
+  return Array.from(batchMap.entries())
+    .filter(([, meta]) => meta.count === 4)
+    .sort((left, right) => right[1].timestamp - left[1].timestamp)[0]?.[0] ?? null;
+}
+
+export function countGeneratedImages(nodes: Iterable<PostNode>): number {
+  return Array.from(nodes).filter(node => node.actionType !== 'selection').length;
+}
+
+export function getLastGeneratedAt(nodes: Iterable<PostNode>): number | null {
+  const timestamps = Array.from(nodes)
+    .filter(node => node.actionType !== 'selection')
+    .map(node => node.timestamp);
+
+  if (timestamps.length === 0) {
+    return null;
+  }
+
+  return Math.max(...timestamps);
+}
+
+export function buildInitialDirectionPlan({
+  brandName,
+  brandCategory,
+  brandIdentity,
+  brandNarrative,
+  businessGoalTitle,
+  folder
+}: {
+  brandName: string;
+  brandCategory: string;
+  brandIdentity?: string;
+  brandNarrative?: string;
+  businessGoalTitle?: string;
+  folder: Pick<PostGoalFolder, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt'>;
+}) {
+  const taxonomyDefinitions = getTaxonomyDefinitions(folder.taxonomyTags);
+  const commonThemes = Array.from(
+    new Set(taxonomyDefinitions.flatMap(item => item.themes))
+  ).slice(0, 6);
+
+  const goalDescription = folder.description.trim();
+  const shortNarrative = brandNarrative?.trim().replace(/\s+/g, ' ').slice(0, 220) ?? '';
+  const contextLabel = businessGoalTitle ? businessGoalTitle.toLowerCase() : 'the current business goal';
+
+  const angleA = commonThemes[0] ?? 'visible brand action';
+  const angleB = commonThemes[1] ?? 'a real-world moment';
+  const angleC = commonThemes[2] ?? 'human presence';
+  const angleD = commonThemes[3] ?? 'a memorable brand signal';
+
+  const directionAngles = [
+    `Hero-led Instagram composition showing ${folder.title.toLowerCase()} through ${angleA} in a clear, believable scene.`,
+    `Documentary-style post centered on ${angleB} so the brand feels active, grounded, and credible.`,
+    `Human-centered visual using ${angleC} to make ${contextLabel} feel emotionally legible.`,
+    `Editorial social post translating ${goalDescription.toLowerCase()} through ${angleD} and a strong visual hierarchy.`
+  ];
+
+  const briefLines = [
+    `Brand: ${brandName} (${brandCategory})`,
+    brandIdentity ? `Brand identity: ${brandIdentity}` : null,
+    shortNarrative ? `Brand narrative: ${shortNarrative}` : null,
+    businessGoalTitle ? `Business goal: ${businessGoalTitle}` : null,
+    `Post goal: ${folder.title}`,
+    goalDescription ? `What this post goal explores: ${goalDescription}` : null,
+    folder.taxonomyTags.length ? `Relevant post categories: ${folder.taxonomyTags.join(', ')}` : null,
+    commonThemes.length ? `Common themes to lean into: ${commonThemes.join(', ')}` : null,
+    `Direction anchor: ${folder.assistantPrompt}`
+  ].filter(Boolean);
+
+  return {
+    brief: `${briefLines.join('\n')}\nCreate four distinct but coherent Instagram-ready directions for this post goal.`,
+    directionAngles,
+    commonThemes
+  };
 }
 
 export function buildFallbackDelta(

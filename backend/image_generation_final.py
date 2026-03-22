@@ -108,7 +108,8 @@ def generate_placeholder_post(brand_name: str, index: int) -> str:
 def generate_image_prompts(
     brand_description: str,
     images_feedback: Optional[List[Dict]] = None,
-    exploration_level: float = 1.0
+    exploration_level: float = 1.0,
+    direction_angles: Optional[List[str]] = None
 ) -> List[str]:
     """
     Generate prompts for 4 marketing posts
@@ -116,6 +117,12 @@ def generate_image_prompts(
 
     # Direct brand description - no added concepts
     base = f"Marketing post for: {brand_description}"
+
+    if not images_feedback and direction_angles:
+        return [
+            f"{base}\nDirection angle {index + 1}: {angle}\nCreate one distinct Instagram-ready post concept around this angle."
+            for index, angle in enumerate(direction_angles[:4])
+        ]
 
     if not images_feedback:
         # Initial generation - 4 variations

@@ -10,6 +10,7 @@ import {
   inferBusinessGoalOptions
 } from './data/goalHierarchy';
 import type { BrandData } from './types/brand';
+import type { PostGoalStudioSession } from './types/postStudio';
 import type {
   AppStage,
   OnboardingResult,
@@ -97,6 +98,7 @@ function App() {
   const [user, setUser] = useState<PrototypeUser | null>(persisted.user);
   const [workspace, setWorkspace] = useState<WorkspaceSnapshot | null>(persisted.workspace);
   const [selectedFolder, setSelectedFolder] = useState<PostGoalFolder | null>(null);
+  const [studioSessionsByFolderId, setStudioSessionsByFolderId] = useState<Record<string, PostGoalStudioSession>>({});
   const [onboardingInitialStep, setOnboardingInitialStep] = useState<'narrative' | undefined>(
     undefined
   );
@@ -144,6 +146,7 @@ function App() {
 
   const handleOnboardingComplete = (result: OnboardingResult) => {
     setWorkspace(result);
+    setStudioSessionsByFolderId({});
     setSelectedFolder(null);
     setOnboardingInitialStep(undefined);
     transitionToStage('workspace', 'forward');
@@ -155,7 +158,7 @@ function App() {
         return current;
       }
 
-      const existingIndex = current.postGoalFolders.findIndex(existing => existing.title === folder.title);
+      const existingIndex = current.postGoalFolders.findIndex(existing => existing.id === folder.id);
       if (existingIndex === -1) {
         return {
           ...current,
@@ -173,7 +176,7 @@ function App() {
     });
   };
 
-  const handleRemoveWorkspacePostGoal = (title: string) => {
+  const handleRemoveWorkspacePostGoal = (folderId: string) => {
     setWorkspace(current => {
       if (!current) {
         return current;
@@ -181,16 +184,33 @@ function App() {
 
       return {
         ...current,
-        postGoalFolders: current.postGoalFolders.filter(folder => folder.title !== title)
+        postGoalFolders: current.postGoalFolders.filter(folder => folder.id !== folderId)
       };
     });
 
-    setSelectedFolder(current => (current?.title === title ? null : current));
+    setSelectedFolder(current => (current?.id === folderId ? null : current));
+    setStudioSessionsByFolderId(current => {
+      if (!(folderId in current)) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[folderId];
+      return next;
+    });
+  };
+
+  const handleUpdateStudioSession = (folderId: string, session: PostGoalStudioSession) => {
+    setStudioSessionsByFolderId(current => ({
+      ...current,
+      [folderId]: session
+    }));
   };
 
   const handleLoadSampleWorkspace = (brand: BrandData) => {
     const sampleWorkspace = createSampleWorkspace(brand);
     setWorkspace(sampleWorkspace);
+    setStudioSessionsByFolderId({});
     setUser({
       id: `prototype-sample-${Date.now()}`,
       name: 'Sample User',
@@ -226,6 +246,7 @@ function App() {
           businessGoals={workspace.selectedBusinessGoals}
           activeBusinessGoalId={workspace.activeBusinessGoalId}
           postGoalFolders={workspace.postGoalFolders}
+          studioSessionsByFolderId={studioSessionsByFolderId}
           onEditGoals={() => {
             setSelectedFolder(null);
             setOnboardingInitialStep('narrative');
@@ -246,18 +267,15 @@ function App() {
         <PostStudio
           brandName={workspace.brand.name}
           brandCategory={workspace.brand.category}
-          brandContext={[
-            workspace.brand.identity,
-            workspace.brand.description,
-            `Business goal: ${selectedFolder.businessGoalTitle}`,
-            `Post goal: ${selectedFolder.title}`,
-            selectedFolder.referenceAssets?.[0] ? `Reference image attached: ${selectedFolder.referenceAssets[0].name}` : '',
-            selectedFolder.assistantPrompt
-          ].filter(Boolean).join(' ')}
+          brandIdentity={workspace.brand.identity}
+          brandNarrative={workspace.brand.description}
           businessGoalTitle={selectedFolder.businessGoalTitle}
           postGoalTitle={selectedFolder.title}
           postGoalDescription={selectedFolder.description}
+          postGoalTaxonomyTags={selectedFolder.taxonomyTags}
           referenceAssets={selectedFolder.referenceAssets}
+          studioSession={studioSessionsByFolderId[selectedFolder.id] ?? null}
+          onStudioSessionChange={session => handleUpdateStudioSession(selectedFolder.id, session)}
           onBack={() => {
             transitionToStage('workspace', 'backward');
           }}
@@ -302,6 +320,7 @@ function App() {
         onResetPrototype={() => {
           setSelectedFolder(null);
           setWorkspace(null);
+          setStudioSessionsByFolderId({});
           setUser(null);
           setOnboardingInitialStep(undefined);
           transitionToStage('auth', 'backward');

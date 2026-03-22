@@ -17,6 +17,7 @@ class PostGenerationRequest(BaseModel):
     parentImageUrl: Optional[str] = None
     parentKeywords: List[str] = Field(default_factory=list)
     direction: Optional[str] = None
+    directionAngles: List[str] = Field(default_factory=list)
     iteration: int = 0
     userFeedback: Optional[Dict[str, Any]] = None
     imagesFeedback: Optional[List[Dict[str, Any]]] = None

@@ -7,8 +7,18 @@ import { buildHistoryMap, createSelectionNode, getBatchNodes } from './history/h
 import { FeedbackData, Gen, PostNode } from './history/types';
 import { requestPostGeneration } from './postStudio/api';
 import type { EditOptions } from './postStudio/types';
-import { buildFallbackDelta, createGeneratedNodes, createPlaceholderNodes, findNearestGridBatch } from './postStudio/utils';
+import {
+  buildFallbackDelta,
+  buildInitialDirectionPlan,
+  countGeneratedImages,
+  createGeneratedNodes,
+  createPlaceholderNodes,
+  findLatestGridBatchId,
+  findNearestGridBatch,
+  getLastGeneratedAt
+} from './postStudio/utils';
 import type { PostGoalReferenceAsset } from '../types/workspace';
+import type { PostGoalStudioSession } from '../types/postStudio';
 import './PostStudio.css';
 
 type ViewMode = 'grid' | 'single';
@@ -16,11 +26,15 @@ type ViewMode = 'grid' | 'single';
 interface Props {
   brandName: string;
   brandCategory: string;
-  brandContext: string;
+  brandIdentity?: string;
+  brandNarrative?: string;
   businessGoalTitle?: string;
   postGoalTitle?: string;
   postGoalDescription?: string;
+  postGoalTaxonomyTags?: string[];
   referenceAssets?: PostGoalReferenceAsset[];
+  studioSession?: PostGoalStudioSession | null;
+  onStudioSessionChange?: (session: PostGoalStudioSession) => void;
   onBack: () => void;
   onFinalize: (postUrl: string, postData?: any) => void;
 }
@@ -28,20 +42,21 @@ interface Props {
 const PostStudio: React.FC<Props> = ({
   brandName,
   brandCategory,
-  brandContext,
+  brandIdentity = '',
+  brandNarrative = '',
   businessGoalTitle,
   postGoalTitle,
   postGoalDescription,
+  postGoalTaxonomyTags = [],
   referenceAssets = [],
+  studioSession = null,
+  onStudioSessionChange,
   onBack,
   onFinalize
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-
-  const [initialDirection, setInitialDirection] = useState('');
-  const [showInitialInput, setShowInitialInput] = useState(true);
   const [similarityLevel, setSimilarityLevel] = useState(50);
 
   const [historyNodes, setHistoryNodes] = useState<Map<string, PostNode>>(new Map());
@@ -53,12 +68,97 @@ const PostStudio: React.FC<Props> = ({
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const history = useMemo(() => buildHistoryMap(historyNodes.values()), [historyNodes]);
+  const brandContext = useMemo(
+    () =>
+      [
+        brandIdentity,
+        brandNarrative,
+        businessGoalTitle ? `Business goal: ${businessGoalTitle}` : '',
+        postGoalTitle ? `Post goal: ${postGoalTitle}` : '',
+        postGoalDescription ? `Post goal description: ${postGoalDescription}` : ''
+      ]
+        .filter(Boolean)
+        .join(' '),
+    [brandIdentity, brandNarrative, businessGoalTitle, postGoalDescription, postGoalTitle]
+  );
+  const initialDirectionPlan = useMemo(
+    () =>
+      buildInitialDirectionPlan({
+        brandName,
+        brandCategory,
+        brandIdentity,
+        brandNarrative,
+        businessGoalTitle,
+        folder: {
+          title: postGoalTitle || 'Post goal',
+          description: postGoalDescription || 'Create one clear visual direction for this post goal.',
+          taxonomyTags: postGoalTaxonomyTags,
+          assistantPrompt: [
+            postGoalDescription,
+            businessGoalTitle ? `Support ${businessGoalTitle.toLowerCase()}.` : ''
+          ]
+            .filter(Boolean)
+            .join(' ')
+        }
+      }),
+    [
+      brandCategory,
+      brandIdentity,
+      brandName,
+      brandNarrative,
+      businessGoalTitle,
+      postGoalDescription,
+      postGoalTaxonomyTags,
+      postGoalTitle
+    ]
+  );
+  const generatedImageCount = studioSession?.generatedImageCount ?? countGeneratedImages(historyNodes.values());
 
   useEffect(() => {
-    if (!initialDirection && (postGoalDescription || businessGoalTitle)) {
-      setInitialDirection([postGoalDescription, businessGoalTitle].filter(Boolean).join(' '));
+    const restoredNodes = new Map((studioSession?.nodes ?? []).map(node => [node.id, node]));
+    const restoredGridBatchId =
+      studioSession?.currentGridBatchId && getBatchNodes(restoredNodes, studioSession.currentGridBatchId).length > 0
+        ? studioSession.currentGridBatchId
+        : findLatestGridBatchId(restoredNodes.values());
+
+    setHistoryNodes(restoredNodes);
+    setCurrentGridBatchId(restoredGridBatchId);
+    setCurrentGridPosts(restoredGridBatchId ? getBatchNodes(restoredNodes, restoredGridBatchId) : []);
+    setSelectedPost(null);
+    setSelectedGridIndex(null);
+    setNavigationStack([]);
+    setViewMode('grid');
+    setError('');
+  }, [postGoalTitle, studioSession?.currentGridBatchId, studioSession?.lastGeneratedAt]);
+
+  useEffect(() => {
+    if (historyNodes.size === 0 && currentGridBatchId === null && !isGenerating) {
+      void generatePosts(
+        'initial',
+        null,
+        undefined,
+        undefined,
+        similarityLevel,
+        initialDirectionPlan.brief,
+        initialDirectionPlan.directionAngles
+      );
     }
-  }, [businessGoalTitle, initialDirection, postGoalDescription]);
+  }, [currentGridBatchId, historyNodes.size, initialDirectionPlan.brief, initialDirectionPlan.directionAngles, isGenerating, similarityLevel]);
+
+  useEffect(() => {
+    if (!onStudioSessionChange || historyNodes.size === 0) {
+      return;
+    }
+
+    onStudioSessionChange({
+      nodes: Array.from(historyNodes.values()),
+      currentGridBatchId,
+      generatedImageCount: countGeneratedImages(historyNodes.values()),
+      lastGeneratedAt: getLastGeneratedAt(historyNodes.values()),
+      seedDirection: initialDirectionPlan.brief,
+      directionAngles: initialDirectionPlan.directionAngles
+    });
+  }, [currentGridBatchId, historyNodes, initialDirectionPlan.brief, initialDirectionPlan.directionAngles, onStudioSessionChange]);
 
   const upsertNodes = (nodes: PostNode[]) => {
     setHistoryNodes(prev => {
@@ -88,7 +188,8 @@ const PostStudio: React.FC<Props> = ({
     feedback?: FeedbackData,
     editOptions?: EditOptions,
     similarity?: number,
-    direction?: string
+    direction?: string,
+    directionAngles: string[] = []
   ) => {
     setIsGenerating(true);
     setError('');
@@ -103,7 +204,7 @@ const PostStudio: React.FC<Props> = ({
 
     try {
       const resolvedSimilarity = similarity ?? similarityLevel;
-      const resolvedDirection = direction || initialDirection;
+      const resolvedDirection = direction || initialDirectionPlan.brief;
       const data = await requestPostGeneration({
         brandName,
         brandCategory,
@@ -112,6 +213,7 @@ const PostStudio: React.FC<Props> = ({
         feedback,
         similarity: resolvedSimilarity,
         direction: resolvedDirection,
+        directionAngles: actionType === 'initial' ? directionAngles : [],
         actionType,
         editOptions
       });
@@ -154,7 +256,7 @@ const PostStudio: React.FC<Props> = ({
 
       const placeholderCount = actionType === 'edit' ? 1 : 4;
       const resolvedSimilarity = similarity ?? similarityLevel;
-      const resolvedDirection = direction || initialDirection;
+      const resolvedDirection = direction || initialDirectionPlan.brief;
       const fallbackDelta = buildFallbackDelta(
         actionType,
         editOptions,
@@ -189,11 +291,6 @@ const PostStudio: React.FC<Props> = ({
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const handleInitialGeneration = async () => {
-    setShowInitialInput(false);
-    await generatePosts('initial');
   };
 
   const handleRegenerate = async () => {
@@ -365,7 +462,10 @@ const PostStudio: React.FC<Props> = ({
         </div>
 
         <div className="post-studio-right-actions">
-          {!showInitialInput && viewMode === 'grid' && currentGridPosts.length > 0 && (
+          <div className="post-studio-session-indicator">
+            {generatedImageCount > 0 ? `${generatedImageCount} image${generatedImageCount === 1 ? '' : 's'} generated` : 'New'}
+          </div>
+          {viewMode === 'grid' && currentGridPosts.length > 0 && (
             <button
               className="ui-btn ui-btn--secondary secondary regenerate-btn"
               onClick={handleRegenerate}
@@ -387,65 +487,7 @@ const PostStudio: React.FC<Props> = ({
 
       {error && <div className="error-banner">{error}</div>}
 
-      {showInitialInput && (
-        <div className="initial-input-card">
-          <div className="initial-title">
-            {postGoalTitle ? `Let's create visual directions for "${postGoalTitle}"` : "Let's create your social media posts"}
-          </div>
-          <div className="initial-subtitle">
-            {postGoalDescription || 'Describe the mood or style you are looking for'}
-          </div>
-          {referenceAssets.length > 0 && (
-            <div className="post-studio-reference-panel">
-              <div className="section-kicker">Reference image</div>
-              <div className="post-studio-reference-card">
-                <img src={referenceAssets[0].dataUrl} alt={referenceAssets[0].name} />
-                <div>
-                  <strong>{referenceAssets[0].name}</strong>
-                  <p>This uploaded example can anchor the intended visual direction for this post goal.</p>
-                </div>
-              </div>
-            </div>
-          )}
-          <textarea
-            className="initial-textarea"
-            placeholder="e.g., 'warm and authentic lifestyle shots' or 'minimal product-focused with lots of white space'"
-            value={initialDirection}
-            onChange={e => setInitialDirection(e.target.value)}
-            rows={3}
-          />
-
-          <div className="similarity-control">
-            <label className="similarity-label">
-              Exploration Range: <span className="similarity-value">
-                {similarityLevel < 30 ? 'Safe' : similarityLevel > 70 ? 'Adventurous' : 'Balanced'}
-              </span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={similarityLevel}
-              onChange={e => setSimilarityLevel(Number(e.target.value))}
-              className="similarity-slider"
-            />
-            <div className="similarity-hints">
-              <span>Similar</span>
-              <span>Different</span>
-            </div>
-          </div>
-
-          <button
-            className="ui-btn ui-btn--primary ui-btn--hero primary studio-primary-cta"
-            onClick={handleInitialGeneration}
-            disabled={isGenerating}
-          >
-            {isGenerating ? 'Generating...' : 'Generate 4 Post Ideas'}
-          </button>
-        </div>
-      )}
-
-      {!showInitialInput && viewMode === 'grid' && (
+      {viewMode === 'grid' && (
         <PostGrid
           posts={currentGridPosts}
           onSelect={handleSelectPost}

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import type { BrandData } from '../../types/brand';
+import type { PostGoalStudioSession } from '../../types/postStudio';
 import type { BusinessGoalOption, PostGoalFolder } from '../../types/workspace';
 import WorkspaceContextRail from './WorkspaceContextRail';
 import WorkspacePostGoalChooserModal from './WorkspacePostGoalChooserModal';
@@ -15,9 +16,10 @@ interface Props {
   businessGoals: BusinessGoalOption[];
   activeBusinessGoalId: string;
   postGoalFolders: PostGoalFolder[];
+  studioSessionsByFolderId: Record<string, PostGoalStudioSession>;
   onEditGoals: () => void;
   onCreatePostGoal: (folder: PostGoalFolder) => void;
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
   onOpenPostGoal: (folder: PostGoalFolder) => void;
 }
 
@@ -76,6 +78,7 @@ const PostGoalWorkspace: React.FC<Props> = ({
   businessGoals,
   activeBusinessGoalId,
   postGoalFolders,
+  studioSessionsByFolderId,
   onEditGoals,
   onCreatePostGoal,
   onRemovePostGoal,
@@ -191,6 +194,7 @@ const PostGoalWorkspace: React.FC<Props> = ({
             folderGroups={folderGroups}
             hasMultipleGroups={hasMultipleGroups}
             activeBusinessGoalId={activeBusinessGoal?.id ?? null}
+            studioSessionsByFolderId={studioSessionsByFolderId}
             onOpenPostGoal={onOpenPostGoal}
             onRequestAddPostGoal={() => setIsAddingPostGoal(true)}
           />

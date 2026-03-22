@@ -1,5 +1,6 @@
 import React from 'react';
 
+import type { PostGoalStudioSession } from '../../types/postStudio';
 import type { PostGoalFolder } from '../../types/workspace';
 
 export interface WorkspaceFolderGroup {
@@ -13,6 +14,7 @@ interface Props {
   folderGroups: WorkspaceFolderGroup[];
   hasMultipleGroups: boolean;
   activeBusinessGoalId: string | null;
+  studioSessionsByFolderId: Record<string, PostGoalStudioSession>;
   onOpenPostGoal: (folder: PostGoalFolder) => void;
   onRequestAddPostGoal: () => void;
 }
@@ -34,6 +36,7 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
   folderGroups,
   hasMultipleGroups,
   activeBusinessGoalId,
+  studioSessionsByFolderId,
   onOpenPostGoal,
   onRequestAddPostGoal
 }) => {
@@ -65,53 +68,67 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
             <div className="workspace-hub-folder-list-surface">
               <div className="workspace-hub-folder-list">
                 {group.folders.map(folder => (
-                  <button
-                    key={folder.id}
-                    type="button"
-                    className="workspace-hub-folder"
-                    onClick={() => onOpenPostGoal(folder)}
-                  >
-                    <div className="workspace-hub-folder-visual">
-                      <div
-                        className="workspace-hub-folder-preview"
-                        style={
-                          folder.referenceAssets?.[0]
-                            ? {
-                                backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.08) 0%, rgba(25, 25, 24, 0.42) 100%), url(${folder.referenceAssets[0].dataUrl})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center'
-                              }
-                            : { background: folder.previewBackground }
-                        }
-                      >
-                        {folder.referenceAssets?.length ? (
-                          <span className="workspace-hub-folder-kicker">Reference-led</span>
-                        ) : folder.source === 'custom' ? (
-                          <span className="workspace-hub-folder-kicker">Custom</span>
-                        ) : null}
-                        <strong>{folder.previewTitle || folder.title}</strong>
-                      </div>
-                    </div>
+                  (() => {
+                    const session = studioSessionsByFolderId[folder.id];
+                    const generatedImageCount = session?.generatedImageCount ?? 0;
 
-                    <div className="workspace-hub-folder-body">
-                      <div className="workspace-hub-folder-heading">
-                        <h5>{folder.title}</h5>
-                        {hasMultipleGroups ? (
-                          <span className="workspace-hub-folder-group-name">{group.title}</span>
-                        ) : null}
-                      </div>
-                      <p>{folder.description}</p>
-                      <div className="workspace-hub-folder-meta">
-                        <div className="workspace-hub-folder-tags">
-                          {folder.taxonomyTags.slice(0, 2).map(tag => (
-                            <span key={tag} className="workspace-hub-tag">
-                              {tag}
-                            </span>
-                          ))}
+                    return (
+                      <button
+                        key={folder.id}
+                        type="button"
+                        className="workspace-hub-folder"
+                        onClick={() => onOpenPostGoal(folder)}
+                      >
+                        <div className="workspace-hub-folder-visual">
+                          <div
+                            className="workspace-hub-folder-preview"
+                            style={
+                              folder.referenceAssets?.[0]
+                                ? {
+                                    backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.08) 0%, rgba(25, 25, 24, 0.42) 100%), url(${folder.referenceAssets[0].dataUrl})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                  }
+                                : { background: folder.previewBackground }
+                            }
+                          >
+                            {folder.referenceAssets?.length ? (
+                              <span className="workspace-hub-folder-kicker">Reference-led</span>
+                            ) : folder.source === 'custom' ? (
+                              <span className="workspace-hub-folder-kicker">Custom</span>
+                            ) : null}
+                            <strong>{folder.previewTitle || folder.title}</strong>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </button>
+
+                        <div className="workspace-hub-folder-body">
+                          <div className="workspace-hub-folder-heading">
+                            <div className="workspace-hub-folder-heading-copy">
+                              <h5>{folder.title}</h5>
+                              {hasMultipleGroups ? (
+                                <span className="workspace-hub-folder-group-name">{group.title}</span>
+                              ) : null}
+                            </div>
+                            <span className="workspace-hub-folder-status">
+                              {generatedImageCount > 0
+                                ? `${generatedImageCount} image${generatedImageCount === 1 ? '' : 's'}`
+                                : 'New'}
+                            </span>
+                          </div>
+                          <p>{folder.description}</p>
+                          <div className="workspace-hub-folder-meta">
+                            <div className="workspace-hub-folder-tags">
+                              {folder.taxonomyTags.slice(0, 2).map(tag => (
+                                <span key={tag} className="workspace-hub-tag">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })()
                 ))}
 
                 {activeBusinessGoalId && group.id === activeBusinessGoalId ? (

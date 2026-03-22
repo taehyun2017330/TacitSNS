@@ -108,6 +108,7 @@ async def generate_post_images(request: PostGenerationRequest) -> Dict[str, Any]
         brand_description=brand_description,
         images_feedback=request.imagesFeedback,
         exploration_level=exploration_level,
+        direction_angles=request.directionAngles,
     )
 
     num_to_generate = 1 if request.actionType == "edit" else request.numImages or 4

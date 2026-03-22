@@ -10,6 +10,7 @@ export async function requestPostGeneration({
   feedback,
   similarity,
   direction,
+  directionAngles,
   actionType,
   editOptions
 }: {
@@ -20,6 +21,7 @@ export async function requestPostGeneration({
   feedback?: FeedbackData;
   similarity: number;
   direction: string;
+  directionAngles?: string[];
   actionType: PostStudioActionType;
   editOptions?: EditOptions;
 }) {
@@ -41,6 +43,7 @@ export async function requestPostGeneration({
       similarity,
       explorationLevel: similarity / 100,
       direction,
+      directionAngles,
       actionType,
       editOptions,
       numImages: actionType === 'edit' ? 1 : 4
