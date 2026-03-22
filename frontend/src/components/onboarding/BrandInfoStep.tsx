@@ -4,85 +4,22 @@ import { inferBusinessGoalOptions } from '../../data/goalHierarchy';
 import { apiFetch } from '../../config/api';
 import type { BrandData } from '../../types/brand';
 import type { BusinessGoalOption, OnboardingResult, PostGoalFolder } from '../../types/workspace';
-import BrandAutocomplete from '../BrandAutocomplete';
-import BusinessGoalSelector from './BusinessGoalSelector';
-import PostGoalSetupStep from './PostGoalSetupStep';
-
-const INDUSTRY_OPTIONS = [
-  { value: 'technology', label: 'Technology' },
-  { value: 'fashion', label: 'Fashion & Apparel' },
-  { value: 'food', label: 'Food & Beverage' },
-  { value: 'health', label: 'Health & Wellness' },
-  { value: 'beauty', label: 'Beauty & Cosmetics' },
-  { value: 'home', label: 'Home & Lifestyle' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'education', label: 'Education' },
-  { value: 'entertainment', label: 'Entertainment' },
-  { value: 'other', label: 'Other' }
-] as const;
-
-const INDUSTRY_CHIPS = INDUSTRY_OPTIONS.filter(option => option.value !== 'other');
-
-const INITIAL_BRAND_DATA: BrandData = {
-  name: '',
-  category: '',
-  identity: '',
-  description: '',
-  style: 'modern',
-  colors: [],
-  keywords: []
-};
+import BrandOnboardingRail from './BrandOnboardingRail';
+import BrandOnboardingStepPanel from './BrandOnboardingStepPanel';
+import GoalRefreshDecisionCard from './GoalRefreshDecisionCard';
+import { INDUSTRY_CHIPS, INITIAL_BRAND_DATA } from './brandOnboarding.config';
+import type { OnboardingStep } from './brandOnboarding.config';
+import {
+  buildGoalSourceSignature,
+  canContinue,
+  canGenerateGoals,
+  deriveIdentityFromNarrative
+} from './brandOnboarding.utils';
 
 interface Props {
   initialData?: OnboardingResult | null;
   onComplete: (result: OnboardingResult) => void;
   initialStep?: OnboardingStep;
-}
-
-type OnboardingStep = 'narrative' | 'goals' | 'post-goals';
-
-function deriveIdentityFromNarrative(text: string) {
-  const trimmed = text.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  const [firstSentence] = trimmed.split(/(?<=[.!?])\s+/);
-  return (firstSentence || trimmed).trim();
-}
-
-function buildGoalSourceSignature(brandData: BrandData) {
-  return [
-    brandData.name.trim(),
-    brandData.category.trim(),
-    brandData.identity.trim(),
-    brandData.description.trim()
-  ].join('||');
-}
-
-function canGenerateGoals(brandData: BrandData) {
-  return Boolean(
-    brandData.name.trim() &&
-      brandData.category.trim() &&
-      brandData.description.trim().length > 36
-  );
-}
-
-function canContinue(brandData: BrandData, selectedGoalId: string | null) {
-  return canGenerateGoals(brandData) && Boolean(selectedGoalId);
-}
-
-function summarizeNarrative(text: string, maxLength = 180) {
-  const trimmed = text.trim();
-  if (!trimmed) {
-    return 'Add a fuller brand narrative so the system can interpret the direction well.';
-  }
-
-  if (trimmed.length <= maxLength) {
-    return trimmed;
-  }
-
-  return `${trimmed.slice(0, maxLength).trimEnd()}...`;
 }
 
 const BrandInfoStep: React.FC<Props> = ({
@@ -263,10 +200,37 @@ const BrandInfoStep: React.FC<Props> = ({
   const addCustomGoal = (goal: BusinessGoalOption) => {
     setPostGoalFolders([]);
     setCustomGoalOverrides(prev => {
-      const filtered = prev.filter(existingGoal => existingGoal.id !== goal.id);
-      return [goal, ...filtered];
+      const existingIndex = prev.findIndex(existingGoal => existingGoal.id === goal.id);
+      if (existingIndex >= 0) {
+        return prev.map(existingGoal => (existingGoal.id === goal.id ? goal : existingGoal));
+      }
+
+      return [...prev, goal];
     });
     setSelectedGoalId(goal.id);
+  };
+
+  const updateGoal = (goal: BusinessGoalOption) => {
+    setCustomGoalOverrides(prev => {
+      const existingIndex = prev.findIndex(existingGoal => existingGoal.id === goal.id);
+      if (existingIndex >= 0) {
+        return prev.map(existingGoal => (existingGoal.id === goal.id ? goal : existingGoal));
+      }
+
+      return [...prev, goal];
+    });
+
+    if (selectedGoalId === goal.id) {
+      setPostGoalFolders([]);
+    }
+  };
+
+  const removeCustomGoal = (goalId: string) => {
+    setCustomGoalOverrides(prev => prev.filter(existingGoal => existingGoal.id !== goalId));
+    if (selectedGoalId === goalId) {
+      setSelectedGoalId(null);
+      setPostGoalFolders([]);
+    }
   };
 
   const handleIndustrySelect = (label: string) => {
@@ -275,53 +239,36 @@ const BrandInfoStep: React.FC<Props> = ({
     setIndustryPickerOpen(false);
   };
 
-  const renderIndustryField = () => (
-    <label className="brand-onboarding-block brand-onboarding-block--industry">
-      <span>Industry</span>
-      <button
-        type="button"
-        className={`brand-onboarding-picker ${industryPickerOpen ? 'is-open' : ''}`}
-        onClick={() => setIndustryPickerOpen(open => !open)}
-      >
-        <span>{brandData.category || 'Select an industry'}</span>
-        <span className="brand-onboarding-picker-icon">{industryPickerOpen ? '−' : '+'}</span>
-      </button>
+  const handleNarrativeChange = (text: string) => {
+    setBrandData(prev => ({
+      ...prev,
+      description: text,
+      identity: deriveIdentityFromNarrative(text)
+    }));
+  };
 
-      {industryPickerOpen && (
-        <div className="industry-picker-panel">
-          <div className="industry-chip-row">
-            {INDUSTRY_CHIPS.map(option => (
-              <button
-                key={option.value}
-                type="button"
-                className={`industry-chip ${brandData.category === option.label && !isCustomIndustry ? 'is-selected' : ''}`}
-                onClick={() => handleIndustrySelect(option.label)}
-              >
-                {option.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`industry-chip ${isCustomIndustry ? 'is-selected' : ''}`}
-              onClick={() => setIsCustomIndustry(true)}
-            >
-              Custom industry
-            </button>
-          </div>
-
-          {isCustomIndustry && (
-            <input
-              type="text"
-              className="brand-onboarding-field"
-              value={brandData.category}
-              onChange={event => handleFieldChange('category', event.target.value)}
-              placeholder="Type your industry"
-            />
-          )}
-        </div>
-      )}
-    </label>
-  );
+  const stepPanelProps = {
+    brandData,
+    brandContext,
+    businessGoalOptions,
+    selectedGoalId,
+    selectedBusinessGoal,
+    postGoalFolders,
+    industryPickerOpen,
+    isCustomIndustry,
+    onNameChange: (value: string) => handleFieldChange('name', value),
+    onCategoryChange: (value: string) => handleFieldChange('category', value),
+    onNarrativeChange: handleNarrativeChange,
+    onToggleIndustryPicker: () => setIndustryPickerOpen(open => !open),
+    onSelectIndustry: handleIndustrySelect,
+    onSetCustomIndustry: setIsCustomIndustry,
+    onSelectGoal: selectGoal,
+    onAddCustomGoal: addCustomGoal,
+    onUpdateGoal: updateGoal,
+    onRemoveCustomGoal: removeCustomGoal,
+    onCreatePostGoal: upsertPostGoalFolder,
+    onRemovePostGoal: removePostGoalFolder
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -389,111 +336,13 @@ const BrandInfoStep: React.FC<Props> = ({
   return (
     <main className="brand-onboarding-screen">
       <div className="brand-onboarding-layout">
-        <section className="brand-onboarding-intro">
-          <div className="screen-eyebrow">Brand setup</div>
-          <h1>
-            {currentStep === 'narrative'
-              ? 'Write the brand story first.'
-              : currentStep === 'goals'
-                ? 'Choose the bigger reason behind these posts.'
-                : 'Choose what these posts should help the brand show.'}
-          </h1>
-          <p>
-            {currentStep === 'narrative'
-              ? 'Start with one guided brand story. Once the system understands the brand, it can suggest the business goals that matter most.'
-              : currentStep === 'goals'
-                ? 'These are suggested business goals for your SNS marketing effort. A business goal is the bigger reason you are posting, not the specific post yet.'
-                : 'You already told the system what this brand is and chose the main business goal. Now decide what kinds of image posts should support that goal.'}
-          </p>
-          <p>
-            {currentStep === 'narrative'
-              ? 'You do not need perfect wording. Give enough context about who the brand serves, what makes it different, and how it should come across.'
-              : currentStep === 'goals'
-                ? 'After this, you will choose post goals: specific kinds of posts to make under this business goal. This step is about why you are using SNS marketing right now.'
-                : 'Each post goal is a different image exploration. Pick one or two to start, adjust the details if needed, or create your own if the suggestions are too generic.'}
-          </p>
-
-          <div className="brand-hierarchy-preview">
-            <div className={`brand-hierarchy-step ${currentStep === 'narrative' ? 'is-active' : 'is-complete'}`}>
-              <span>1</span>
-              <div>
-                <div className="brand-hierarchy-step-heading">
-                  <strong>Brand narrative</strong>
-                  {currentStep === 'narrative' ? <em>Current</em> : canShowGoals ? <em>Saved</em> : null}
-                </div>
-                <p>Say what the brand is, who it serves, and how it should feel.</p>
-                {canShowGoals && (
-                  <div className="brand-hierarchy-step-summary">
-                    <div className="brand-hierarchy-summary-teaser">
-                      <strong>{brandData.name || 'Your brand'}</strong>
-                      <span>{brandData.category || 'Industry'}</span>
-                    </div>
-                    <div className="brand-hierarchy-summary-detail">
-                      <div className="brand-hierarchy-summary-copy">{summarizeNarrative(brandData.description, 135)}</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className={`brand-hierarchy-step ${currentStep === 'goals' ? 'is-active' : currentStep === 'post-goals' ? 'is-complete' : 'is-upcoming'}`}>
-              <span>2</span>
-              <div>
-                <div className="brand-hierarchy-step-heading">
-                  <strong>Business goals</strong>
-                  {currentStep === 'goals' ? <em>Current</em> : selectedBusinessGoal ? <em>Saved</em> : null}
-                </div>
-                <p>Pick the broader outcome these posts should help achieve.</p>
-                {selectedBusinessGoal && (
-                  <div className="brand-hierarchy-step-summary">
-                    <div className="brand-hierarchy-summary-teaser brand-hierarchy-summary-teaser--single">
-                      <strong>{selectedBusinessGoal.title}</strong>
-                    </div>
-                    <div className="brand-hierarchy-summary-detail">
-                      <div className="brand-hierarchy-summary-copy brand-hierarchy-summary-copy--compact">
-                        <div>{selectedBusinessGoal.description}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className={`brand-hierarchy-step ${currentStep === 'post-goals' ? 'is-active' : 'is-upcoming'}`}>
-              <span>3</span>
-              <div>
-                <div className="brand-hierarchy-step-heading">
-                  <strong>Post goals</strong>
-                  {currentStep === 'post-goals' ? <em>Current</em> : hasSavedPostGoals ? <em>Saved</em> : null}
-                </div>
-                <p>Turn that direction into specific kinds of image posts to explore.</p>
-                {selectedBusinessGoal && (
-                  <div className="brand-hierarchy-step-summary">
-                    <div className="brand-hierarchy-summary-teaser brand-hierarchy-summary-teaser--single">
-                      <strong>
-                        {postGoalFolders.length > 0
-                          ? `${postGoalFolders.length} post goal${postGoalFolders.length === 1 ? '' : 's'} selected`
-                          : 'No post goals chosen yet'}
-                      </strong>
-                    </div>
-                    {postGoalFolders.length > 0 && (
-                      <div className="brand-hierarchy-summary-detail">
-                        <div className="brand-hierarchy-summary-list">
-                          {postGoalFolders.slice(0, 3).map(folder => (
-                            <div key={folder.id} className="brand-hierarchy-summary-list-item">{folder.title}</div>
-                          ))}
-                          {postGoalFolders.length > 3 && (
-                            <div className="brand-hierarchy-summary-list-item brand-hierarchy-summary-list-item--muted">
-                              +{postGoalFolders.length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+        <BrandOnboardingRail
+          currentStep={currentStep}
+          brandData={brandData}
+          canShowGoals={canShowGoals}
+          selectedBusinessGoal={selectedBusinessGoal}
+          postGoalFolders={postGoalFolders}
+        />
 
         <section className="brand-onboarding-card">
           <div className="screen-eyebrow">Onboarding</div>
@@ -508,7 +357,7 @@ const BrandInfoStep: React.FC<Props> = ({
             {currentStep === 'narrative'
               ? 'Use one guided field. Then move into business goals.'
               : currentStep === 'goals'
-                ? 'Choose the outcomes this system should optimize for next.'
+                ? 'What is the main reason for your business to use SNS marketing right now?'
                 : 'Turn the business goal into concrete post directions before entering the workspace.'}
           </p>
 
@@ -518,179 +367,25 @@ const BrandInfoStep: React.FC<Props> = ({
             <div className="onboarding-step-shell">
               {stepTransition && (
                 <div className={`onboarding-step-layer onboarding-step-layer--exit onboarding-step-layer--${stepTransition.direction}`}>
-                  {stepTransition.exiting === 'narrative' ? (
-                    <div className="onboarding-step-panel">
-                      <div className="brand-onboarding-grid">
-                        <label className="brand-onboarding-block">
-                          <span>Brand name</span>
-                          <input
-                            type="text"
-                            className="brand-onboarding-field"
-                            value={brandData.name}
-                            onChange={event => handleFieldChange('name', event.target.value)}
-                            placeholder="e.g., Aster Vale"
-                          />
-                        </label>
-
-                        {renderIndustryField()}
-                      </div>
-
-                      <div className="brand-onboarding-block">
-                        <span>Brand identity and positioning</span>
-                        <div className="brand-onboarding-tip">
-                          <p>Cover the essentials:</p>
-                          <ul>
-                            <li>what the brand is</li>
-                            <li>who it serves</li>
-                            <li>what makes it different</li>
-                            <li>how it should come across</li>
-                          </ul>
-                        </div>
-                        <BrandAutocomplete
-                          brandContext={brandContext}
-                          value={brandData.description}
-                          onChange={text => {
-                            setBrandData(prev => ({
-                              ...prev,
-                              description: text,
-                              identity: deriveIdentityFromNarrative(text)
-                            }));
-                          }}
-                          showHeader={false}
-                        />
-                      </div>
-                    </div>
-                  ) : stepTransition.exiting === 'goals' ? (
-                    <div className="onboarding-step-panel">
-                      <BusinessGoalSelector
-                        options={businessGoalOptions}
-                        selectedGoalId={selectedGoalId}
-                        onSelectGoal={selectGoal}
-                        onAddCustomGoal={addCustomGoal}
-                      />
-                    </div>
-                  ) : (
-                    <div className="onboarding-step-panel">
-                      {selectedBusinessGoal && (
-                        <PostGoalSetupStep
-                          brand={brandData}
-                          businessGoal={selectedBusinessGoal}
-                          postGoalFolders={postGoalFolders}
-                          onCreatePostGoal={upsertPostGoalFolder}
-                          onRemovePostGoal={removePostGoalFolder}
-                        />
-                      )}
-                    </div>
-                  )}
+                  <BrandOnboardingStepPanel step={stepTransition.exiting} {...stepPanelProps} />
                 </div>
               )}
 
               <div className={`onboarding-step-layer ${stepTransition ? `onboarding-step-layer--enter onboarding-step-layer--${stepTransition.direction}` : 'onboarding-step-layer--static'}`}>
-                {currentStep === 'narrative' ? (
-                  <div className="onboarding-step-panel">
-                    <div className="brand-onboarding-grid">
-                      <label className="brand-onboarding-block">
-                        <span>Brand name</span>
-                        <input
-                          type="text"
-                          className="brand-onboarding-field"
-                          value={brandData.name}
-                          onChange={event => handleFieldChange('name', event.target.value)}
-                          placeholder="e.g., Aster Vale"
-                        />
-                      </label>
-
-                      {renderIndustryField()}
-                    </div>
-
-                    <div className="brand-onboarding-block">
-                      <span>Brand identity and positioning</span>
-                      <div className="brand-onboarding-tip">
-                        <p>Cover the essentials:</p>
-                        <ul>
-                          <li>what the brand is</li>
-                          <li>who it serves</li>
-                          <li>what makes it different</li>
-                          <li>how it should come across</li>
-                        </ul>
-                      </div>
-                      <BrandAutocomplete
-                        brandContext={brandContext}
-                        value={brandData.description}
-                        onChange={text => {
-                          setBrandData(prev => ({
-                            ...prev,
-                            description: text,
-                            identity: deriveIdentityFromNarrative(text)
-                          }));
-                        }}
-                        showHeader={false}
-                      />
-                    </div>
-                  </div>
-                ) : currentStep === 'goals' ? (
-                  <div className="onboarding-step-panel">
-                    <BusinessGoalSelector
-                      options={businessGoalOptions}
-                      selectedGoalId={selectedGoalId}
-                      onSelectGoal={selectGoal}
-                      onAddCustomGoal={addCustomGoal}
-                    />
-                  </div>
-                ) : (
-                  <div className="onboarding-step-panel">
-                    {selectedBusinessGoal && (
-                      <PostGoalSetupStep
-                        brand={brandData}
-                        businessGoal={selectedBusinessGoal}
-                        postGoalFolders={postGoalFolders}
-                        onCreatePostGoal={upsertPostGoalFolder}
-                        onRemovePostGoal={removePostGoalFolder}
-                      />
-                    )}
-                  </div>
-                )}
+                <BrandOnboardingStepPanel step={currentStep} {...stepPanelProps} />
               </div>
             </div>
 
             <div className="brand-onboarding-divider">
               <div className="brand-onboarding-requirements">
                 {goalRefreshDecisionOpen && (
-                  <div className="goal-transition-card">
-                    <h3>Update the saved business-goal step?</h3>
-                    <p>
-                      You changed the brand narrative after choosing a business goal. Keep the previous business goal and post goals, or regenerate a new business-goal set from the updated narrative.
-                    </p>
-                    <div className="goal-transition-summary">
-                      <span>{brandData.name || 'Your brand'}</span>
-                      <span>{selectedBusinessGoal?.title || 'Business goal selected'}</span>
-                    </div>
-                    <div className="brand-onboarding-actions brand-onboarding-actions--inline">
-                      <button
-                        type="button"
-                        className="ui-btn ui-btn--secondary"
-                        onClick={() => {
-                          setGoalRefreshDecisionOpen(false);
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="ui-btn ui-btn--secondary"
-                        onClick={() => reviewGoalsWithExistingSelection('keep')}
-                      >
-                        Keep previous goal
-                      </button>
-                      <button
-                        type="button"
-                        className="ui-btn ui-btn--primary"
-                        onClick={() => reviewGoalsWithExistingSelection('regenerate')}
-                      >
-                        Regenerate goals
-                      </button>
-                    </div>
-                  </div>
+                  <GoalRefreshDecisionCard
+                    brandName={brandData.name}
+                    selectedBusinessGoalTitle={selectedBusinessGoal?.title ?? null}
+                    onCancel={() => setGoalRefreshDecisionOpen(false)}
+                    onKeepPreviousGoal={() => reviewGoalsWithExistingSelection('keep')}
+                    onRegenerateGoals={() => reviewGoalsWithExistingSelection('regenerate')}
+                  />
                 )}
                 {currentStep === 'narrative' && !brandData.name.trim() && <span>Brand name required</span>}
                 {currentStep === 'narrative' && brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
