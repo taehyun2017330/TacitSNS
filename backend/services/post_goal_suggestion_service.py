@@ -1,5 +1,7 @@
 import json
 import os
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, List
 
 from openai import OpenAI
@@ -18,188 +20,20 @@ BUSINESS_GOAL_KEYWORDS: Dict[str, List[str]] = {
     "community": ["community", "loyalty", "loyal", "belonging", "member", "fans", "relationship", "repeat"],
 }
 
-FALLBACK_LIBRARY: Dict[str, List[Dict[str, Any]]] = {
-    "trust": [
-        {
-            "id": "trust-quality-process",
-            "title": "Show our quality or process",
-            "description": "Use one image direction to make standards, materials, or expertise feel visibly credible.",
-            "taxonomyTags": ["Functional", "Educational"],
-            "assistantPrompt": "Create image directions that make quality, care, and credibility feel visible.",
-        },
-        {
-            "id": "trust-founder-expert",
-            "title": "Show the founder or expert behind the brand",
-            "description": "Make trust easier by putting a believable human perspective behind the product or service.",
-            "taxonomyTags": ["Employee", "Brand resonance"],
-            "assistantPrompt": "Create a post direction centered on human expertise and trusted presence.",
-        },
-        {
-            "id": "trust-customer-proof",
-            "title": "Translate customer proof into an image post",
-            "description": "Turn reviews, outcomes, or believable testimony into a calm proof-led direction.",
-            "taxonomyTags": ["Customer relationship"],
-            "assistantPrompt": "Create a post direction that shows customer proof and reassurance.",
-        },
-        {
-            "id": "trust-brand-stance",
-            "title": "State what the brand stands for",
-            "description": "Use a brand-led image direction to make the promise and standards feel clear.",
-            "taxonomyTags": ["Brand resonance"],
-            "assistantPrompt": "Create an editorial post direction that communicates brand standards and point of view.",
-        },
-    ],
-    "awareness": [
-        {
-            "id": "awareness-brand-personality",
-            "title": "Introduce the brand personality",
-            "description": "Create a memorable first-impression image direction that teaches the brand mood quickly.",
-            "taxonomyTags": ["Brand resonance", "Emotional"],
-            "assistantPrompt": "Create a visually memorable introduction to the brand personality.",
-        },
-        {
-            "id": "awareness-timely-conversation",
-            "title": "Join a timely conversation",
-            "description": "Use a seasonal or cultural hook so the brand feels current and easier to notice.",
-            "taxonomyTags": ["Current event"],
-            "assistantPrompt": "Create an on-brand image direction tied to a timely cultural or seasonal moment.",
-        },
-        {
-            "id": "awareness-product-experience",
-            "title": "Show the product experience visually",
-            "description": "Help someone imagine what it feels like to encounter the brand for the first time.",
-            "taxonomyTags": ["Experiential"],
-            "assistantPrompt": "Create an image direction that makes the experience of the brand easy to picture.",
-        },
-        {
-            "id": "awareness-memorable-introduction",
-            "title": "Create a memorable first-impression post",
-            "description": "Package the brand in a high-impact visual that reads in a few seconds.",
-            "taxonomyTags": ["Brand resonance", "Emotional"],
-            "assistantPrompt": "Create a quick-reading, memorable introduction to the brand.",
-        },
-    ],
-    "educate": [
-        {
-            "id": "educate-how-it-works",
-            "title": "Explain how the offer works",
-            "description": "Turn the product or service into an image direction that teaches something clearly.",
-            "taxonomyTags": ["Functional", "Educational"],
-            "assistantPrompt": "Create an image direction that explains how the offer works.",
-        },
-        {
-            "id": "educate-why-different",
-            "title": "Explain why this brand is different",
-            "description": "Clarify the distinctive method, ingredient, expertise, or approach behind the brand.",
-            "taxonomyTags": ["Educational", "Brand resonance"],
-            "assistantPrompt": "Create a post direction that makes the differentiator easy to understand.",
-        },
-        {
-            "id": "educate-common-question",
-            "title": "Answer a common customer question",
-            "description": "Use one post direction to address confusion or hesitation directly.",
-            "taxonomyTags": ["Customer relationship", "Educational"],
-            "assistantPrompt": "Create an image direction that answers a real customer question.",
-        },
-        {
-            "id": "educate-use-case",
-            "title": "Teach the best use case",
-            "description": "Show when, how, or for whom the offer fits best.",
-            "taxonomyTags": ["Educational", "Functional"],
-            "assistantPrompt": "Create a practical, use-case-led post direction.",
-        },
-    ],
-    "engagement": [
-        {
-            "id": "engagement-opinion-hook",
-            "title": "Start a low-effort conversation",
-            "description": "Create a simple question or reaction prompt that invites easy participation.",
-            "taxonomyTags": ["Brand community", "Current event"],
-            "assistantPrompt": "Create a post direction designed to spark quick audience reactions.",
-        },
-        {
-            "id": "engagement-personal-angle",
-            "title": "Tell a personal or behind-the-scenes story",
-            "description": "Make the brand feel more relatable through a human or in-progress moment.",
-            "taxonomyTags": ["Personal brand posts", "Employee"],
-            "assistantPrompt": "Create a human, behind-the-scenes post direction.",
-        },
-        {
-            "id": "engagement-community-prompt",
-            "title": "Invite the audience into the brand world",
-            "description": "Ask people for preferences, reactions, or participation in a light way.",
-            "taxonomyTags": ["Brand community", "Customer relationship"],
-            "assistantPrompt": "Create a welcoming audience-participation prompt.",
-        },
-        {
-            "id": "engagement-playful-moment",
-            "title": "Create a playful brand moment",
-            "description": "Use humor or a lighter challenge to make the brand feel active and social.",
-            "taxonomyTags": ["Emotional", "Current event"],
-            "assistantPrompt": "Create a playful, low-friction image direction for engagement.",
-        },
-    ],
-    "sales": [
-        {
-            "id": "sales-offer-highlight",
-            "title": "Highlight the offer clearly",
-            "description": "Use a direct image direction that makes the value and next step clear.",
-            "taxonomyTags": ["Sales promotion"],
-            "assistantPrompt": "Create a post direction that makes the offer easy to understand and act on.",
-        },
-        {
-            "id": "sales-worth-buying",
-            "title": "Explain why this is worth buying",
-            "description": "Support conversion with image directions that balance desire and practical proof.",
-            "taxonomyTags": ["Functional", "Sales promotion"],
-            "assistantPrompt": "Create a post direction that makes the offer feel worth buying.",
-        },
-        {
-            "id": "sales-result-experience",
-            "title": "Show the result or experience",
-            "description": "Center the end state or payoff people want rather than only the product.",
-            "taxonomyTags": ["Experiential", "Functional"],
-            "assistantPrompt": "Create a post direction focused on the desired outcome or experience.",
-        },
-        {
-            "id": "sales-objection-answer",
-            "title": "Answer a common buying objection",
-            "description": "Reduce hesitation around trust, price, effort, or fit.",
-            "taxonomyTags": ["Customer relationship", "Educational"],
-            "assistantPrompt": "Create a post direction that calmly resolves a buying objection.",
-        },
-    ],
-    "community": [
-        {
-            "id": "community-customer-spotlight",
-            "title": "Spotlight a customer or community member",
-            "description": "Celebrate a real person so the brand feels relational rather than transactional.",
-            "taxonomyTags": ["Brand community", "Customer relationship"],
-            "assistantPrompt": "Create a post direction centered on community recognition.",
-        },
-        {
-            "id": "community-shared-values",
-            "title": "Reinforce the values people join for",
-            "description": "Show what people identify with when they stay connected to this brand.",
-            "taxonomyTags": ["Brand resonance", "Cause-related brand posts"],
-            "assistantPrompt": "Create a values-led post direction that deepens brand belonging.",
-        },
-        {
-            "id": "community-returning-routine",
-            "title": "Create a recurring ritual or series",
-            "description": "Make the post feel like part of a repeatable pattern people can return to.",
-            "taxonomyTags": ["Brand community", "Experiential"],
-            "assistantPrompt": "Create a recurring-series post direction that builds familiarity.",
-        },
-        {
-            "id": "community-feedback-loop",
-            "title": "Invite customer input and feedback",
-            "description": "Use the image direction to make the audience feel heard and included.",
-            "taxonomyTags": ["Customer relationship", "Brand community"],
-            "assistantPrompt": "Create a post direction that asks for customer input and participation.",
-        },
-    ],
-}
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FALLBACK_LIBRARY_PATH = REPO_ROOT / "frontend" / "src" / "data" / "postGoalFallbackLibrary.json"
+
+
+@lru_cache(maxsize=1)
+def load_fallback_library() -> Dict[str, List[Dict[str, Any]]]:
+    with FALLBACK_LIBRARY_PATH.open("r", encoding="utf-8") as handle:
+        loaded = json.load(handle)
+
+    return {
+        str(goal_id): [dict(item) for item in suggestions]
+        for goal_id, suggestions in loaded.items()
+        if isinstance(goal_id, str) and isinstance(suggestions, list)
+    }
 
 
 def get_openai_client() -> OpenAI:
@@ -207,8 +41,9 @@ def get_openai_client() -> OpenAI:
 
 
 def infer_business_goal_id(payload: Dict[str, Any]) -> str:
+    fallback_library = load_fallback_library()
     explicit_id = str(payload.get("businessGoalId") or "").strip().lower()
-    if explicit_id in FALLBACK_LIBRARY:
+    if explicit_id in fallback_library:
         return explicit_id
 
     source = " ".join(
@@ -231,8 +66,12 @@ def infer_business_goal_id(payload: Dict[str, Any]) -> str:
 
 
 def build_fallback_suggestions(payload: Dict[str, Any]) -> PostGoalSuggestionResponse:
+    fallback_library = load_fallback_library()
     goal_id = infer_business_goal_id(payload)
-    return PostGoalSuggestionResponse(suggestions=FALLBACK_LIBRARY.get(goal_id, FALLBACK_LIBRARY["trust"]), source="fallback")
+    return PostGoalSuggestionResponse(
+        suggestions=fallback_library.get(goal_id, fallback_library["trust"]),
+        source="fallback"
+    )
 
 
 async def generate_post_goal_suggestions(payload: Dict[str, Any]) -> PostGoalSuggestionResponse:
@@ -323,3 +162,27 @@ Return strict JSON:
     except Exception as error:
         print(f"Post goal suggestion generation failed: {error}")
         return fallback
+
+
+async def suggest_post_goals(
+    brand_name: str,
+    brand_category: str,
+    brand_narrative: str,
+    business_goal_id: str,
+    business_goal_title: str,
+    business_goal_description: str,
+    business_goal_rationale: str = "",
+    brand_identity: str = "",
+) -> PostGoalSuggestionResponse:
+    return await generate_post_goal_suggestions(
+        {
+            "brandName": brand_name,
+            "brandCategory": brand_category,
+            "brandNarrative": brand_narrative,
+            "businessGoalId": business_goal_id,
+            "businessGoalTitle": business_goal_title,
+            "businessGoalDescription": business_goal_description,
+            "businessGoalRationale": business_goal_rationale,
+            "brandIdentity": brand_identity,
+        }
+    )

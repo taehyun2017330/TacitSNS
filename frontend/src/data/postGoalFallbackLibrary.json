@@ -1,0 +1,182 @@
+{
+  "trust": [
+    {
+      "id": "trust-quality-process",
+      "title": "Show our quality or process",
+      "description": "Make the product or service feel credible by showing how care, expertise, or standards appear in the work.",
+      "taxonomyTags": ["Functional", "Educational"],
+      "assistantPrompt": "Focus on quality signals, process details, and evidence that makes the brand feel credible."
+    },
+    {
+      "id": "trust-founder-expert",
+      "title": "Introduce the founder or expert perspective",
+      "description": "Use a human expert voice so customers understand who is behind the brand and why they should trust it.",
+      "taxonomyTags": ["Employee", "Brand resonance"],
+      "assistantPrompt": "Center the founder, practitioner, or expert so the post feels human, informed, and trustworthy."
+    },
+    {
+      "id": "trust-customer-proof",
+      "title": "Share customer proof",
+      "description": "Translate social proof into a clean post that shows real outcomes or believable customer experiences.",
+      "taxonomyTags": ["Customer relationship"],
+      "assistantPrompt": "Create a post anchored in customer proof, testimony, or review-like reassurance."
+    },
+    {
+      "id": "trust-brand-stance",
+      "title": "Communicate what our brand stands for",
+      "description": "Clarify the promise, standards, or values the brand wants to be known for.",
+      "taxonomyTags": ["Brand resonance"],
+      "assistantPrompt": "Show the brand promise clearly so viewers understand its point of view and standards."
+    }
+  ],
+  "awareness": [
+    {
+      "id": "awareness-brand-personality",
+      "title": "Introduce the brand personality",
+      "description": "Create a first impression post that quickly teaches the mood, aesthetic, and voice of the brand.",
+      "taxonomyTags": ["Brand resonance", "Emotional"],
+      "assistantPrompt": "Prioritize memorable brand personality and visual identity over detailed product explanation."
+    },
+    {
+      "id": "awareness-timely-conversation",
+      "title": "Join a timely conversation",
+      "description": "Use a relevant seasonal or cultural hook to make the brand feel current and easy to notice.",
+      "taxonomyTags": ["Current event"],
+      "assistantPrompt": "Tie the brand to a timely conversation while still keeping the visual language on brand."
+    },
+    {
+      "id": "awareness-product-experience",
+      "title": "Show the product experience visually",
+      "description": "Let people imagine what it feels like to encounter or use the brand for the first time.",
+      "taxonomyTags": ["Experiential"],
+      "assistantPrompt": "Make the experience of the product or service instantly legible and attractive."
+    },
+    {
+      "id": "awareness-memorable-introduction",
+      "title": "Create a memorable first-impression post",
+      "description": "Package the brand as a clear, high-impact introduction someone can understand in a few seconds.",
+      "taxonomyTags": ["Brand resonance", "Emotional"],
+      "assistantPrompt": "Design for recognition and first-impression clarity more than depth."
+    }
+  ],
+  "educate": [
+    {
+      "id": "educate-how-it-works",
+      "title": "Explain how our offer works",
+      "description": "Break down the product, service, or process in a way a first-time viewer can understand quickly.",
+      "taxonomyTags": ["Functional", "Educational"],
+      "assistantPrompt": "Use clear visual explanation so viewers understand what the offer is and how it works."
+    },
+    {
+      "id": "educate-why-different",
+      "title": "Explain why we are different",
+      "description": "Clarify the unique value, ingredients, method, or expertise that makes the brand distinct.",
+      "taxonomyTags": ["Educational", "Brand resonance"],
+      "assistantPrompt": "Turn differentiation into something understandable, not just a claim."
+    },
+    {
+      "id": "educate-common-question",
+      "title": "Answer a common customer question",
+      "description": "Use the post to address confusion, hesitation, or a recurring product question.",
+      "taxonomyTags": ["Customer relationship", "Educational"],
+      "assistantPrompt": "Treat the post like an answer to a real customer question or objection."
+    },
+    {
+      "id": "educate-use-case",
+      "title": "Teach the best use case",
+      "description": "Show when, how, or for whom the product or service is most useful.",
+      "taxonomyTags": ["Educational", "Functional"],
+      "assistantPrompt": "Focus on practical guidance that helps people imagine the right use case."
+    }
+  ],
+  "engagement": [
+    {
+      "id": "engagement-opinion-hook",
+      "title": "Start a low-effort conversation",
+      "description": "Use a simple opinion prompt, comparison, or visual question to invite interaction.",
+      "taxonomyTags": ["Brand community", "Current event"],
+      "assistantPrompt": "Create something people can react to quickly without needing deep context."
+    },
+    {
+      "id": "engagement-personal-angle",
+      "title": "Tell a personal or behind-the-scenes story",
+      "description": "Make the brand feel easier to relate to through a human anecdote or process moment.",
+      "taxonomyTags": ["Employee", "Brand resonance"],
+      "assistantPrompt": "Lean into human relatability and a conversational tone rather than polished selling."
+    },
+    {
+      "id": "engagement-community-prompt",
+      "title": "Invite the audience into the brand world",
+      "description": "Ask for reactions, preferences, or participation so the brand feels more social and open.",
+      "taxonomyTags": ["Brand community", "Customer relationship"],
+      "assistantPrompt": "Prompt audience participation and make engagement feel welcome and easy."
+    },
+    {
+      "id": "engagement-playful-moment",
+      "title": "Create a playful moment around the brand",
+      "description": "Use humor, a quick challenge, or a light prompt to make the brand feel active and approachable.",
+      "taxonomyTags": ["Emotional", "Current event"],
+      "assistantPrompt": "Favor approachable, reactive energy over polish-heavy messaging."
+    }
+  ],
+  "sales": [
+    {
+      "id": "sales-offer-highlight",
+      "title": "Highlight the offer clearly",
+      "description": "Present the product, service, or promotion so viewers can understand the value and next step immediately.",
+      "taxonomyTags": ["Sales promotion"],
+      "assistantPrompt": "Make the offer legible, concrete, and easy to act on."
+    },
+    {
+      "id": "sales-worth-buying",
+      "title": "Explain why this is worth buying",
+      "description": "Support conversion with clear reasons, quality cues, or benefit framing.",
+      "taxonomyTags": ["Functional", "Sales promotion"],
+      "assistantPrompt": "Balance desirability and practical justification so the post supports buying decisions."
+    },
+    {
+      "id": "sales-result-experience",
+      "title": "Show the result or experience",
+      "description": "Help the audience imagine the payoff, transformation, or end state they want.",
+      "taxonomyTags": ["Experiential", "Functional"],
+      "assistantPrompt": "Center the outcome people want rather than only the product itself."
+    },
+    {
+      "id": "sales-objection-answer",
+      "title": "Answer a common buying objection",
+      "description": "Use the post to reduce hesitation around price, trust, effort, or fit.",
+      "taxonomyTags": ["Customer relationship", "Educational"],
+      "assistantPrompt": "Address a real barrier to purchase and make the answer feel calm and credible."
+    }
+  ],
+  "community": [
+    {
+      "id": "community-customer-spotlight",
+      "title": "Spotlight a customer or community member",
+      "description": "Celebrate real people so the brand feels relational and not purely transactional.",
+      "taxonomyTags": ["Brand community", "Customer relationship"],
+      "assistantPrompt": "Make the post feel like community recognition rather than self-promotion."
+    },
+    {
+      "id": "community-shared-values",
+      "title": "Reinforce the values people join for",
+      "description": "Show what people identify with when they stay connected to the brand over time.",
+      "taxonomyTags": ["Brand resonance", "Cause-related brand posts"],
+      "assistantPrompt": "Emphasize shared values and emotional loyalty cues."
+    },
+    {
+      "id": "community-returning-routine",
+      "title": "Create a recurring ritual or series",
+      "description": "Frame the post as part of a repeatable format that customers can look forward to.",
+      "taxonomyTags": ["Brand community", "Experiential"],
+      "assistantPrompt": "Design the post like part of an ongoing brand ritual or familiar series."
+    },
+    {
+      "id": "community-feedback-loop",
+      "title": "Invite customer input and feedback",
+      "description": "Make the audience feel heard by explicitly asking for preferences, stories, or reactions.",
+      "taxonomyTags": ["Customer relationship", "Brand community"],
+      "assistantPrompt": "Use the post to deepen the relationship through feedback and participation."
+    }
+  ]
+}

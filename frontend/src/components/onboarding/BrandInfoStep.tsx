@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { inferBusinessGoalOptions } from '../../data/goalHierarchy';
-import { apiFetch } from '../../config/api';
+import { ApiUnavailableError, apiFetch } from '../../config/api';
 import type { BrandData } from '../../types/brand';
 import type { BusinessGoalOption, OnboardingResult, PostGoalFolder } from '../../types/workspace';
 import BrandOnboardingRail from './BrandOnboardingRail';
@@ -318,7 +318,9 @@ const BrandInfoStep: React.FC<Props> = ({
         postGoalFolders
       });
     } catch (error) {
-      console.error('Error creating brand:', error);
+      if (!(error instanceof ApiUnavailableError)) {
+        console.error('Error creating brand:', error);
+      }
       setSubmitError(
         'The backend is not reachable, so the prototype is continuing with your local brand profile. Start `python main_simple.py` in `backend` when you want live generation.'
       );

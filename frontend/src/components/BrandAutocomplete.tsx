@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ApiUnavailableError } from '../config/api';
 import {
   BrandContext,
   BrandStatus,
@@ -131,7 +132,9 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
         if (last) fetchSentenceAnnotation(last.text, last.index);
       }
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      if (!(error instanceof ApiUnavailableError)) {
+        console.error('Error fetching suggestions:', error);
+      }
       // Fallback suggestions
       setSuggestions([
         { text: `${brandContext.brandName} was founded to`, type: 'new_angle' },
