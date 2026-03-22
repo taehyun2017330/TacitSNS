@@ -149,6 +149,45 @@ function App() {
     transitionToStage('workspace', 'forward');
   };
 
+  const handleCreateWorkspacePostGoal = (folder: PostGoalFolder) => {
+    setWorkspace(current => {
+      if (!current) {
+        return current;
+      }
+
+      const existingIndex = current.postGoalFolders.findIndex(existing => existing.title === folder.title);
+      if (existingIndex === -1) {
+        return {
+          ...current,
+          postGoalFolders: [...current.postGoalFolders, folder]
+        };
+      }
+
+      const nextFolders = [...current.postGoalFolders];
+      nextFolders[existingIndex] = folder;
+
+      return {
+        ...current,
+        postGoalFolders: nextFolders
+      };
+    });
+  };
+
+  const handleRemoveWorkspacePostGoal = (title: string) => {
+    setWorkspace(current => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        postGoalFolders: current.postGoalFolders.filter(folder => folder.title !== title)
+      };
+    });
+
+    setSelectedFolder(current => (current?.title === title ? null : current));
+  };
+
   const handleLoadSampleWorkspace = (brand: BrandData) => {
     const sampleWorkspace = createSampleWorkspace(brand);
     setWorkspace(sampleWorkspace);
@@ -180,37 +219,20 @@ function App() {
     if (stage === 'workspace' && workspace) {
       return (
         <PostGoalWorkspace
-          mode="workspace"
           brandName={workspace.brand.name}
+          brandCategory={workspace.brand.category}
           brandIdentity={workspace.brand.identity}
+          brandNarrative={workspace.brand.description}
           businessGoals={workspace.selectedBusinessGoals}
           activeBusinessGoalId={workspace.activeBusinessGoalId}
           postGoalFolders={workspace.postGoalFolders}
-          onSelectBusinessGoal={goalId => {
-            setWorkspace(prev =>
-              prev
-                ? {
-                    ...prev,
-                    activeBusinessGoalId: goalId
-                  }
-                : prev
-            );
-          }}
-          onCreatePostGoal={folder => {
-            setWorkspace(prev =>
-              prev
-                ? {
-                    ...prev,
-                    postGoalFolders: [folder, ...prev.postGoalFolders.filter(existing => existing.title !== folder.title)]
-                  }
-                : prev
-            );
-          }}
           onEditGoals={() => {
             setSelectedFolder(null);
             setOnboardingInitialStep('narrative');
             transitionToStage('onboarding', 'backward');
           }}
+          onCreatePostGoal={handleCreateWorkspacePostGoal}
+          onRemovePostGoal={handleRemoveWorkspacePostGoal}
           onOpenPostGoal={folder => {
             setSelectedFolder(folder);
             transitionToStage('studio', 'forward');
