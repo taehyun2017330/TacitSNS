@@ -175,11 +175,11 @@
 .post-goal-browser-item:hover .post-goal-browser-item-topline,
 .post-goal-browser-item:hover .post-goal-browser-item-overlay,
 .post-goal-browser-item:hover .post-goal-browser-item-loading-label {
-  opacity: 0;
+  opacity: 1;
 }
 
 .post-goal-browser-item:hover .post-goal-browser-item-overlay {
-  transform: translateY(2px);
+  transform: none;
 }
 
 .post-goal-detail-card {
@@ -336,6 +336,7 @@
   max-width: 19rem;
   position: relative;
   z-index: 1;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .post-goal-preview-kicker {
@@ -346,6 +347,7 @@
   opacity: 0.88;
   position: relative;
   z-index: 1;
+  transition: opacity 220ms ease, transform 220ms ease;
 }
 
 .post-goal-preview-copy strong {
@@ -371,6 +373,14 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   opacity: 0.9;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.post-goal-preview-canvas:hover .post-goal-preview-kicker,
+.post-goal-preview-canvas:hover .post-goal-preview-copy,
+.post-goal-preview-canvas:hover .post-goal-preview-loading-note {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .post-goal-selected-strip {
