@@ -4,7 +4,6 @@ import { apiFetch } from '../../../config/api';
 import {
   createPostGoalFolder,
   getPostGoalSuggestionsForBusinessGoal,
-  getTaxonomyDefinitions,
   normalizePostGoalSuggestion,
   resolvePostGoalSuggestionKey
 } from '../../../data/goalHierarchy';
@@ -36,14 +35,12 @@ async function requestPostGoalPreviewImage(
   businessGoal: BusinessGoalOption,
   goal: PostGoalSuggestion
 ) {
-  const taxonomyDefinitions = getTaxonomyDefinitions(goal.taxonomyTags);
-  const commonThemes = Array.from(new Set(taxonomyDefinitions.flatMap(item => item.themes))).slice(0, 5);
   const directionAngle = [
     `Create one strong Instagram-ready example image for the post-goal direction "${goal.title}".`,
     goal.description,
+    goal.previewTitle ? `Example image concept: ${goal.previewTitle}.` : '',
+    goal.previewCaption || '',
     goal.assistantPrompt,
-    goal.taxonomyTags.length ? `Relevant post categories: ${goal.taxonomyTags.join(', ')}.` : '',
-    commonThemes.length ? `Common themes to include: ${commonThemes.join(', ')}.` : '',
     'This should feel like one clear example post, not a collage, moodboard, or UI mockup.'
   ].filter(Boolean).join(' ');
 

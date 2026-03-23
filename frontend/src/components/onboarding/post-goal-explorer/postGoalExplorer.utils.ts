@@ -264,6 +264,15 @@ export function buildPreviewSlides(goal: PostGoalSuggestion): PostGoalPreviewSli
 }
 
 export function buildPrimaryPreview(goal: PostGoalSuggestion): PostGoalPrimaryPreview {
+  if (goal.previewTitle || goal.previewCaption) {
+    return {
+      id: `${goal.id}-cover`,
+      kicker: goal.previewTitle || goal.title,
+      headline: goal.previewTitle || goal.title,
+      caption: goal.previewCaption || goal.description
+    };
+  }
+
   const taxonomySlide = goal.taxonomyTags
     .flatMap(tag => TAXONOMY_PREVIEW_LIBRARY[tag] ?? [])
     .find(Boolean);
