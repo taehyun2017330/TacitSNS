@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import type { PostGoalSuggestion } from '../../../types/workspace';
-import {
-  DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND,
-  detectImageTextTone
-} from './postGoalExplorer.utils';
+import { DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND } from './postGoalExplorer.utils';
 
 interface Props {
   suggestions: PostGoalSuggestion[];
@@ -24,29 +21,6 @@ const SuggestionRailCard: React.FC<{
   displayTitle: string;
   onSelectSuggestion: (id: string) => void;
 }> = ({ goal, isActive, isAdded, isLoadingPreview, displayTitle, onSelectSuggestion }) => {
-  const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!goal.previewImageUrl) {
-      setTextTone('light');
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    void detectImageTextTone(goal.previewImageUrl).then(nextTone => {
-      if (!cancelled) {
-        setTextTone(nextTone);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [goal.previewImageUrl]);
-
   return (
     <button
       type="button"
@@ -54,7 +28,7 @@ const SuggestionRailCard: React.FC<{
       onClick={() => onSelectSuggestion(goal.id)}
     >
       <div
-        className={`post-goal-browser-item-visual ${textTone === 'dark' ? 'is-dark-tone' : 'is-light-tone'} ${isLoadingPreview ? 'is-loading' : ''}`}
+        className={`post-goal-browser-item-visual is-light-tone ${isLoadingPreview ? 'is-loading' : ''}`}
         style={
           goal.previewImageUrl
             ? {

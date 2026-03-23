@@ -45,11 +45,11 @@ const PostGoalExampleGallery: React.FC<Props> = ({ goal, isLoading = false }) =>
     <div className="post-goal-preview-gallery">
       <div className="post-goal-preview-stage">
         <article
-          className={`post-goal-preview-canvas ${textTone === 'dark' ? 'is-dark-tone' : 'is-light-tone'} ${isLoading ? 'is-loading' : ''}`}
+          className={`post-goal-preview-canvas ${textTone === 'dark' ? 'is-dark-tone' : 'is-light-tone'} ${goal.previewImageUrl ? 'has-generated-image' : ''} ${isLoading ? 'is-loading' : ''}`}
           style={
             goal.previewImageUrl
               ? {
-                  backgroundImage: `linear-gradient(180deg, rgba(18, 18, 17, 0.08) 0%, rgba(18, 18, 17, 0.48) 100%), url(${goal.previewImageUrl})`,
+                  backgroundImage: `url(${goal.previewImageUrl})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }
