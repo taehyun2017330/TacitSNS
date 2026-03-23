@@ -219,6 +219,7 @@ export function usePostGoalSuggestions({
                 title: suggestion.title?.trim() || `Suggested post goal ${index + 1}`,
                 description: suggestion.description?.trim() || 'A suggested image-post direction for this business goal.',
                 taxonomyTags: suggestion.taxonomyTags?.length ? suggestion.taxonomyTags : ['Custom'],
+                imageTypeChips: suggestion.imageTypeChips?.length ? suggestion.imageTypeChips : [],
                 assistantPrompt:
                   suggestion.assistantPrompt?.trim() ||
                   `Create a post direction for ${suggestion.title?.trim() || `this ${businessGoal.title.toLowerCase()} goal`}.`,
@@ -291,9 +292,6 @@ export function usePostGoalSuggestions({
   }, [suggestedPostGoals]);
 
   const activeSuggestedGoal = suggestedPostGoals.find(goal => goal.id === activeSuggestionId) ?? suggestedPostGoals[0] ?? null;
-  const activeTaxonomyDefinitions = activeSuggestedGoal
-    ? getTaxonomyDefinitions(activeSuggestedGoal.taxonomyTags)
-    : [];
 
   const getGoalDraft = (goal: PostGoalSuggestion) =>
     draftByGoalId[goal.id] ?? buildGoalDraft(goal, businessGoal.title);
@@ -335,6 +333,7 @@ export function usePostGoalSuggestions({
       ...goal,
       title,
       description,
+      imageTypeChips: goal.imageTypeChips,
       assistantPrompt: rationale
         ? `${goal.assistantPrompt} Context: ${rationale}`
         : goal.assistantPrompt,
@@ -419,6 +418,7 @@ export function usePostGoalSuggestions({
         taxonomyTags:
           baseGoal?.taxonomyTags ??
           (composer.inputMethod === 'reference' ? ['Experiential', 'Brand resonance'] : ['Custom']),
+        imageTypeChips: baseGoal?.imageTypeChips ?? [],
         assistantPrompt:
           rationale
             ? `${baseGoal?.assistantPrompt ?? `Create a post direction for ${title}.`} Context: ${rationale}`
@@ -446,7 +446,6 @@ export function usePostGoalSuggestions({
   return {
     activeSuggestedGoal,
     activeSuggestionId,
-    activeTaxonomyDefinitions,
     composer,
     displayTitlesById,
     getGoalDraft,

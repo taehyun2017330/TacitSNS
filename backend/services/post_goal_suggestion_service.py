@@ -88,7 +88,17 @@ Business goal:
 - Title: {payload.get("businessGoalTitle", "")}
 - Description: {payload.get("businessGoalDescription", "")}
 
-You may add up to 2 taxonomy tags only after generating the idea, only if they fit naturally:
+After generating each post direction, also provide 4 short image-type chips.
+These should name different kinds of images that would still fit this same post direction.
+Examples of chip style:
+- product close-up
+- founder portrait
+- in-use detail
+- testimonial screenshot
+- shelf lineup
+- event moment
+
+You may optionally add up to 2 taxonomy tags only as secondary labels if they fit naturally:
 Emotional, Functional, Educational, Brand resonance, Experiential, Current event,
 Personal brand posts, Employee, Brand community, Customer relationship,
 Cause-related brand posts, Sales promotion
@@ -100,6 +110,7 @@ Return strict JSON:
       "id": "short-slug",
       "title": "Post goal title",
       "description": "One short sentence describing what kind of image post this becomes.",
+      "imageTypeChips": ["Chip 1", "Chip 2", "Chip 3", "Chip 4"],
       "taxonomyTags": ["Tag A", "Tag B"],
       "previewTitle": "Short label for the first example image concept",
       "previewCaption": "One concise sentence describing the first example image concept.",
@@ -153,6 +164,11 @@ Return strict JSON:
                         for tag in item.get("taxonomyTags", [])
                         if str(tag).strip()
                     ][:2],
+                    "imageTypeChips": [
+                        str(chip).strip()
+                        for chip in item.get("imageTypeChips", [])
+                        if str(chip).strip()
+                    ][:4],
                     "previewTitle": str(item.get("previewTitle") or "").strip() or None,
                     "previewCaption": str(item.get("previewCaption") or "").strip()
                     or None,

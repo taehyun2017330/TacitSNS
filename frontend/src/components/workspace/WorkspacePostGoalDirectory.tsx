@@ -124,7 +124,7 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                           <p>{folder.description}</p>
                           <div className="workspace-hub-folder-meta">
                             <div className="workspace-hub-folder-tags">
-                              {folder.taxonomyTags.slice(0, 2).map(tag => (
+                              {(folder.imageTypeChips?.slice(0, 2) ?? folder.taxonomyTags.slice(0, 2)).map(tag => (
                                 <span key={tag} className="workspace-hub-tag">
                                   {tag}
                                 </span>

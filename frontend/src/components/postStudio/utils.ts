@@ -1,4 +1,3 @@
-import { getTaxonomyDefinitions } from '../../data/goalHierarchy';
 import type { Gen, PostNode } from '../history/types';
 import type { PostGoalFolder } from '../../types/workspace';
 import type { EditOptions, PostStudioActionType } from './types';
@@ -77,12 +76,9 @@ export function buildInitialDirectionPlan({
   brandIdentity?: string;
   brandNarrative?: string;
   businessGoalTitle?: string;
-  folder: Pick<PostGoalFolder, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt'>;
+  folder: Pick<PostGoalFolder, 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'assistantPrompt'>;
 }) {
-  const taxonomyDefinitions = getTaxonomyDefinitions(folder.taxonomyTags);
-  const commonThemes = Array.from(
-    new Set(taxonomyDefinitions.flatMap(item => item.themes))
-  ).slice(0, 6);
+  const commonThemes = folder.imageTypeChips?.slice(0, 6) ?? [];
 
   const goalDescription = folder.description.trim();
   const shortNarrative = brandNarrative?.trim().replace(/\s+/g, ' ').slice(0, 220) ?? '';
@@ -107,8 +103,7 @@ export function buildInitialDirectionPlan({
     businessGoalTitle ? `Business goal: ${businessGoalTitle}` : null,
     `Post goal: ${folder.title}`,
     goalDescription ? `What this post goal explores: ${goalDescription}` : null,
-    folder.taxonomyTags.length ? `Relevant post categories: ${folder.taxonomyTags.join(', ')}` : null,
-    commonThemes.length ? `Common themes to lean into: ${commonThemes.join(', ')}` : null,
+    commonThemes.length ? `Image types that fit this direction: ${commonThemes.join(', ')}` : null,
     `Direction anchor: ${folder.assistantPrompt}`
   ].filter(Boolean);
 

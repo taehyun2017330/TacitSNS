@@ -407,7 +407,7 @@ export function resolvePostGoalSuggestionKey(
 }
 
 export function normalizePostGoalSuggestion(
-  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets' | 'sourceLabel'>,
+  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets' | 'sourceLabel'>,
   fallbackIndex = 0
 ): PostGoalSuggestion {
   const firstTag = suggestion.taxonomyTags[0] ?? 'Custom';
@@ -424,6 +424,7 @@ export function normalizePostGoalSuggestion(
   return {
     ...suggestion,
     id: derivedId,
+    imageTypeChips: suggestion.imageTypeChips?.filter(Boolean).slice(0, 4) ?? [],
     previewTitle: suggestion.previewTitle || preview?.previewTitle || suggestion.title,
     previewCaption: suggestion.previewCaption || preview?.previewCaption || suggestion.description,
     previewBackground:
@@ -456,7 +457,7 @@ export function suggestPostGoalAutocomplete(input: string, businessGoalId: strin
 }
 
 export function createPostGoalFolder(
-  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets'>,
+  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets'>,
   businessGoal: Pick<BusinessGoalOption, 'id' | 'title'>,
   source: PostGoalFolder['source']
 ): PostGoalFolder {
@@ -468,6 +469,7 @@ export function createPostGoalFolder(
     title: suggestion.title,
     description: suggestion.description,
     taxonomyTags: suggestion.taxonomyTags,
+    imageTypeChips: suggestion.imageTypeChips,
     assistantPrompt: suggestion.assistantPrompt,
     previewTitle: suggestion.previewTitle,
     previewCaption: suggestion.previewCaption,

@@ -32,7 +32,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
   const {
     activeSuggestedGoal,
     activeSuggestionId,
-    activeTaxonomyDefinitions,
     applySuggestedGoal,
     closeComposer,
     composer,
@@ -112,7 +111,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
                 goal={activeSuggestedGoal}
                 isPreviewLoading={Boolean(loadingPreviewIds[activeSuggestedGoal.id])}
                 isSelected={selectedFolderIds.has(activeSuggestedGoal.id)}
-                taxonomyDefinitions={activeTaxonomyDefinitions}
                 draftTitle={getGoalDraft(activeSuggestedGoal).title}
                 draftDescription={getGoalDraft(activeSuggestedGoal).description}
                 draftRationale={getGoalDraft(activeSuggestedGoal).rationale}

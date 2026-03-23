@@ -84,6 +84,7 @@ class PostGoalSuggestionItem(BaseModel):
     title: str
     description: str
     taxonomyTags: List[str] = Field(default_factory=list)
+    imageTypeChips: List[str] = Field(default_factory=list)
     assistantPrompt: str
     previewTitle: Optional[str] = None
     previewCaption: Optional[str] = None

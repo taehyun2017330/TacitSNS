@@ -7,18 +7,11 @@ import type {
 import InlineEditableText from '../InlineEditableText';
 import PostGoalExampleGallery from './PostGoalExampleGallery';
 
-type TaxonomyDefinition = {
-  label: string;
-  definition: string;
-  themes: string[];
-};
-
 interface Props {
   businessGoal: BusinessGoalOption;
   goal: PostGoalSuggestion;
   isPreviewLoading: boolean;
   isSelected: boolean;
-  taxonomyDefinitions: TaxonomyDefinition[];
   draftTitle: string;
   draftDescription: string;
   draftRationale: string;
@@ -32,7 +25,6 @@ const PostGoalDetailPane: React.FC<Props> = ({
   goal,
   isPreviewLoading,
   isSelected,
-  taxonomyDefinitions,
   draftTitle,
   draftDescription,
   draftRationale,
@@ -40,10 +32,7 @@ const PostGoalDetailPane: React.FC<Props> = ({
   onApplyGoal,
   onRemoveGoal
 }) => {
-  const themeSummary = Array.from(
-    new Set(taxonomyDefinitions.flatMap(item => item.themes))
-  ).slice(0, 4);
-  const taxonomyLabels = taxonomyDefinitions.map(item => item.label).join(' + ');
+  const imageTypeChips = goal.imageTypeChips?.slice(0, 4) ?? [];
 
   return (
     <article className="post-goal-detail-card">
@@ -75,18 +64,12 @@ const PostGoalDetailPane: React.FC<Props> = ({
 
           <section className="post-goal-detail-panel">
             <p className="post-goal-detail-panel-copy">{draftRationale}</p>
-            {taxonomyLabels ? (
-              <p className="post-goal-detail-supporting-note">
-                This direction leans on {taxonomyLabels} posts.
-              </p>
-            ) : null}
-
-            {themeSummary.length > 0 ? (
+            {imageTypeChips.length > 0 ? (
               <>
-                <div className="goal-card-rationale-label">Common themes you could lean into</div>
+                <div className="goal-card-rationale-label">Image types that could fit this direction</div>
                 <div className="post-goal-taxonomy-themes">
-                  {themeSummary.map(theme => (
-                    <span key={theme} className="post-goal-taxonomy-theme">{theme}</span>
+                  {imageTypeChips.map(chip => (
+                    <span key={chip} className="post-goal-taxonomy-theme">{chip}</span>
                   ))}
                 </div>
               </>

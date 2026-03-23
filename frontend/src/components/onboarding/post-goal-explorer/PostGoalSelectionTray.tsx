@@ -44,7 +44,7 @@ const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostG
             />
             <div className="post-goal-selected-card-copy">
               <strong>{folder.title}</strong>
-              <span>{folder.taxonomyTags.slice(0, 2).join(' · ')}</span>
+              <span>{(folder.imageTypeChips?.slice(0, 2) ?? folder.taxonomyTags.slice(0, 2)).join(' · ')}</span>
             </div>
             <button
               type="button"
