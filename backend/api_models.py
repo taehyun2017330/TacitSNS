@@ -55,6 +55,7 @@ class CaptionGenerationRequest(BaseModel):
 class SuggestionRequest(BaseModel):
     brandName: Optional[str] = "your brand"
     brandCategory: Optional[str] = "business"
+    brandIdentity: Optional[str] = ""
     currentText: str
     sessionId: Optional[str] = None
     modelConfig: Dict[str, Any] = Field(default_factory=dict)
@@ -64,6 +65,7 @@ class SuggestionRequest(BaseModel):
 class AnnotateRequest(BaseModel):
     brandName: Optional[str] = None
     brandCategory: Optional[str] = None
+    brandIdentity: Optional[str] = ""
     sentenceText: Optional[str] = None
     modelConfig: Dict[str, Any] = Field(default_factory=dict)
 

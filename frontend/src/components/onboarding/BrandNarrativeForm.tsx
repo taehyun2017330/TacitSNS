@@ -9,6 +9,7 @@ interface Props {
   brandContext: {
     brandName: string;
     brandCategory: string;
+    brandIdentity?: string;
   };
   industryPickerOpen: boolean;
   isCustomIndustry: boolean;

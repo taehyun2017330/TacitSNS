@@ -13,6 +13,7 @@ interface Props {
   brandContext: {
     brandName: string;
     brandCategory: string;
+    brandIdentity?: string;
   };
   businessGoalOptions: BusinessGoalOption[];
   selectedGoalId: string | null;

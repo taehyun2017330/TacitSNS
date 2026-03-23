@@ -104,7 +104,8 @@ const BrandInfoStep: React.FC<Props> = ({
   const hasGoalSourceChanges = currentGoalSourceSignature !== goalSourceSignature;
   const brandContext = {
     brandName: brandData.name || 'Your Brand',
-    brandCategory: brandData.category || 'General'
+    brandCategory: brandData.category || 'General',
+    brandIdentity: brandData.identity || ''
   };
 
   const handleFieldChange = <Key extends keyof BrandData>(field: Key, value: BrandData[Key]) => {

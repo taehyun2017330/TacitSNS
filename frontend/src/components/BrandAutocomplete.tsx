@@ -44,9 +44,9 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
   const [progress, setProgress] = useState<any>(null);
   const [modelConfig, setModelConfig] = useState<ModelConfig>({
     directionModel: 'gpt-4o',
-    suggestionModel: 'gpt-4o-mini',
+    suggestionModel: 'gpt-4o',
     directionTemp: 0.3,
-    suggestionTemp: 1.0
+    suggestionTemp: 0.7
   });
   const [sentenceAnnotations, setSentenceAnnotations] = useState<Record<number, SentenceAnnotation>>({});
   const [segmentTooltip, setSegmentTooltip] = useState<{
@@ -416,7 +416,7 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
             onKeyUp={handleCursorActivity}
             onSelect={handleCursorActivity}
             onScroll={handleTextareaScroll}
-            placeholder="Start typing about your brand... (AI recommendation is sensitive to your input and periods)"
+            placeholder="Describe what the brand is, who it serves, what makes it different, and how it should come across."
             className="brand-textarea"
             rows={8}
           />

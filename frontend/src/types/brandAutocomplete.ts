@@ -8,6 +8,7 @@ export interface Suggestion {
 export interface BrandContext {
   brandName: string;
   brandCategory: string;
+  brandIdentity?: string;
 }
 
 export interface BrandStatus {

@@ -28,6 +28,7 @@ export async function requestSuggestions({
     body: JSON.stringify({
       brandName: brandContext.brandName,
       brandCategory: brandContext.brandCategory,
+      brandIdentity: brandContext.brandIdentity ?? '',
       currentText,
       sessionId,
       modelConfig
@@ -52,6 +53,7 @@ export async function requestSentenceAnnotation({
     body: JSON.stringify({
       brandName: brandContext.brandName,
       brandCategory: brandContext.brandCategory,
+      brandIdentity: brandContext.brandIdentity ?? '',
       sentenceText,
       modelConfig
     })
