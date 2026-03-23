@@ -9,19 +9,12 @@ from openai import OpenAI
 from api_models import PostGoalSuggestionResponse
 
 
-MODEL_NAME = "gpt-4o-mini"
-
-BUSINESS_GOAL_KEYWORDS: Dict[str, List[str]] = {
-    "trust": ["trust", "credible", "credibility", "safe", "proof", "legit", "quality", "expert", "science"],
-    "awareness": ["awareness", "notice", "discover", "introduction", "introduce", "visibility", "memorable", "first impression"],
-    "educate": ["educate", "education", "teach", "explain", "understand", "instruction", "question", "how it works"],
-    "engagement": ["engagement", "engage", "comment", "share", "react", "participate", "conversation", "interactive"],
-    "sales": ["sales", "leads", "lead", "buy", "purchase", "offer", "order", "signup", "conversion", "booking"],
-    "community": ["community", "loyalty", "loyal", "belonging", "member", "fans", "relationship", "repeat"],
-}
+MODEL_NAME = "gpt-4o"
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-FALLBACK_LIBRARY_PATH = REPO_ROOT / "frontend" / "src" / "data" / "postGoalFallbackLibrary.json"
+FALLBACK_LIBRARY_PATH = (
+    REPO_ROOT / "frontend" / "src" / "data" / "postGoalFallbackLibrary.json"
+)
 
 
 @lru_cache(maxsize=1)
@@ -45,24 +38,7 @@ def infer_business_goal_id(payload: Dict[str, Any]) -> str:
     explicit_id = str(payload.get("businessGoalId") or "").strip().lower()
     if explicit_id in fallback_library:
         return explicit_id
-
-    source = " ".join(
-        [
-            str(payload.get("businessGoalTitle") or ""),
-            str(payload.get("businessGoalDescription") or ""),
-            str(payload.get("businessGoalRationale") or ""),
-        ]
-    ).lower()
-
-    best_goal = "trust"
-    best_score = -1
-    for goal_id, keywords in BUSINESS_GOAL_KEYWORDS.items():
-        score = sum(2 for keyword in keywords if keyword in source)
-        if score > best_score:
-            best_goal = goal_id
-            best_score = score
-
-    return best_goal
+    return "trust"
 
 
 def build_fallback_suggestions(payload: Dict[str, Any]) -> PostGoalSuggestionResponse:
@@ -70,11 +46,13 @@ def build_fallback_suggestions(payload: Dict[str, Any]) -> PostGoalSuggestionRes
     goal_id = infer_business_goal_id(payload)
     return PostGoalSuggestionResponse(
         suggestions=fallback_library.get(goal_id, fallback_library["trust"]),
-        source="fallback"
+        source="fallback",
     )
 
 
-async def generate_post_goal_suggestions(payload: Dict[str, Any]) -> PostGoalSuggestionResponse:
+async def generate_post_goal_suggestions(
+    payload: Dict[str, Any],
+) -> PostGoalSuggestionResponse:
     fallback = build_fallback_suggestions(payload)
 
     prompt = f"""
@@ -84,13 +62,11 @@ Your job is to propose 4 post goals that feel specific, visually actionable, and
 
 Brand name: {payload.get("brandName", "your brand")}
 Industry: {payload.get("brandCategory", "business")}
-Brand identity: {payload.get("brandIdentity", "")}
 Brand narrative: {payload.get("brandNarrative", "")}
 
 Chosen business goal:
 - Title: {payload.get("businessGoalTitle", "")}
 - Meaning: {payload.get("businessGoalDescription", "")}
-- Why it fits: {payload.get("businessGoalRationale", "")}
 
 Create 4 POST GOALS.
 A post goal is a concrete image direction the user could explore next, not a broad business objective.
@@ -124,7 +100,6 @@ Requirements:
 - The assistantPrompt should read like a concise image-generation brief:
   mention likely subject matter, composition focus, mood, and what should be visually emphasized.
 - If the brand appears to sell a tangible product or a visually identifiable offering, at least 1 suggestion should be product-centered or product-visible.
-- If the narrative emphasizes representation, diversity, community, trust, care, quality, ingredients, or performance, reflect that in at least one suggestion where relevant.
 - Avoid generic marketing filler such as "engaging content", "boost visibility", or "connect with audiences".
 
 Return strict JSON:
@@ -176,9 +151,19 @@ Return strict JSON:
                 {
                     "id": str(item.get("id") or f"ai-post-goal-{index + 1}").strip(),
                     "title": title,
-                    "description": str(item.get("description") or f"A post direction focused on {title.lower()}.").strip(),
-                    "taxonomyTags": [str(tag).strip() for tag in item.get("taxonomyTags", []) if str(tag).strip()],
-                    "assistantPrompt": str(item.get("assistantPrompt") or f"Create an image direction for {title}.").strip(),
+                    "description": str(
+                        item.get("description")
+                        or f"A post direction focused on {title.lower()}."
+                    ).strip(),
+                    "taxonomyTags": [
+                        str(tag).strip()
+                        for tag in item.get("taxonomyTags", [])
+                        if str(tag).strip()
+                    ],
+                    "assistantPrompt": str(
+                        item.get("assistantPrompt")
+                        or f"Create an image direction for {title}."
+                    ).strip(),
                 }
             )
 
