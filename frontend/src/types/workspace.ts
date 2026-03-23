@@ -27,6 +27,7 @@ export interface PostGoalSuggestion {
   description: string;
   taxonomyTags: string[];
   imageTypeChips?: string[];
+  directionAngles?: string[];
   assistantPrompt: string;
   previewTitle?: string;
   previewCaption?: string;

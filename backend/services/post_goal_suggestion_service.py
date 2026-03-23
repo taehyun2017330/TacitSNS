@@ -66,6 +66,7 @@ For each post direction:
 - make it strategically relevant to the business goal
 - make it visually natural for the business category
 - provide 1 specific example image concept that shows what this post direction could look like in practice
+- also provide 4 concise visual direction angles for the first 2x2 generation grid
 
 Important:
 - A post direction is broader than a single image, but concrete enough that the owner can immediately understand the idea
@@ -77,6 +78,8 @@ Important:
 - Do not make all 4 ideas variations of the same composition
 - If the business sells a tangible product, at least 1 direction should visibly feature the product
 - Prefer the kinds of Instagram directions real owners actually make: product spotlight, founder or maker story, customer proof, how-it-works education, brand-world image, campaign hook, seasonal moment, community participation, cause/initiative post, offer/promo, and similar realistic feed directions when they fit
+- The 4 direction angles should all fit the same post goal, but feel different from one another
+- The first direction angle should align closely with the example image concept
 
 Brand context:
 - Brand name: {payload.get("brandName", "")}
@@ -111,6 +114,12 @@ Return strict JSON:
       "title": "Post goal title",
       "description": "One short sentence describing what kind of image post this becomes.",
       "imageTypeChips": ["Chip 1", "Chip 2", "Chip 3", "Chip 4"],
+      "directionAngles": [
+        "Direction angle 1",
+        "Direction angle 2",
+        "Direction angle 3",
+        "Direction angle 4"
+      ],
       "taxonomyTags": ["Tag A", "Tag B"],
       "previewTitle": "Short label for the first example image concept",
       "previewCaption": "One concise sentence describing the first example image concept.",
@@ -168,6 +177,11 @@ Return strict JSON:
                         str(chip).strip()
                         for chip in item.get("imageTypeChips", [])
                         if str(chip).strip()
+                    ][:4],
+                    "directionAngles": [
+                        str(angle).strip()
+                        for angle in item.get("directionAngles", [])
+                        if str(angle).strip()
                     ][:4],
                     "previewTitle": str(item.get("previewTitle") or "").strip() or None,
                     "previewCaption": str(item.get("previewCaption") or "").strip()

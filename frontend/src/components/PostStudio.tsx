@@ -4,13 +4,14 @@ import PostGrid from './PostGrid';
 import PostSingleView from './PostSingleView';
 import HistoryBoardModal from './history/HistoryBoardModal';
 import { buildHistoryMap, createSelectionNode, getBatchNodes } from './history/historyUtils';
-import { FeedbackData, Gen, PostNode } from './history/types';
+import { FeedbackData, Gen, PostGoalContextMetadata, PostNode } from './history/types';
 import { requestPostGeneration } from './postStudio/api';
 import type { EditOptions } from './postStudio/types';
 import {
   buildFallbackDelta,
   buildInitialDirectionPlan,
   countGeneratedImages,
+  createSeedPreviewNode,
   createGeneratedNodes,
   createPlaceholderNodes,
   findLatestGridBatchId,
@@ -32,6 +33,9 @@ interface Props {
   postGoalTitle?: string;
   postGoalDescription?: string;
   postGoalTaxonomyTags?: string[];
+  postGoalImageTypeChips?: string[];
+  postGoalDirectionAngles?: string[];
+  postGoalPreviewImageUrl?: string;
   referenceAssets?: PostGoalReferenceAsset[];
   studioSession?: PostGoalStudioSession | null;
   onStudioSessionChange?: (session: PostGoalStudioSession) => void;
@@ -48,6 +52,9 @@ const PostStudio: React.FC<Props> = ({
   postGoalTitle,
   postGoalDescription,
   postGoalTaxonomyTags = [],
+  postGoalImageTypeChips = [],
+  postGoalDirectionAngles = [],
+  postGoalPreviewImageUrl,
   referenceAssets = [],
   studioSession = null,
   onStudioSessionChange,
@@ -68,6 +75,30 @@ const PostStudio: React.FC<Props> = ({
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const history = useMemo(() => buildHistoryMap(historyNodes.values()), [historyNodes]);
+  const postGoalContext = useMemo<PostGoalContextMetadata>(
+    () => ({
+      brandName,
+      brandCategory,
+      brandIdentity,
+      brandNarrative,
+      businessGoalTitle,
+      postGoalTitle,
+      postGoalDescription,
+      imageTypeChips: postGoalImageTypeChips,
+      directionAngles: postGoalDirectionAngles
+    }),
+    [
+      brandCategory,
+      brandIdentity,
+      brandName,
+      brandNarrative,
+      businessGoalTitle,
+      postGoalDescription,
+      postGoalImageTypeChips,
+      postGoalDirectionAngles,
+      postGoalTitle
+    ]
+  );
   const brandContext = useMemo(
     () =>
       [
@@ -93,6 +124,8 @@ const PostStudio: React.FC<Props> = ({
           title: postGoalTitle || 'Post goal',
           description: postGoalDescription || 'Create one clear visual direction for this post goal.',
           taxonomyTags: postGoalTaxonomyTags,
+          imageTypeChips: postGoalImageTypeChips,
+          directionAngles: postGoalDirectionAngles,
           assistantPrompt: [
             postGoalDescription,
             businessGoalTitle ? `Support ${businessGoalTitle.toLowerCase()}.` : ''
@@ -108,6 +141,8 @@ const PostStudio: React.FC<Props> = ({
       brandNarrative,
       businessGoalTitle,
       postGoalDescription,
+      postGoalDirectionAngles,
+      postGoalImageTypeChips,
       postGoalTaxonomyTags,
       postGoalTitle
     ]
@@ -156,9 +191,10 @@ const PostStudio: React.FC<Props> = ({
       generatedImageCount: countGeneratedImages(historyNodes.values()),
       lastGeneratedAt: getLastGeneratedAt(historyNodes.values()),
       seedDirection: initialDirectionPlan.brief,
-      directionAngles: initialDirectionPlan.directionAngles
+      directionAngles: initialDirectionPlan.directionAngles,
+      seedPreviewImageUrl: postGoalPreviewImageUrl ?? null
     });
-  }, [currentGridBatchId, historyNodes, initialDirectionPlan.brief, initialDirectionPlan.directionAngles, onStudioSessionChange]);
+  }, [currentGridBatchId, historyNodes, initialDirectionPlan.brief, initialDirectionPlan.directionAngles, onStudioSessionChange, postGoalPreviewImageUrl]);
 
   const upsertNodes = (nodes: PostNode[]) => {
     setHistoryNodes(prev => {
@@ -205,6 +241,24 @@ const PostStudio: React.FC<Props> = ({
     try {
       const resolvedSimilarity = similarity ?? similarityLevel;
       const resolvedDirection = direction || initialDirectionPlan.brief;
+      const shouldSeedPreview =
+        actionType === 'initial' &&
+        !parentNodeId &&
+        Boolean(postGoalPreviewImageUrl) &&
+        historyNodes.size === 0 &&
+        currentGridBatchId === null;
+      const requestDirectionAngles =
+        actionType === 'initial' && shouldSeedPreview
+          ? directionAngles.slice(1)
+          : actionType === 'initial'
+            ? directionAngles
+            : [];
+      const requestImageCount =
+        actionType === 'edit'
+          ? 1
+          : shouldSeedPreview
+            ? 3
+            : 4;
       const data = await requestPostGeneration({
         brandName,
         brandCategory,
@@ -213,9 +267,10 @@ const PostStudio: React.FC<Props> = ({
         feedback,
         similarity: resolvedSimilarity,
         direction: resolvedDirection,
-        directionAngles: actionType === 'initial' ? directionAngles : [],
+        directionAngles: requestDirectionAngles,
         actionType,
-        editOptions
+        editOptions,
+        numImages: requestImageCount
       });
       const fallbackDelta = buildFallbackDelta(
         actionType,
@@ -224,7 +279,19 @@ const PostStudio: React.FC<Props> = ({
         resolvedDirection
       );
 
-      const newNodes = createGeneratedNodes({
+      const seedNode =
+        shouldSeedPreview && postGoalPreviewImageUrl
+          ? createSeedPreviewNode({
+              batchId,
+              batchTime,
+              imageUrl: postGoalPreviewImageUrl,
+              direction: resolvedDirection,
+              directionAngle: initialDirectionPlan.directionAngles[0],
+              postGoalContext
+            })
+          : null;
+
+      const generatedNodes = createGeneratedNodes({
         posts: data.posts || [],
         batchId,
         batchTime,
@@ -234,10 +301,14 @@ const PostStudio: React.FC<Props> = ({
         fallbackDelta: data.delta || fallbackDelta,
         similarity: resolvedSimilarity,
         direction: resolvedDirection,
+        directionAngles: initialDirectionPlan.directionAngles,
         selectedGridIndex,
         parentNode,
-        editOptions
+        editOptions,
+        indexOffset: seedNode ? 1 : 0,
+        postGoalContext
       });
+      const newNodes = seedNode ? [seedNode, ...generatedNodes] : generatedNodes;
 
       upsertNodes(newNodes);
 
@@ -257,12 +328,30 @@ const PostStudio: React.FC<Props> = ({
       const placeholderCount = actionType === 'edit' ? 1 : 4;
       const resolvedSimilarity = similarity ?? similarityLevel;
       const resolvedDirection = direction || initialDirectionPlan.brief;
+      const shouldSeedPreview =
+        actionType === 'initial' &&
+        !parentNodeId &&
+        Boolean(postGoalPreviewImageUrl) &&
+        historyNodes.size === 0 &&
+        currentGridBatchId === null;
       const fallbackDelta = buildFallbackDelta(
         actionType,
         editOptions,
         resolvedSimilarity,
         resolvedDirection
       );
+
+      const seedNode =
+        shouldSeedPreview && postGoalPreviewImageUrl
+          ? createSeedPreviewNode({
+              batchId,
+              batchTime,
+              imageUrl: postGoalPreviewImageUrl,
+              direction: resolvedDirection,
+              directionAngle: initialDirectionPlan.directionAngles[0],
+              postGoalContext
+            })
+          : null;
 
       const placeholderNodes = createPlaceholderNodes({
         batchId,
@@ -273,16 +362,20 @@ const PostStudio: React.FC<Props> = ({
         fallbackDelta,
         similarity: resolvedSimilarity,
         direction: resolvedDirection,
-        count: placeholderCount
+        directionAngles: initialDirectionPlan.directionAngles,
+        indexOffset: seedNode ? 1 : 0,
+        postGoalContext,
+        count: seedNode ? Math.max(0, placeholderCount - 1) : placeholderCount
       });
+      const fallbackNodes = seedNode ? [seedNode, ...placeholderNodes] : placeholderNodes;
 
-      upsertNodes(placeholderNodes);
+      upsertNodes(fallbackNodes);
 
       if (actionType === 'edit') {
-        setSelectedPost(placeholderNodes[0] ?? null);
+        setSelectedPost(fallbackNodes[0] ?? null);
         setViewMode('single');
       } else {
-        setCurrentGridPosts(placeholderNodes);
+        setCurrentGridPosts(fallbackNodes);
         setCurrentGridBatchId(batchId);
         setSelectedGridIndex(null);
         setSelectedPost(null);

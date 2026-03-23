@@ -273,6 +273,9 @@ function App() {
           postGoalTitle={selectedFolder.title}
           postGoalDescription={selectedFolder.description}
           postGoalTaxonomyTags={selectedFolder.taxonomyTags}
+          postGoalImageTypeChips={selectedFolder.imageTypeChips}
+          postGoalDirectionAngles={selectedFolder.directionAngles}
+          postGoalPreviewImageUrl={selectedFolder.previewImageUrl}
           referenceAssets={selectedFolder.referenceAssets}
           studioSession={studioSessionsByFolderId[selectedFolder.id] ?? null}
           onStudioSessionChange={session => handleUpdateStudioSession(selectedFolder.id, session)}

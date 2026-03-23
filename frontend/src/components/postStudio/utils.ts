@@ -1,4 +1,4 @@
-import type { Gen, PostNode } from '../history/types';
+import type { Gen, PostGoalContextMetadata, PostNode } from '../history/types';
 import type { PostGoalFolder } from '../../types/workspace';
 import type { EditOptions, PostStudioActionType } from './types';
 
@@ -76,8 +76,9 @@ export function buildInitialDirectionPlan({
   brandIdentity?: string;
   brandNarrative?: string;
   businessGoalTitle?: string;
-  folder: Pick<PostGoalFolder, 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'assistantPrompt'>;
+  folder: Pick<PostGoalFolder, 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'directionAngles' | 'assistantPrompt'>;
 }) {
+  const savedDirectionAngles = folder.directionAngles?.filter(Boolean).slice(0, 4) ?? [];
   const commonThemes = folder.imageTypeChips?.slice(0, 6) ?? [];
 
   const goalDescription = folder.description.trim();
@@ -89,12 +90,14 @@ export function buildInitialDirectionPlan({
   const angleC = commonThemes[2] ?? 'human presence';
   const angleD = commonThemes[3] ?? 'a memorable brand signal';
 
-  const directionAngles = [
-    `Hero-led Instagram composition showing ${folder.title.toLowerCase()} through ${angleA} in a clear, believable scene.`,
-    `Documentary-style post centered on ${angleB} so the brand feels active, grounded, and credible.`,
-    `Human-centered visual using ${angleC} to make ${contextLabel} feel emotionally legible.`,
-    `Editorial social post translating ${goalDescription.toLowerCase()} through ${angleD} and a strong visual hierarchy.`
-  ];
+  const directionAngles = savedDirectionAngles.length === 4
+    ? savedDirectionAngles
+    : [
+        `Hero-led Instagram composition showing ${folder.title.toLowerCase()} through ${angleA} in a clear, believable scene.`,
+        `Documentary-style post centered on ${angleB} so the brand feels active, grounded, and credible.`,
+        `Human-centered visual using ${angleC} to make ${contextLabel} feel emotionally legible.`,
+        `Editorial social post translating ${goalDescription.toLowerCase()} through ${angleD} and a strong visual hierarchy.`
+      ];
 
   const briefLines = [
     `Brand: ${brandName} (${brandCategory})`,
@@ -111,6 +114,43 @@ export function buildInitialDirectionPlan({
     brief: `${briefLines.join('\n')}\nCreate four distinct but coherent Instagram-ready directions for this post goal.`,
     directionAngles,
     commonThemes
+  };
+}
+
+export function createSeedPreviewNode({
+  batchId,
+  batchTime,
+  imageUrl,
+  direction,
+  directionAngle,
+  postGoalContext
+}: {
+  batchId: string;
+  batchTime: number;
+  imageUrl: string;
+  direction: string;
+  directionAngle?: string;
+  postGoalContext: PostGoalContextMetadata;
+}): PostNode {
+  return {
+    id: `${batchId}-0`,
+    imageUrl,
+    keywords: [],
+    vibe: '',
+    deltaFromParent: 'Seeded from the post-goal example image',
+    parentId: null,
+    actionType: 'initial',
+    timestamp: batchTime,
+    metadata: {
+      batchId,
+      parentBatchId: null,
+      similarity: 50,
+      direction,
+      directionAngle,
+      indexInBatch: 0,
+      seededFromPreview: true,
+      postGoalContext
+    }
   };
 }
 
@@ -152,9 +192,12 @@ export function createGeneratedNodes({
   fallbackDelta,
   similarity,
   direction,
+  directionAngles,
   selectedGridIndex,
   parentNode,
-  editOptions
+  editOptions,
+  indexOffset = 0,
+  postGoalContext
 }: {
   posts: any[];
   batchId: string;
@@ -165,12 +208,15 @@ export function createGeneratedNodes({
   fallbackDelta: string;
   similarity: number;
   direction: string;
+  directionAngles?: string[];
   selectedGridIndex: number | null;
   parentNode: PostNode | null;
   editOptions?: EditOptions;
+  indexOffset?: number;
+  postGoalContext?: PostGoalContextMetadata;
 }): PostNode[] {
   return (posts || []).map((post: any, index: number) => ({
-    id: `${batchId}-${index}`,
+    id: `${batchId}-${index + indexOffset}`,
     imageUrl: post.imageUrl,
     keywords: post.keywords || [],
     vibe: post.vibe || post.metadata?.vibe || '',
@@ -197,7 +243,9 @@ export function createGeneratedNodes({
       editAction: editOptions?.customEdit,
       similarity,
       direction,
-      indexInBatch: index
+      directionAngle: directionAngles?.[index + indexOffset],
+      indexInBatch: index + indexOffset,
+      postGoalContext
     }
   }));
 }
@@ -211,6 +259,9 @@ export function createPlaceholderNodes({
   fallbackDelta,
   similarity,
   direction,
+  directionAngles,
+  indexOffset = 0,
+  postGoalContext,
   count
 }: {
   batchId: string;
@@ -221,6 +272,9 @@ export function createPlaceholderNodes({
   fallbackDelta: string;
   similarity: number;
   direction: string;
+  directionAngles?: string[];
+  indexOffset?: number;
+  postGoalContext?: PostGoalContextMetadata;
   count: number;
 }): PostNode[] {
   const placeholderColors = ['3B82F6', '10B981', 'F59E0B', 'EF4444'];
@@ -238,7 +292,7 @@ export function createPlaceholderNodes({
   ];
 
   return Array.from({ length: count }, (_, index) => ({
-    id: `${batchId}-${index}`,
+    id: `${batchId}-${index + indexOffset}`,
     imageUrl: `https://via.placeholder.com/800x1000/${placeholderColors[index]}/ffffff?text=Post+${index + 1}`,
     keywords: placeholderKeywords[index] ?? placeholderKeywords[0],
     vibe: placeholderVibes[index] ?? placeholderVibes[0],
@@ -251,7 +305,9 @@ export function createPlaceholderNodes({
       parentBatchId,
       similarity,
       direction,
-      indexInBatch: index
+      directionAngle: directionAngles?.[index + indexOffset],
+      indexInBatch: index + indexOffset,
+      postGoalContext
     }
   }));
 }

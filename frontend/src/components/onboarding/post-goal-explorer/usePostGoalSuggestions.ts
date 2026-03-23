@@ -220,6 +220,7 @@ export function usePostGoalSuggestions({
                 description: suggestion.description?.trim() || 'A suggested image-post direction for this business goal.',
                 taxonomyTags: suggestion.taxonomyTags?.length ? suggestion.taxonomyTags : ['Custom'],
                 imageTypeChips: suggestion.imageTypeChips?.length ? suggestion.imageTypeChips : [],
+                directionAngles: suggestion.directionAngles?.length ? suggestion.directionAngles : [],
                 assistantPrompt:
                   suggestion.assistantPrompt?.trim() ||
                   `Create a post direction for ${suggestion.title?.trim() || `this ${businessGoal.title.toLowerCase()} goal`}.`,
@@ -334,6 +335,7 @@ export function usePostGoalSuggestions({
       title,
       description,
       imageTypeChips: goal.imageTypeChips,
+      directionAngles: goal.directionAngles,
       assistantPrompt: rationale
         ? `${goal.assistantPrompt} Context: ${rationale}`
         : goal.assistantPrompt,
@@ -419,6 +421,16 @@ export function usePostGoalSuggestions({
           baseGoal?.taxonomyTags ??
           (composer.inputMethod === 'reference' ? ['Experiential', 'Brand resonance'] : ['Custom']),
         imageTypeChips: baseGoal?.imageTypeChips ?? [],
+        directionAngles:
+          baseGoal?.directionAngles ??
+          (baseGoal?.imageTypeChips?.length
+            ? baseGoal.imageTypeChips.map(chip => `Instagram-ready image centered on ${chip} for ${title}.`).slice(0, 4)
+            : [
+                `Hero image introducing ${title}.`,
+                `Closer detail view for ${title}.`,
+                `Human-centered version of ${title}.`,
+                `Editorial composition for ${title}.`
+              ]),
         assistantPrompt:
           rationale
             ? `${baseGoal?.assistantPrompt ?? `Create a post direction for ${title}.`} Context: ${rationale}`

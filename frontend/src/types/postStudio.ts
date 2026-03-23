@@ -7,4 +7,5 @@ export interface PostGoalStudioSession {
   lastGeneratedAt: number | null;
   seedDirection: string;
   directionAngles: string[];
+  seedPreviewImageUrl?: string | null;
 }

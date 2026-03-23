@@ -12,7 +12,8 @@ export async function requestPostGeneration({
   direction,
   directionAngles,
   actionType,
-  editOptions
+  editOptions,
+  numImages
 }: {
   brandName: string;
   brandCategory: string;
@@ -24,6 +25,7 @@ export async function requestPostGeneration({
   directionAngles?: string[];
   actionType: PostStudioActionType;
   editOptions?: EditOptions;
+  numImages?: number;
 }) {
   const response = await apiFetch('/api/generate-post-images', {
     method: 'POST',
@@ -46,7 +48,7 @@ export async function requestPostGeneration({
       directionAngles,
       actionType,
       editOptions,
-      numImages: actionType === 'edit' ? 1 : 4
+      numImages: numImages ?? (actionType === 'edit' ? 1 : 4)
     })
   });
 

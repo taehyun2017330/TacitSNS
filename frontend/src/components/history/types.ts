@@ -11,6 +11,18 @@ export interface SelectionMetadata {
   indexInGrid?: number;
 }
 
+export interface PostGoalContextMetadata {
+  brandName: string;
+  brandCategory: string;
+  brandIdentity?: string;
+  brandNarrative?: string;
+  businessGoalTitle?: string;
+  postGoalTitle?: string;
+  postGoalDescription?: string;
+  imageTypeChips?: string[];
+  directionAngles?: string[];
+}
+
 export interface PostNodeMetadata {
   batchId: string;
   parentBatchId: string | null;
@@ -18,7 +30,10 @@ export interface PostNodeMetadata {
   editAction?: string;
   similarity?: number;
   direction?: string;
+  directionAngle?: string;
   indexInBatch?: number;
+  seededFromPreview?: boolean;
+  postGoalContext?: PostGoalContextMetadata;
 }
 
 export interface DeltaDetails {
