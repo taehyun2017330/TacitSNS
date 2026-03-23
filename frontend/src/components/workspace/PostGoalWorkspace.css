@@ -175,7 +175,7 @@
 .post-goal-browser-item:hover .post-goal-browser-item-topline,
 .post-goal-browser-item:hover .post-goal-browser-item-overlay,
 .post-goal-browser-item:hover .post-goal-browser-item-loading-label {
-  opacity: 0.15;
+  opacity: 0;
 }
 
 .post-goal-browser-item:hover .post-goal-browser-item-overlay {
