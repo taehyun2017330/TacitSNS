@@ -12,7 +12,6 @@ interface Props {
   selectedGoalId: string | null;
   isLoadingSuggestions: boolean;
   suggestionSource: 'ai' | 'fallback';
-  promptPreview: string;
   onSelectGoal: (goal: BusinessGoalOption) => void;
   onAddCustomGoal: (goal: BusinessGoalOption) => void;
   onUpdateGoal: (goal: BusinessGoalOption) => void;
@@ -24,7 +23,6 @@ const BusinessGoalSelector: React.FC<Props> = ({
   selectedGoalId,
   isLoadingSuggestions,
   suggestionSource,
-  promptPreview,
   onSelectGoal,
   onAddCustomGoal,
   onUpdateGoal,
@@ -117,24 +115,30 @@ const BusinessGoalSelector: React.FC<Props> = ({
           <div className="section-kicker">Suggested business goals</div>
           <p>
             {isLoadingSuggestions
-              ? 'AI is reviewing your brand narrative and choosing three business goals that can lead naturally into post goals next.'
+              ? 'AI is reviewing your brand narrative and shaping three suggested business goals.'
               : suggestionSource === 'ai'
-                ? 'AI recommended these business goals from your brand narrative and the next post-goal step.'
+                ? 'These business goals were suggested from your brand narrative and will lead into post goals next.'
                 : 'AI is unavailable right now, so these local suggestions are based on your brand narrative.'}
           </p>
         </div>
 
         {isLoadingSuggestions ? (
-          <div className="goal-selector-loading">
-            <div className="goal-selector-loading-eyebrow">Calling AI business design manager</div>
-            <h4>Generating suggested business goals…</h4>
-            <p>
-              These suggestions will shape the post-goal directions you choose next.
-            </p>
-            <div className="goal-selector-prompt-preview">
-              <div className="goal-selector-prompt-label">Prompt sent to AI</div>
-              <pre>{promptPreview}</pre>
-            </div>
+          <div className="goal-selector-loading-grid" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <article key={index} className="goal-card goal-card--recommended goal-card--loading">
+                <div className="goal-card-topline">
+                  <span className="goal-card-corner-note">Recommended</span>
+                </div>
+                <div className="goal-loading-line goal-loading-line--title" />
+                <div className="goal-loading-line goal-loading-line--body" />
+                <div className="goal-loading-line goal-loading-line--body goal-loading-line--short" />
+                <div className="goal-card-rationale-block">
+                  <div className="goal-card-rationale-label">Why this fits</div>
+                  <div className="goal-loading-line goal-loading-line--body" />
+                  <div className="goal-loading-line goal-loading-line--body goal-loading-line--short" />
+                </div>
+              </article>
+            ))}
           </div>
         ) : (
           <div className="goal-selector-recommended-grid">

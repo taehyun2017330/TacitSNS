@@ -48,10 +48,7 @@ def get_openai_client() -> OpenAI:
 
 
 def build_business_goal_prompt(payload: Dict[str, Any]) -> str:
-    allowed_goals = "\n".join(
-        f'- {goal["id"]}: {goal["title"]} — {goal["description"]}'
-        for goal in BUSINESS_GOAL_LIBRARY
-    )
+    shared_goal_ids = ", ".join(goal["id"] for goal in BUSINESS_GOAL_LIBRARY)
 
     return f"""
 You are a senior business design manager for a novice-friendly social media planning tool.
@@ -67,25 +64,26 @@ Industry: {payload.get("brandCategory", "business")}
 Brand identity: {payload.get("brandIdentity", "")}
 Brand narrative: {payload.get("brandNarrative", "")}
 
-Choose only from these allowed goal buckets:
-{allowed_goals}
-
 Requirements:
 - Return exactly 3 distinct goals.
-- Use only the allowed ids above.
-- Keep the canonical goal title for each chosen id.
+- Infer the actual business goals from the brand narrative. Do not just repeat generic bucket labels unless they are truly the clearest wording.
+- Each goal title should sound like a meaningful strategy direction a business owner would understand immediately.
 - Write one concise description for what success would look like for this brand in SNS marketing.
 - Write one concise rationale for why this goal fits this specific brand narrative.
 - Think one step ahead: the selected business goal should support concrete post-goal generation next.
+- Also include a hidden internal mapping field named "closestSharedGoalId" so the next post-goal step can continue smoothly.
+- "closestSharedGoalId" must be one of: {shared_goal_ids}
 - Avoid generic filler language.
 
 Return strict JSON:
 {{
   "suggestions": [
     {{
-      "id": "trust",
+      "id": "build-premium-trust",
+      "title": "Build premium trust",
       "description": "One concise sentence explaining the business outcome for this brand.",
-      "rationale": "One concise sentence explaining why this goal fits the brand narrative."
+      "rationale": "One concise sentence explaining why this goal fits the brand narrative.",
+      "closestSharedGoalId": "trust"
     }}
   ]
 }}
@@ -116,35 +114,48 @@ async def suggest_business_goals(payload: Dict[str, Any]) -> BusinessGoalSuggest
     parsed = json.loads(content)
     suggestions = parsed.get("suggestions") or []
     if not isinstance(suggestions, list):
-      suggestions = []
+        suggestions = []
 
     allowed_by_id = {goal["id"]: goal for goal in BUSINESS_GOAL_LIBRARY}
     sanitized = []
-    seen_ids = set()
+    seen_titles = set()
 
     for item in suggestions:
         if not isinstance(item, dict):
             continue
 
-        goal_id = str(item.get("id") or "").strip()
-        goal_definition = allowed_by_id.get(goal_id)
-        if not goal_definition or goal_id in seen_ids:
+        title = str(item.get("title") or "").strip()
+        if not title:
             continue
 
-        description = str(item.get("description") or goal_definition["description"]).strip()
-        rationale = str(item.get("rationale") or "").strip()
-        if not rationale:
+        normalized_title = title.lower()
+        if normalized_title in seen_titles:
             continue
+
+        description = str(item.get("description") or "").strip()
+        rationale = str(item.get("rationale") or "").strip()
+        shared_goal_id = str(item.get("closestSharedGoalId") or "").strip()
+        if not description or not rationale or shared_goal_id not in allowed_by_id:
+            continue
+
+        goal_id = str(item.get("id") or "").strip()
+        if not goal_id:
+            goal_id = title.lower().replace("'", "").replace("&", "and")
+            goal_id = "-".join(part for part in goal_id.split() if part)
+            goal_id = "".join(character for character in goal_id if character.isalnum() or character == "-").strip("-")
+            if not goal_id:
+                goal_id = f"business-goal-{len(sanitized) + 1}"
 
         sanitized.append(
             {
                 "id": goal_id,
-                "title": goal_definition["title"],
+                "title": title,
                 "description": description,
                 "rationale": rationale,
+                "closestSharedGoalId": shared_goal_id,
             }
         )
-        seen_ids.add(goal_id)
+        seen_titles.add(normalized_title)
 
     if len(sanitized) != 3:
         raise ValueError("Business goal suggestion generation returned an incomplete set")
@@ -153,5 +164,4 @@ async def suggest_business_goals(payload: Dict[str, Any]) -> BusinessGoalSuggest
         suggestions=sanitized,
         source="ai",
         model=MODEL_NAME,
-        prompt=prompt,
     )

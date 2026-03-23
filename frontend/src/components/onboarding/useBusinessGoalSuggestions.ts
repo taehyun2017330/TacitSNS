@@ -3,7 +3,8 @@ import { startTransition, useEffect, useMemo, useState } from 'react';
 import { ApiUnavailableError, apiFetch } from '../../config/api';
 import {
   getBusinessGoalLibrary,
-  inferBusinessGoalOptions
+  inferBusinessGoalOptions,
+  normalizeBusinessGoalInput
 } from '../../data/goalHierarchy';
 import type { BrandData } from '../../types/brand';
 import type { BusinessGoalOption } from '../../types/workspace';
@@ -16,58 +17,40 @@ interface Args {
   enabled: boolean;
 }
 
-function buildBusinessGoalPromptPreview(brand: BrandData) {
-  const allowedGoals = getBusinessGoalLibrary()
-    .map(goal => `- ${goal.id}: ${goal.title} — ${goal.description}`)
-    .join('\n');
-
-  return [
-    'You are a senior business design manager for a novice-friendly social media planning tool.',
-    '',
-    'Recommend exactly 3 BUSINESS GOALS for this brand.',
-    'A business goal is the broader outcome SNS marketing should support.',
-    'The next step after this will be POST GOALS: specific kinds of posts and image directions.',
-    'Choose goals that will naturally lead into strong post-goal exploration later.',
-    '',
-    `Brand name: ${brand.name || 'your brand'}`,
-    `Industry: ${brand.category || 'business'}`,
-    `Brand identity: ${brand.identity || ''}`,
-    `Brand narrative: ${brand.description || ''}`,
-    '',
-    'Choose only from these allowed goal buckets:',
-    allowedGoals,
-    '',
-    'Return strict JSON with 3 items containing: id, description, rationale.'
-  ].join('\n');
-}
-
 function mergeAiSuggestionsWithLibrary(
   suggestions: Array<{
     id: string;
-    title?: string;
-    description?: string;
-    rationale?: string;
+    title: string;
+    description: string;
+    rationale: string;
+    closestSharedGoalId?: string;
   }>
 ) {
   const definitionsById = new Map(getBusinessGoalLibrary().map(goal => [goal.id, goal]));
 
   return suggestions
     .map((suggestion, index) => {
-      const definition = definitionsById.get(suggestion.id);
-      if (!definition) {
-        return null;
-      }
+      const inferredMapping = normalizeBusinessGoalInput(
+        `${suggestion.title} ${suggestion.description} ${suggestion.rationale}`
+      );
+      const mappedGoalId = suggestion.closestSharedGoalId || inferredMapping.mappedGoalId;
+      const mappedDefinition = mappedGoalId ? definitionsById.get(mappedGoalId) : undefined;
+      const normalizedId =
+        suggestion.id?.trim() ||
+        suggestion.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') ||
+        `ai-business-goal-${index + 1}`;
 
       return {
-        id: definition.id,
-        title: definition.title,
-        description: suggestion.description?.trim() || definition.description,
-        rationale: suggestion.rationale?.trim() || definition.fallbackRationale,
+        id: normalizedId,
+        title: suggestion.title.trim(),
+        description: suggestion.description.trim(),
+        rationale: suggestion.rationale.trim(),
         rank: index + 1,
-        isRecommended: true
+        isRecommended: true,
+        mappedGoalId,
+        mappedGoalTitle: mappedDefinition?.title
       } satisfies BusinessGoalOption;
     })
-    .filter((goal): goal is BusinessGoalOption => goal !== null)
     .slice(0, 3);
 }
 
@@ -79,7 +62,6 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
   const [suggestedGoals, setSuggestedGoals] = useState<BusinessGoalOption[]>(fallbackSuggestedGoals);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [suggestionSource, setSuggestionSource] = useState<SuggestionSource>('fallback');
-  const [promptPreview, setPromptPreview] = useState('');
   const [lastFetchedSignature, setLastFetchedSignature] = useState('');
 
   const sourceSignature = useMemo(
@@ -97,9 +79,6 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
     }
 
     let cancelled = false;
-    const prompt = buildBusinessGoalPromptPreview(brand);
-
-    setPromptPreview(prompt);
     setIsLoadingSuggestions(true);
 
     const fetchSuggestions = async () => {
@@ -122,12 +101,12 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
         const payload = await response.json() as {
           suggestions?: Array<{
             id: string;
-            title?: string;
-            description?: string;
-            rationale?: string;
+            title: string;
+            description: string;
+            rationale: string;
+            closestSharedGoalId?: string;
           }>;
           source?: SuggestionSource;
-          prompt?: string;
         };
 
         const normalized = mergeAiSuggestionsWithLibrary(payload.suggestions ?? []);
@@ -139,7 +118,6 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
           startTransition(() => {
             setSuggestedGoals(normalized);
             setSuggestionSource('ai');
-            setPromptPreview(payload.prompt || prompt);
             setLastFetchedSignature(sourceSignature);
           });
         }
@@ -179,7 +157,6 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
   return {
     suggestedGoals,
     isLoadingSuggestions,
-    suggestionSource,
-    promptPreview
+    suggestionSource
   };
 }

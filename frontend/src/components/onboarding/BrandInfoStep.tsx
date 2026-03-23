@@ -70,8 +70,7 @@ const BrandInfoStep: React.FC<Props> = ({
   const {
     suggestedGoals,
     isLoadingSuggestions: isLoadingBusinessGoals,
-    suggestionSource: businessGoalSuggestionSource,
-    promptPreview: businessGoalPromptPreview
+    suggestionSource: businessGoalSuggestionSource
   } = useBusinessGoalSuggestions({
     brand: brandData,
     enabled: currentStep === 'goals'
@@ -261,7 +260,6 @@ const BrandInfoStep: React.FC<Props> = ({
     selectedBusinessGoal,
     isLoadingBusinessGoals,
     businessGoalSuggestionSource,
-    businessGoalPromptPreview,
     postGoalFolders,
     industryPickerOpen,
     isCustomIndustry,

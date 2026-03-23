@@ -107,10 +107,10 @@ class BusinessGoalSuggestionItem(BaseModel):
     title: str
     description: str
     rationale: str
+    closestSharedGoalId: Optional[str] = None
 
 
 class BusinessGoalSuggestionResponse(BaseModel):
     suggestions: List[BusinessGoalSuggestionItem] = Field(default_factory=list)
     source: str = "ai"
     model: Optional[str] = None
-    prompt: str = ""

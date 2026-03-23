@@ -510,60 +510,49 @@
   max-width: 42rem;
 }
 
-.goal-selector-loading {
+.goal-selector-loading-grid {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.8rem;
-  padding: 1.05rem 1.1rem;
-  border-radius: 1.1rem;
-  border: 1px solid rgba(97, 81, 59, 0.1);
-  background: rgba(255, 252, 247, 0.94);
-  box-shadow: 0 12px 24px rgba(31, 28, 25, 0.04);
 }
 
-.goal-selector-loading-eyebrow,
-.goal-selector-prompt-label {
-  color: var(--ink-soft);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.goal-card--loading {
+  pointer-events: none;
 }
 
-.goal-selector-loading h4 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: var(--ink-strong);
+.goal-loading-line {
+  height: 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 229, 217, 0.76) 0%,
+    rgba(249, 245, 238, 0.98) 50%,
+    rgba(236, 229, 217, 0.76) 100%
+  );
+  background-size: 200% 100%;
+  animation: goal-loading-shimmer 1.4s ease-in-out infinite;
 }
 
-.goal-selector-loading p {
-  margin: 0;
-  color: var(--ink-soft);
-  line-height: 1.55;
-  max-width: 42rem;
+.goal-loading-line--title {
+  height: 1.45rem;
+  width: 72%;
 }
 
-.goal-selector-prompt-preview {
-  display: grid;
-  gap: 0.4rem;
-  padding: 0.9rem 1rem;
-  border-radius: 1rem;
-  background: rgba(247, 241, 232, 0.72);
-  border: 1px solid rgba(97, 81, 59, 0.08);
+.goal-loading-line--body {
+  width: 100%;
 }
 
-.goal-selector-prompt-preview pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--ink-body);
-  font-size: 0.82rem;
-  line-height: 1.55;
-  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  max-height: 18rem;
-  overflow: auto;
+.goal-loading-line--short {
+  width: 78%;
+}
+
+@keyframes goal-loading-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .goal-selector-empty-note {
@@ -875,7 +864,8 @@
 @media (max-width: 1080px) {
   .post-goal-browser,
   .post-goal-detail-layout,
-  .goal-selector-recommended-grid {
+  .goal-selector-recommended-grid,
+  .goal-selector-loading-grid {
     grid-template-columns: 1fr;
   }
 
