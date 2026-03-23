@@ -23,7 +23,6 @@ function mergeAiSuggestionsWithLibrary(
     title: string;
     description: string;
     rationale: string;
-    closestSharedGoalId?: string;
   }>
 ) {
   const definitionsById = new Map(getBusinessGoalLibrary().map(goal => [goal.id, goal]));
@@ -33,7 +32,7 @@ function mergeAiSuggestionsWithLibrary(
       const inferredMapping = normalizeBusinessGoalInput(
         `${suggestion.title} ${suggestion.description} ${suggestion.rationale}`
       );
-      const mappedGoalId = suggestion.closestSharedGoalId || inferredMapping.mappedGoalId;
+      const mappedGoalId = inferredMapping.mappedGoalId;
       const mappedDefinition = mappedGoalId ? definitionsById.get(mappedGoalId) : undefined;
       const normalizedId =
         suggestion.id?.trim() ||
@@ -104,7 +103,6 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
             title: string;
             description: string;
             rationale: string;
-            closestSharedGoalId?: string;
           }>;
           source?: SuggestionSource;
         };
