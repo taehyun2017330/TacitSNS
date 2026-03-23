@@ -1,8 +1,18 @@
 import type { PostGoalReferenceAsset, PostGoalSuggestion } from '../../../types/workspace';
 
+export const DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND =
+  'linear-gradient(135deg, #233f3c 0%, #5d746d 42%, #d9c3ad 100%)';
+
 export type PostGoalPreviewSlide = {
   id: string;
   format: string;
+  kicker: string;
+  headline: string;
+  caption: string;
+};
+
+export type PostGoalPrimaryPreview = {
+  id: string;
   kicker: string;
   headline: string;
   caption: string;
@@ -251,6 +261,99 @@ export function buildPreviewSlides(goal: PostGoalSuggestion): PostGoalPreviewSli
   });
 
   return slides.slice(0, 4);
+}
+
+export function buildPrimaryPreview(goal: PostGoalSuggestion): PostGoalPrimaryPreview {
+  const taxonomySlide = goal.taxonomyTags
+    .flatMap(tag => TAXONOMY_PREVIEW_LIBRARY[tag] ?? [])
+    .find(Boolean);
+
+  const fallbackSlide = DEFAULT_PREVIEW_SLIDES[0];
+  const baseSlide = taxonomySlide ?? fallbackSlide;
+
+  return {
+    id: `${goal.id}-cover`,
+    kicker: goal.previewTitle || goal.title,
+    headline: baseSlide?.headline || goal.title,
+    caption: baseSlide?.caption || goal.previewCaption || goal.description
+  };
+}
+
+function parseHexColors(background: string) {
+  return Array.from(background.matchAll(/#([0-9a-fA-F]{6})/g)).map(match => match[1]);
+}
+
+function getLuminance(hex: string) {
+  const rgb = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255);
+  const linear = rgb.map(channel =>
+    channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  );
+
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+export function getPreviewTextTone(background: string) {
+  const colors = parseHexColors(background);
+
+  if (colors.length === 0) {
+    return 'light';
+  }
+
+  const averageLuminance =
+    colors.reduce((total, color) => total + getLuminance(color), 0) / colors.length;
+
+  return averageLuminance > 0.46 ? 'dark' : 'light';
+}
+
+export function detectImageTextTone(imageUrl: string): Promise<'light' | 'dark'> {
+  return new Promise(resolve => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+
+    image.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        if (!context) {
+          resolve('light');
+          return;
+        }
+
+        canvas.width = 24;
+        canvas.height = 24;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+        let totalLuminance = 0;
+        let sampledPixels = 0;
+
+        for (let index = 0; index < data.length; index += 4) {
+          const alpha = data[index + 3] / 255;
+          if (alpha < 0.08) {
+            continue;
+          }
+
+          const red = data[index] / 255;
+          const green = data[index + 1] / 255;
+          const blue = data[index + 2] / 255;
+          const linear = [red, green, blue].map(channel =>
+            channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+          );
+
+          totalLuminance += 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+          sampledPixels += 1;
+        }
+
+        resolve(sampledPixels > 0 && totalLuminance / sampledPixels > 0.46 ? 'dark' : 'light');
+      } catch {
+        resolve('light');
+      }
+    };
+
+    image.onerror = () => resolve('light');
+    image.src = imageUrl;
+  });
 }
 
 export async function createReferenceAssetFromFile(file: File): Promise<PostGoalReferenceAsset> {

@@ -1,7 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import type { PostGoalSuggestion } from '../../../types/workspace';
-import { buildPrimaryPreview, getPreviewTextTone } from './postGoalExplorer.utils';
+import {
+  buildPrimaryPreview,
+  DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND,
+  detectImageTextTone
+} from './postGoalExplorer.utils';
 
 interface Props {
   goal: PostGoalSuggestion;
@@ -10,7 +14,28 @@ interface Props {
 
 const PostGoalExampleGallery: React.FC<Props> = ({ goal, isLoading = false }) => {
   const preview = useMemo(() => buildPrimaryPreview(goal), [goal]);
-  const textTone = useMemo(() => getPreviewTextTone(goal.previewBackground), [goal.previewBackground]);
+  const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!goal.previewImageUrl) {
+      setTextTone('light');
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void detectImageTextTone(goal.previewImageUrl).then(nextTone => {
+      if (!cancelled) {
+        setTextTone(nextTone);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [goal.previewImageUrl]);
 
   if (!preview) {
     return null;
@@ -28,7 +53,7 @@ const PostGoalExampleGallery: React.FC<Props> = ({ goal, isLoading = false }) =>
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }
-              : { background: goal.previewBackground }
+              : { background: DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND }
           }
         >
           <div className="post-goal-preview-kicker">Example</div>
