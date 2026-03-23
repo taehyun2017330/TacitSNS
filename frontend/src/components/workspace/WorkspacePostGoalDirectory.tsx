@@ -83,7 +83,7 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                           <div
                             className="workspace-hub-folder-preview"
                             style={
-                              folder.referenceAssets?.[0]
+                              folder.referenceAssets?.[0] && folder.source !== 'custom'
                                 ? {
                                     backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.08) 0%, rgba(25, 25, 24, 0.42) 100%), url(${folder.referenceAssets[0].dataUrl})`,
                                     backgroundSize: 'cover',

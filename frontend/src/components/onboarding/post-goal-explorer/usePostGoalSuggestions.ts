@@ -431,7 +431,6 @@ export function usePostGoalSuggestions({
                 : `Create a post direction for ${title}.`),
         previewTitle: title,
         previewCaption: description,
-        previewImageUrl: composer.referenceAssets[0]?.dataUrl ?? baseGoal?.previewImageUrl,
         previewBackground:
           baseGoal?.previewBackground ??
           'linear-gradient(135deg, #35514d 0%, #8ca198 42%, #f1e5d5 100%)',

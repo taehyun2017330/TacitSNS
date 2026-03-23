@@ -27,7 +27,7 @@ const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostG
             <div
               className="post-goal-selected-card-visual"
               style={
-                folder.referenceAssets?.[0]
+                folder.referenceAssets?.[0] && folder.source !== 'custom'
                   ? {
                       backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.12) 0%, rgba(25, 25, 24, 0.55) 100%), url(${folder.referenceAssets[0].dataUrl})`,
                       backgroundSize: 'cover',
