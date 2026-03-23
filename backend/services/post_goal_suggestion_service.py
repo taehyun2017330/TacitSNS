@@ -78,7 +78,9 @@ async def generate_post_goal_suggestions(payload: Dict[str, Any]) -> PostGoalSug
     fallback = build_fallback_suggestions(payload)
 
     prompt = f"""
-You are suggesting post goals for a social media onboarding flow.
+You are an expert social media strategist and visual design director helping a novice brand owner decide what kinds of posts to explore next.
+
+Your job is to propose 4 post goals that feel specific, visually actionable, and strategically grounded in the brand context below.
 
 Brand name: {payload.get("brandName", "your brand")}
 Industry: {payload.get("brandCategory", "business")}
@@ -90,15 +92,40 @@ Chosen business goal:
 - Meaning: {payload.get("businessGoalDescription", "")}
 - Why it fits: {payload.get("businessGoalRationale", "")}
 
-Suggest 4 POST GOALS, not business goals.
-- A business goal is why the brand is using social media.
-- A post goal is a specific kind of image post to explore next.
-- Make the post goals concrete enough that a novice can imagine a post direction.
+Create 4 POST GOALS.
+A post goal is a concrete image direction the user could explore next, not a broad business objective.
+Each one should sound like a plausible folder the user would click into to generate images.
+
+Use this taxonomy as inspiration when shaping the suggestions. You may combine multiple categories when appropriate.
+
+- Emotional brand posts: evoke emotion through emotionally worded framing, inspiring stories, humor, jokes, or trivia.
+- Functional brand posts: highlight product or service performance, quality, affordability, design, style, reviews, awards, or green credentials.
+- Educational brand posts: teach people something through tips, instructions, tutorials, blog-style information, outside articles, or expert explanations.
+- Brand resonance: reinforce the brand promise and identity through brand image, personality, associations, branded products, slogans, symbols, celebrities, or brand history.
+- Experiential brand posts: emphasize sensory qualities, physical action, lived use, events, performances, or pleasurable experiences around the brand.
+- Current event: connect the brand to seasons, weather, holidays, anniversaries, sports, film, TV, or other timely cultural moments.
+- Personal brand posts: connect to personal preferences, anecdotes, family, friendship, future plans, or personally meaningful situations.
+- Employee brand posts: spotlight employees, founders, makers, experts, philosophies, hobbies, or behind-the-scenes perspectives.
+- Brand community: reinforce participation, membership, fan identity, user-generated content, or community recognition.
+- Customer relationship: invite feedback, reviews, testimony, service, needs, expectations, or customer conversation.
+- Cause-related brand posts: highlight social causes, initiatives, programs, or values the brand supports.
+- Sales promotion: encourage buying action with offers, discounts, launches, free samples, contests, or product competition.
+
+Requirements:
 - Stay grounded in the chosen business goal and brand narrative.
-- Use only these taxonomy tags when relevant:
+- Make each post goal concrete enough that a novice can imagine the image.
+- Vary the set. Do not return 4 versions of the same idea.
+- Use only taxonomy tags from this list:
   Emotional, Functional, Educational, Brand resonance, Experiential, Current event,
   Personal brand posts, Employee, Brand community, Customer relationship,
   Cause-related brand posts, Sales promotion
+- Think like a strategist and an art director at the same time:
+  each suggestion should imply what the image would show, not just what it would communicate.
+- The assistantPrompt should read like a concise image-generation brief:
+  mention likely subject matter, composition focus, mood, and what should be visually emphasized.
+- If the brand appears to sell a tangible product or a visually identifiable offering, at least 1 suggestion should be product-centered or product-visible.
+- If the narrative emphasizes representation, diversity, community, trust, care, quality, ingredients, or performance, reflect that in at least one suggestion where relevant.
+- Avoid generic marketing filler such as "engaging content", "boost visibility", or "connect with audiences".
 
 Return strict JSON:
 {{
@@ -108,7 +135,7 @@ Return strict JSON:
       "title": "Post goal title",
       "description": "One short sentence describing what kind of image post this becomes.",
       "taxonomyTags": ["Tag A", "Tag B"],
-      "assistantPrompt": "One sentence that later guides image generation."
+      "assistantPrompt": "A concise image-generation brief for this direction."
     }}
   ]
 }}
@@ -122,7 +149,7 @@ Return strict JSON:
             messages=[
                 {
                     "role": "system",
-                    "content": "Generate novice-friendly post-goal suggestions. Do not output business goals or generic marketing jargon.",
+                    "content": "You are a senior social strategist and visual design lead. Recommend image-led post goals that are concrete, tasteful, and strategically grounded.",
                 },
                 {
                     "role": "user",
