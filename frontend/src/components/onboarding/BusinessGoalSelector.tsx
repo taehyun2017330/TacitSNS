@@ -4,20 +4,31 @@ import {
   normalizeBusinessGoalInput
 } from '../../data/goalHierarchy';
 import type { BusinessGoalOption } from '../../types/workspace';
+import InlineEditableText from './InlineEditableText';
 import '../workspace/PostGoalWorkspace.css';
 
 interface Props {
   options: BusinessGoalOption[];
   selectedGoalId: string | null;
+  isLoadingSuggestions: boolean;
+  suggestionSource: 'ai' | 'fallback';
+  promptPreview: string;
   onSelectGoal: (goal: BusinessGoalOption) => void;
   onAddCustomGoal: (goal: BusinessGoalOption) => void;
+  onUpdateGoal: (goal: BusinessGoalOption) => void;
+  onRemoveCustomGoal: (goalId: string) => void;
 }
 
 const BusinessGoalSelector: React.FC<Props> = ({
   options,
   selectedGoalId,
+  isLoadingSuggestions,
+  suggestionSource,
+  promptPreview,
   onSelectGoal,
-  onAddCustomGoal
+  onAddCustomGoal,
+  onUpdateGoal,
+  onRemoveCustomGoal
 }) => {
   const [customGoalTitle, setCustomGoalTitle] = useState('');
   const [customGoalDescription, setCustomGoalDescription] = useState('');
@@ -31,17 +42,15 @@ const BusinessGoalSelector: React.FC<Props> = ({
         .slice(0, 3),
     [options]
   );
-  const libraryGoals = useMemo(
-    () =>
-      options.filter(
-        goal => !goal.isCustom && !recommendedGoals.some(recommendedGoal => recommendedGoal.id === goal.id)
-      ),
-    [options, recommendedGoals]
-  );
   const customGoals = useMemo(
     () => options.filter(goal => goal.isCustom),
     [options]
   );
+  const [draftByGoalId, setDraftByGoalId] = useState<Record<string, {
+    title: string;
+    description: string;
+    rationale: string;
+  }>>({});
 
   const resetComposer = () => {
     setCustomGoalTitle('');
@@ -56,83 +65,129 @@ const BusinessGoalSelector: React.FC<Props> = ({
       return;
     }
 
-    onAddCustomGoal(
-      normalizeBusinessGoalInput(trimmed, {
+    const normalizedGoal = normalizeBusinessGoalInput(trimmed, {
         description: customGoalDescription,
         rationale: customGoalRationale
-      })
-    );
+      });
+    const uniqueGoal = options.some(goal => goal.id === normalizedGoal.id)
+      ? { ...normalizedGoal, id: `${normalizedGoal.id}-${Date.now()}` }
+      : normalizedGoal;
+
+    onAddCustomGoal(uniqueGoal);
     resetComposer();
+  };
+
+  const getGoalDraft = (goal: BusinessGoalOption) =>
+    draftByGoalId[goal.id] ?? {
+      title: goal.title,
+      description: goal.description,
+      rationale: goal.rationale
+    };
+
+  const updateGoalDraft = (
+    goal: BusinessGoalOption,
+    field: 'title' | 'description' | 'rationale',
+    value: string
+  ) => {
+    setDraftByGoalId(prev => ({
+      ...prev,
+      [goal.id]: {
+        title: prev[goal.id]?.title ?? goal.title,
+        description: prev[goal.id]?.description ?? goal.description,
+        rationale: prev[goal.id]?.rationale ?? goal.rationale,
+        [field]: value
+      }
+    }));
+  };
+
+  const applyGoalDraft = (goal: BusinessGoalOption) => {
+    const draft = getGoalDraft(goal);
+    onUpdateGoal({
+      ...goal,
+      title: draft.title.trim() || goal.title,
+      description: draft.description.trim() || goal.description,
+      rationale: draft.rationale.trim() || goal.rationale
+    });
   };
 
   return (
     <div className="goal-selector">
-      <div className="goal-selector-header">
-        <div className="section-kicker">Business goal</div>
-        <h3>What is the main reason for using SNS marketing right now?</h3>
-        <p>
-          Choose the main reason this brand is posting on social media right now. Post directions come next.
-        </p>
-      </div>
-
       <section className="goal-selector-section">
         <div className="goal-selector-section-header">
           <div className="section-kicker">Suggested business goals</div>
-          <p>Based on your brand narrative, we brought some suggestions for your business goals.</p>
+          <p>
+            {isLoadingSuggestions
+              ? 'AI is reviewing your brand narrative and choosing three business goals that can lead naturally into post goals next.'
+              : suggestionSource === 'ai'
+                ? 'AI recommended these business goals from your brand narrative and the next post-goal step.'
+                : 'AI is unavailable right now, so these local suggestions are based on your brand narrative.'}
+          </p>
         </div>
 
-        <div className="goal-selector-recommended-grid">
-          {recommendedGoals.map(goal => {
-            const isSelected = selectedGoalId === goal.id;
+        {isLoadingSuggestions ? (
+          <div className="goal-selector-loading">
+            <div className="goal-selector-loading-eyebrow">Calling AI business design manager</div>
+            <h4>Generating suggested business goals…</h4>
+            <p>
+              These suggestions will shape the post-goal directions you choose next.
+            </p>
+            <div className="goal-selector-prompt-preview">
+              <div className="goal-selector-prompt-label">Prompt sent to AI</div>
+              <pre>{promptPreview}</pre>
+            </div>
+          </div>
+        ) : (
+          <div className="goal-selector-recommended-grid">
+            {recommendedGoals.map(goal => {
+              const isSelected = selectedGoalId === goal.id;
 
-            return (
-              <button
-                type="button"
-                key={goal.id}
-                className={`goal-card goal-card--recommended ${isSelected ? 'is-selected' : ''}`}
-                onClick={() => onSelectGoal(goal)}
-              >
-                <div className="goal-card-topline">
-                  <span className="goal-card-corner-note">Recommended</span>
-                  {isSelected && (
-                    <span className="goal-card-selection-note">
-                      {goal.isCustom ? 'Selected custom goal' : 'Selected'}
-                    </span>
-                  )}
-                </div>
-                <div className="goal-card-title">{goal.title}</div>
-                <div className="goal-card-description">{goal.description}</div>
-                <div className="goal-card-rationale">
-                  <strong>Why this fits:</strong> {goal.rationale}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="goal-selector-section goal-selector-section--compact">
-        <div className="goal-selector-section-header">
-          <div className="section-kicker">Other ways to frame it</div>
-          <p>If these suggestions missed the mark, choose another broad marketing intention.</p>
-        </div>
-
-        <div className="goal-pill-row">
-          {libraryGoals.map(goal => {
-            const isSelected = selectedGoalId === goal.id;
-
-            return (
-              <button
-                type="button"
-                key={goal.id}
-                className={`goal-pill ${isSelected ? 'is-selected' : ''}`}
-                onClick={() => onSelectGoal(goal)}
-              >
-                <span>{goal.title}</span>
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <article
+                  key={goal.id}
+                  className={`goal-card goal-card--recommended ${isSelected ? 'is-selected' : ''}`}
+                  onClick={() => onSelectGoal(goal)}
+                  role="button"
+                  tabIndex={0}
+                  onBlur={() => applyGoalDraft(goal)}
+                >
+                  <div className="goal-card-topline">
+                    <span className="goal-card-corner-note">Recommended</span>
+                    {isSelected && (
+                      <span className="goal-card-selection-note">
+                        {goal.isCustom ? 'Selected custom goal' : 'Selected'}
+                      </span>
+                    )}
+                  </div>
+                  <InlineEditableText
+                    as="div"
+                    value={getGoalDraft(goal).title}
+                    onChange={value => updateGoalDraft(goal, 'title', value)}
+                    placeholder="Type the goal title"
+                    className="goal-card-title inline-editable--compact-title"
+                    multiline={false}
+                  />
+                  <InlineEditableText
+                    as="div"
+                    value={getGoalDraft(goal).description}
+                    onChange={value => updateGoalDraft(goal, 'description', value)}
+                    placeholder="Add what success would look like"
+                    className="goal-card-description inline-editable--compact-body"
+                  />
+                  <div className="goal-card-rationale-block">
+                    <div className="goal-card-rationale-label">Why this fits</div>
+                    <InlineEditableText
+                      as="div"
+                      value={getGoalDraft(goal).rationale}
+                      onChange={value => updateGoalDraft(goal, 'rationale', value)}
+                      placeholder="Optional note about why this goal fits"
+                      className="goal-card-rationale inline-editable--compact-body"
+                    />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="goal-selector-section">
@@ -151,93 +206,119 @@ const BusinessGoalSelector: React.FC<Props> = ({
           </button>
         </div>
 
-        {customGoals.length > 0 && (
-          <div className="goal-selector-recommended-grid">
-            {customGoals.map(goal => {
-              const isSelected = selectedGoalId === goal.id;
+        <div className="goal-selector-recommended-grid">
+          {customGoals.map(goal => {
+            const isSelected = selectedGoalId === goal.id;
 
-              return (
+            return (
+              <article
+                key={goal.id}
+                className={`goal-card goal-card--custom ${isSelected ? 'is-selected' : ''}`}
+                onClick={() => onSelectGoal(goal)}
+                role="button"
+                tabIndex={0}
+                onBlur={() => applyGoalDraft(goal)}
+              >
+                <div className="goal-card-topline">
+                  <span className="goal-card-corner-note">Custom goal</span>
+                  {isSelected && <span className="goal-card-selection-note">Selected</span>}
+                </div>
+                <InlineEditableText
+                  as="div"
+                  value={getGoalDraft(goal).title}
+                  onChange={value => updateGoalDraft(goal, 'title', value)}
+                  placeholder="Type the goal title"
+                  className="goal-card-title inline-editable--compact-title"
+                  multiline={false}
+                />
+                <InlineEditableText
+                  as="div"
+                  value={getGoalDraft(goal).description}
+                  onChange={value => updateGoalDraft(goal, 'description', value)}
+                  placeholder="Add what success would look like"
+                  className="goal-card-description inline-editable--compact-body"
+                />
+                <div className="goal-card-rationale-block">
+                  <div className="goal-card-rationale-label">Why this fits</div>
+                  <InlineEditableText
+                    as="div"
+                    value={getGoalDraft(goal).rationale}
+                    onChange={value => updateGoalDraft(goal, 'rationale', value)}
+                    placeholder="Optional note about why this goal fits"
+                    className="goal-card-rationale inline-editable--compact-body"
+                  />
+                </div>
+                <div className="goal-card-footer-actions">
+                  <button
+                    type="button"
+                    className="goal-card-inline-action"
+                    onClick={event => {
+                      event.stopPropagation();
+                      onRemoveCustomGoal(goal.id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+
+          {isComposerOpen && (
+            <article className="goal-card goal-card--custom goal-inline-editor goal-inline-editor--compact">
+              <div className="goal-card-topline">
+                <span className="goal-card-corner-note">Custom goal</span>
+              </div>
+
+              <InlineEditableText
+                as="div"
+                value={customGoalTitle}
+                onChange={setCustomGoalTitle}
+                placeholder='Type your main goal here'
+                className="goal-card-title inline-editable--compact-title"
+                multiline={false}
+              />
+
+              <InlineEditableText
+                as="div"
+                value={customGoalDescription}
+                onChange={setCustomGoalDescription}
+                placeholder="Add what success would look like for this goal"
+                className="goal-card-description inline-editable--compact-body"
+              />
+
+              <div className="goal-card-rationale-block">
+                <div className="goal-card-rationale-label">Why this fits</div>
+                <InlineEditableText
+                  as="div"
+                  value={customGoalRationale}
+                  onChange={setCustomGoalRationale}
+                  placeholder="Optional note about why this goal fits the brand story"
+                  className="goal-card-rationale inline-editable--compact-body"
+                />
+              </div>
+
+              <div className="goal-inline-editor-actions">
                 <button
                   type="button"
-                  key={goal.id}
-                  className={`goal-card goal-card--custom ${isSelected ? 'is-selected' : ''}`}
-                  onClick={() => onSelectGoal(goal)}
+                  className="ui-btn ui-btn--secondary"
+                  onClick={resetComposer}
                 >
-                  <div className="goal-card-topline">
-                    <span className="goal-card-corner-note">Custom goal</span>
-                    {isSelected && <span className="goal-card-selection-note">Selected</span>}
-                  </div>
-                  <div className="goal-card-title">{goal.title}</div>
-                  <div className="goal-card-description">{goal.description}</div>
-                  <div className="goal-card-rationale">
-                    <strong>Why this fits:</strong> {goal.rationale}
-                  </div>
+                  Cancel
                 </button>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {isComposerOpen && (
-        <div className="goal-dialog-backdrop" onClick={resetComposer}>
-          <div className="goal-dialog" onClick={event => event.stopPropagation()}>
-            <div className="section-kicker">Custom business goal</div>
-            <h4>Add your own goal</h4>
-            <p>
-              Fill this out in the same structure as the suggested goals. Only the main goal is required.
-            </p>
-
-            <label className="goal-dialog-field">
-              <span>Main goal</span>
-              <input
-                type="text"
-                value={customGoalTitle}
-                onChange={event => setCustomGoalTitle(event.target.value)}
-                placeholder='e.g., "Help customers understand our premium pricing"'
-              />
-            </label>
-
-            <label className="goal-dialog-field">
-              <span>What this goal means</span>
-              <textarea
-                value={customGoalDescription}
-                onChange={event => setCustomGoalDescription(event.target.value)}
-                placeholder="Explain what success would look like for this marketing goal."
-                rows={3}
-              />
-            </label>
-
-            <label className="goal-dialog-field">
-              <span>Why this fits</span>
-              <textarea
-                value={customGoalRationale}
-                onChange={event => setCustomGoalRationale(event.target.value)}
-                placeholder="Optional note about why this goal fits the brand story."
-                rows={3}
-              />
-            </label>
-
-            <div className="goal-dialog-actions">
-              <button
-                type="button"
-                className="ui-btn ui-btn--secondary"
-                onClick={resetComposer}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="ui-btn ui-btn--primary"
-                onClick={handleAddCustomGoal}
-                disabled={!customGoalTitle.trim()}
-              >
-                Add goal
-              </button>
-            </div>
-          </div>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn--primary"
+                  onClick={handleAddCustomGoal}
+                  disabled={!customGoalTitle.trim()}
+                >
+                  Add goal
+                </button>
+              </div>
+            </article>
+          )}
         </div>
-      )}
+      </section>
     </div>
   );
 };

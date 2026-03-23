@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { inferBusinessGoalOptions } from '../../data/goalHierarchy';
 import { ApiUnavailableError, apiFetch } from '../../config/api';
 import type { BrandData } from '../../types/brand';
 import type { BusinessGoalOption, OnboardingResult, PostGoalFolder } from '../../types/workspace';
 import BrandOnboardingRail from './BrandOnboardingRail';
 import BrandOnboardingStepPanel from './BrandOnboardingStepPanel';
 import GoalRefreshDecisionCard from './GoalRefreshDecisionCard';
+import { useBusinessGoalSuggestions } from './useBusinessGoalSuggestions';
 import { INDUSTRY_CHIPS, INITIAL_BRAND_DATA } from './brandOnboarding.config';
 import type { OnboardingStep } from './brandOnboarding.config';
 import {
@@ -67,12 +67,18 @@ const BrandInfoStep: React.FC<Props> = ({
   const [submitError, setSubmitError] = useState('');
   const [goalRefreshDecisionOpen, setGoalRefreshDecisionOpen] = useState(false);
 
-  const inferredGoals = useMemo(
-    () => inferBusinessGoalOptions(brandData),
-    [brandData]
-  );
+  const {
+    suggestedGoals,
+    isLoadingSuggestions: isLoadingBusinessGoals,
+    suggestionSource: businessGoalSuggestionSource,
+    promptPreview: businessGoalPromptPreview
+  } = useBusinessGoalSuggestions({
+    brand: brandData,
+    enabled: currentStep === 'goals'
+  });
+
   const businessGoalOptions = useMemo(() => {
-    const merged = [...inferredGoals];
+    const merged = [...suggestedGoals];
     customGoalOverrides.forEach(customGoal => {
       const existingIndex = merged.findIndex(goal => goal.id === customGoal.id);
       if (existingIndex >= 0) {
@@ -87,13 +93,13 @@ const BrandInfoStep: React.FC<Props> = ({
       }
     });
     return merged;
-  }, [customGoalOverrides, inferredGoals]);
+  }, [customGoalOverrides, suggestedGoals]);
 
-  const isReadyToContinue = canContinue(brandData, selectedGoalId);
-  const isReadyToFinish = isReadyToContinue && postGoalFolders.length > 0;
   const canShowGoals = canGenerateGoals(brandData);
   const currentGoalSourceSignature = buildGoalSourceSignature(brandData);
   const selectedBusinessGoal = businessGoalOptions.find(goal => goal.id === selectedGoalId) ?? null;
+  const isReadyToContinue = canContinue(brandData, selectedGoalId) && Boolean(selectedBusinessGoal) && !isLoadingBusinessGoals;
+  const isReadyToFinish = isReadyToContinue && postGoalFolders.length > 0;
   const hasSavedGoalSelection = Boolean(selectedGoalId);
   const hasSavedPostGoals = postGoalFolders.length > 0;
   const hasGoalSourceChanges = currentGoalSourceSignature !== goalSourceSignature;
@@ -253,6 +259,9 @@ const BrandInfoStep: React.FC<Props> = ({
     businessGoalOptions,
     selectedGoalId,
     selectedBusinessGoal,
+    isLoadingBusinessGoals,
+    businessGoalSuggestionSource,
+    businessGoalPromptPreview,
     postGoalFolders,
     industryPickerOpen,
     isCustomIndustry,
@@ -380,15 +389,6 @@ const BrandInfoStep: React.FC<Props> = ({
 
             <div className="brand-onboarding-divider">
               <div className="brand-onboarding-requirements">
-                {goalRefreshDecisionOpen && (
-                  <GoalRefreshDecisionCard
-                    brandName={brandData.name}
-                    selectedBusinessGoalTitle={selectedBusinessGoal?.title ?? null}
-                    onCancel={() => setGoalRefreshDecisionOpen(false)}
-                    onKeepPreviousGoal={() => reviewGoalsWithExistingSelection('keep')}
-                    onRegenerateGoals={() => reviewGoalsWithExistingSelection('regenerate')}
-                  />
-                )}
                 {currentStep === 'narrative' && !brandData.name.trim() && <span>Brand name required</span>}
                 {currentStep === 'narrative' && brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
                 {currentStep === 'narrative' && brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
@@ -398,7 +398,7 @@ const BrandInfoStep: React.FC<Props> = ({
                   <span className="is-ready">Ready to review suggested business goals</span>
                 )}
                 {currentStep === 'goals' && !selectedGoalId && (
-                  <span>Choose one business goal for this SNS marketing effort</span>
+                  <span>{isLoadingBusinessGoals ? 'Generating suggested business goals from your brand narrative' : 'Choose one business goal for this SNS marketing effort'}</span>
                 )}
                 {currentStep === 'goals' && isReadyToContinue && (
                   <span className="is-ready">Ready to move into post goals</span>
@@ -452,6 +452,16 @@ const BrandInfoStep: React.FC<Props> = ({
             </div>
           </form>
         </section>
+
+        {goalRefreshDecisionOpen && (
+          <GoalRefreshDecisionCard
+            brandName={brandData.name}
+            selectedBusinessGoalTitle={selectedBusinessGoal?.title ?? null}
+            onCancel={() => setGoalRefreshDecisionOpen(false)}
+            onKeepPreviousGoal={() => reviewGoalsWithExistingSelection('keep')}
+            onRegenerateGoals={() => reviewGoalsWithExistingSelection('regenerate')}
+          />
+        )}
       </div>
     </main>
   );

@@ -17,6 +17,9 @@ interface Props {
   businessGoalOptions: BusinessGoalOption[];
   selectedGoalId: string | null;
   selectedBusinessGoal: BusinessGoalOption | null;
+  isLoadingBusinessGoals: boolean;
+  businessGoalSuggestionSource: 'ai' | 'fallback';
+  businessGoalPromptPreview: string;
   postGoalFolders: PostGoalFolder[];
   industryPickerOpen: boolean;
   isCustomIndustry: boolean;
@@ -31,7 +34,7 @@ interface Props {
   onUpdateGoal: (goal: BusinessGoalOption) => void;
   onRemoveCustomGoal: (goalId: string) => void;
   onCreatePostGoal: (folder: PostGoalFolder) => void;
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
 }
 
 const BrandOnboardingStepPanel: React.FC<Props> = ({
@@ -41,6 +44,9 @@ const BrandOnboardingStepPanel: React.FC<Props> = ({
   businessGoalOptions,
   selectedGoalId,
   selectedBusinessGoal,
+  isLoadingBusinessGoals,
+  businessGoalSuggestionSource,
+  businessGoalPromptPreview,
   postGoalFolders,
   industryPickerOpen,
   isCustomIndustry,
@@ -80,6 +86,9 @@ const BrandOnboardingStepPanel: React.FC<Props> = ({
         <BusinessGoalSelector
           options={businessGoalOptions}
           selectedGoalId={selectedGoalId}
+          isLoadingSuggestions={isLoadingBusinessGoals}
+          suggestionSource={businessGoalSuggestionSource}
+          promptPreview={businessGoalPromptPreview}
           onSelectGoal={onSelectGoal}
           onAddCustomGoal={onAddCustomGoal}
           onUpdateGoal={onUpdateGoal}

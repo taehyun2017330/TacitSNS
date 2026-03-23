@@ -61,6 +61,10 @@ const BUSINESS_GOAL_LIBRARY: GoalDefinition[] = [
   }
 ];
 
+export function getBusinessGoalLibrary() {
+  return BUSINESS_GOAL_LIBRARY.map(goal => ({ ...goal }));
+}
+
 const POST_TAXONOMY_LIBRARY: Record<string, TaxonomyDefinition> = {
   Emotional: {
     label: 'Emotional',

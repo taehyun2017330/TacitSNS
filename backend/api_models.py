@@ -93,3 +93,24 @@ class PostGoalSuggestionItem(BaseModel):
 class PostGoalSuggestionResponse(BaseModel):
     suggestions: List[PostGoalSuggestionItem] = Field(default_factory=list)
     source: str = "fallback"
+
+
+class BusinessGoalSuggestionRequest(BaseModel):
+    brandName: Optional[str] = "your brand"
+    brandCategory: Optional[str] = "business"
+    brandIdentity: str = ""
+    brandNarrative: str = ""
+
+
+class BusinessGoalSuggestionItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    rationale: str
+
+
+class BusinessGoalSuggestionResponse(BaseModel):
+    suggestions: List[BusinessGoalSuggestionItem] = Field(default_factory=list)
+    source: str = "ai"
+    model: Optional[str] = None
+    prompt: str = ""
