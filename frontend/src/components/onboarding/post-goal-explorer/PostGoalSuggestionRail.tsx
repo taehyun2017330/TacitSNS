@@ -1,24 +1,32 @@
 import React from 'react';
 
 import type { PostGoalSuggestion } from '../../../types/workspace';
+import { getPreviewTextTone } from './postGoalExplorer.utils';
 
 interface Props {
   suggestions: PostGoalSuggestion[];
   activeSuggestionId: string | null;
-  selectedFolderTitles: Set<string>;
+  loadingPreviewIds: Record<string, boolean>;
+  selectedFolderIds: Set<string>;
+  displayTitlesById: Record<string, string>;
   onSelectSuggestion: (id: string) => void;
+  onCreateCustomGoal: () => void;
 }
 
 const PostGoalSuggestionRail: React.FC<Props> = ({
   suggestions,
   activeSuggestionId,
-  selectedFolderTitles,
-  onSelectSuggestion
+  loadingPreviewIds,
+  selectedFolderIds,
+  displayTitlesById,
+  onSelectSuggestion,
+  onCreateCustomGoal
 }) => (
   <div className="post-goal-browser-list" aria-label="Suggested post-goal directions">
     {suggestions.map(goal => {
-      const isAdded = selectedFolderTitles.has(goal.title);
+      const isAdded = selectedFolderIds.has(goal.id);
       const isActive = activeSuggestionId === goal.id;
+      const displayTitle = displayTitlesById[goal.id]?.trim() || goal.previewTitle || goal.title;
 
       return (
         <button
@@ -28,28 +36,44 @@ const PostGoalSuggestionRail: React.FC<Props> = ({
           onClick={() => onSelectSuggestion(goal.id)}
         >
           <div
-            className="post-goal-browser-item-visual"
-            style={{ background: goal.previewBackground }}
+            className={`post-goal-browser-item-visual ${getPreviewTextTone(goal.previewBackground) === 'dark' ? 'is-dark-tone' : 'is-light-tone'} ${loadingPreviewIds[goal.id] ? 'is-loading' : ''}`}
+            style={
+              goal.previewImageUrl
+                ? {
+                    backgroundImage: `linear-gradient(180deg, rgba(20, 21, 20, 0.06) 0%, rgba(20, 21, 20, 0.54) 100%), url(${goal.previewImageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }
+                : { background: goal.previewBackground }
+            }
           >
             <div className="post-goal-browser-item-topline">
-              <span className="goal-card-corner-note">
-                {goal.sourceLabel === 'ai' ? 'AI suggested' : 'Suggested'}
-              </span>
               {isAdded ? <span className="goal-card-selection-note">Chosen</span> : null}
             </div>
             <div className="post-goal-browser-item-overlay">
-              <strong>{goal.previewTitle || goal.title}</strong>
-              <span>{goal.taxonomyTags.slice(0, 2).join(' · ')}</span>
+              <strong>{displayTitle}</strong>
             </div>
+            {loadingPreviewIds[goal.id] ? (
+              <span className="post-goal-browser-item-loading-label">Generating example…</span>
+            ) : null}
           </div>
 
-          <div className="post-goal-browser-item-copy">
-            <div className="post-goal-browser-item-title">{goal.title}</div>
-            <p>{goal.description}</p>
-          </div>
         </button>
       );
     })}
+
+    <button
+      type="button"
+      className="post-goal-browser-item post-goal-browser-item--add"
+      onClick={onCreateCustomGoal}
+    >
+      <div className="post-goal-browser-item-visual post-goal-browser-item-visual--add">
+        <div className="post-goal-browser-add-icon">+</div>
+        <div className="post-goal-browser-item-overlay">
+          <strong>Add your own</strong>
+        </div>
+      </div>
+    </button>
   </div>
 );
 

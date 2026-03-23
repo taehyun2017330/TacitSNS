@@ -30,6 +30,7 @@ export interface PostGoalSuggestion {
   previewTitle?: string;
   previewCaption?: string;
   previewBackground?: string;
+  previewImageUrl?: string;
   referenceAssets?: PostGoalReferenceAsset[];
   sourceLabel?: 'ai' | 'fallback' | 'custom';
 }

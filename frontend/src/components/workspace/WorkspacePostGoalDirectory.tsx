@@ -89,6 +89,12 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center'
                                   }
+                                : folder.previewImageUrl
+                                  ? {
+                                      backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.08) 0%, rgba(25, 25, 24, 0.42) 100%), url(${folder.previewImageUrl})`,
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center'
+                                    }
                                 : { background: folder.previewBackground }
                             }
                           >

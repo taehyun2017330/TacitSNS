@@ -4,6 +4,7 @@ import type {
   BusinessGoalOption,
   PostGoalSuggestion
 } from '../../../types/workspace';
+import InlineEditableText from '../InlineEditableText';
 import PostGoalExampleGallery from './PostGoalExampleGallery';
 
 type TaxonomyDefinition = {
@@ -15,108 +16,104 @@ type TaxonomyDefinition = {
 interface Props {
   businessGoal: BusinessGoalOption;
   goal: PostGoalSuggestion;
+  isPreviewLoading: boolean;
   isSelected: boolean;
   taxonomyDefinitions: TaxonomyDefinition[];
-  onEditGoal: (goal: PostGoalSuggestion) => void;
-  onChooseGoal: (goal: PostGoalSuggestion) => void;
-  onRemoveGoal: (title: string) => void;
+  draftTitle: string;
+  draftDescription: string;
+  draftRationale: string;
+  onChangeDraft: (field: 'title' | 'description', value: string) => void;
+  onApplyGoal: (goal: PostGoalSuggestion) => void;
+  onRemoveGoal: (folderId: string) => void;
 }
 
 const PostGoalDetailPane: React.FC<Props> = ({
   businessGoal,
   goal,
+  isPreviewLoading,
   isSelected,
   taxonomyDefinitions,
-  onEditGoal,
-  onChooseGoal,
+  draftTitle,
+  draftDescription,
+  draftRationale,
+  onChangeDraft,
+  onApplyGoal,
   onRemoveGoal
 }) => {
   const themeSummary = Array.from(
     new Set(taxonomyDefinitions.flatMap(item => item.themes))
   ).slice(0, 4);
+  const taxonomyLabels = taxonomyDefinitions.map(item => item.label).join(' + ');
 
   return (
     <article className="post-goal-detail-card">
-      <div className="goal-card-topline">
-        <span className="goal-card-corner-note">
-          {goal.sourceLabel === 'ai' ? 'AI suggested direction' : 'Suggested direction'}
-        </span>
-        {isSelected ? <span className="goal-card-selection-note">In your starting set</span> : null}
-      </div>
-
       <div className="post-goal-detail-layout">
         <div className="post-goal-detail-visual-column">
-          <div className="post-goal-detail-header">
-            <div>
-              <h4>{goal.title}</h4>
-              <p>{goal.description}</p>
-            </div>
-          </div>
-
-          <PostGoalExampleGallery goal={goal} />
-
-          <div className="post-goal-detail-note">
-            Browse these placeholder SNS post directions to decide whether this is a good folder to start exploring.
-          </div>
+          <PostGoalExampleGallery goal={goal} isLoading={isPreviewLoading} />
         </div>
 
         <aside className="post-goal-detail-aside">
+          <div className="post-goal-detail-header post-goal-detail-header--aside">
+            {isSelected ? <span className="goal-card-selection-note">In your starting set</span> : null}
+            <InlineEditableText
+              as="h4"
+              value={draftTitle}
+              onChange={value => onChangeDraft('title', value)}
+              placeholder="Name the post direction"
+              className="inline-editable--post-title"
+              multiline={false}
+            />
+
+            <InlineEditableText
+              as="p"
+              value={draftDescription}
+              onChange={value => onChangeDraft('description', value)}
+              placeholder="Describe the kind of image direction this should become."
+              className="post-goal-detail-note inline-editable--body"
+            />
+          </div>
+
           <section className="post-goal-detail-panel">
-            <div className="section-kicker">What this direction helps you explore</div>
-            <p className="post-goal-detail-panel-copy">
-              This turns the business goal of {businessGoal.title.toLowerCase()} into a more specific family of image posts you can explore in the workspace.
-            </p>
+            <p className="post-goal-detail-panel-copy">{draftRationale}</p>
+            {taxonomyLabels ? (
+              <p className="post-goal-detail-supporting-note">
+                This direction leans on {taxonomyLabels} posts.
+              </p>
+            ) : null}
 
             {themeSummary.length > 0 ? (
-              <ul className="post-goal-theme-list">
-                {themeSummary.map(theme => (
-                  <li key={theme}>{theme}</li>
-                ))}
-              </ul>
+              <>
+                <div className="goal-card-rationale-label">Common themes you could lean into</div>
+                <div className="post-goal-taxonomy-themes">
+                  {themeSummary.map(theme => (
+                    <span key={theme} className="post-goal-taxonomy-theme">{theme}</span>
+                  ))}
+                </div>
+              </>
             ) : null}
-          </section>
-
-          <section className="post-goal-detail-panel">
-            <div className="section-kicker">Why the system suggested it</div>
-            <div className="post-goal-tags">
-              {goal.taxonomyTags.map(tag => (
-                <span key={tag} className="post-goal-tag">{tag}</span>
-              ))}
-            </div>
-
-            <div className="post-goal-taxonomy-list">
-              {taxonomyDefinitions.map(item => (
-                <article key={item.label} className="post-goal-taxonomy-list-item">
-                  <strong>{item.label}</strong>
-                  <p>{item.definition}</p>
-                </article>
-              ))}
-            </div>
           </section>
 
           <div className="post-goal-card-actions">
             <button
               type="button"
-              className="ui-btn ui-btn--secondary"
-              onClick={() => onEditGoal(goal)}
-            >
-              Adjust details
-            </button>
-            <button
-              type="button"
               className={isSelected ? 'ui-btn ui-btn--secondary' : 'ui-btn ui-btn--primary'}
-              onClick={() => {
-                if (isSelected) {
-                  onRemoveGoal(goal.title);
-                  return;
-                }
-
-                onChooseGoal(goal);
-              }}
+              onClick={() => onApplyGoal(goal)}
             >
-              {isSelected ? 'Remove from starting set' : 'Start with this post goal'}
+              {isSelected ? 'Update this post goal' : 'Add this post goal'}
             </button>
+            {isSelected ? (
+              <button
+                type="button"
+                className="ui-btn ui-btn--secondary"
+                onClick={() => onRemoveGoal(goal.id)}
+              >
+                Remove from starting set
+              </button>
+            ) : null}
           </div>
+          <p className="post-goal-detail-example-note">
+            This image is one example of what this direction could look like. You can explore more variations later.
+          </p>
         </aside>
       </div>
     </article>

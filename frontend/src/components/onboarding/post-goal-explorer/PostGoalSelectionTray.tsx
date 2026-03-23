@@ -4,7 +4,7 @@ import type { PostGoalFolder } from '../../../types/workspace';
 
 interface Props {
   postGoalFolders: PostGoalFolder[];
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
 }
 
 const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostGoal }) => {
@@ -18,9 +18,6 @@ const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostG
         <div>
           <div className="section-kicker">Starting set</div>
           <p>These post goals will become the first folders in the workspace.</p>
-        </div>
-        <div className="workspace-count-chip">
-          {postGoalFolders.length} {postGoalFolders.length === 1 ? 'folder' : 'folders'}
         </div>
       </div>
 
@@ -36,6 +33,12 @@ const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostG
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }
+                  : folder.previewImageUrl
+                    ? {
+                        backgroundImage: `linear-gradient(180deg, rgba(25, 25, 24, 0.1) 0%, rgba(25, 25, 24, 0.42) 100%), url(${folder.previewImageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }
                   : { background: folder.previewBackground }
               }
             />
@@ -46,7 +49,7 @@ const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostG
             <button
               type="button"
               className="post-goal-selected-card-remove"
-              onClick={() => onRemovePostGoal(folder.title)}
+              onClick={() => onRemovePostGoal(folder.id)}
             >
               Remove
             </button>

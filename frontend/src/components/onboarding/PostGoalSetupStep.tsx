@@ -17,7 +17,7 @@ interface Props {
   businessGoal: BusinessGoalOption;
   postGoalFolders: PostGoalFolder[];
   onCreatePostGoal: (folder: PostGoalFolder) => void;
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
   showSelectionTray?: boolean;
 }
 
@@ -39,10 +39,11 @@ const PostGoalSetupStep: React.FC<Props> = ({
     displayTitlesById,
     getGoalDraft,
     isLoadingSuggestions,
+    loadingPreviewIds,
     openCustomComposer,
     postGoalSuggestions,
     saveComposer,
-    selectedFolderTitles,
+    selectedFolderIds,
     setActiveSuggestionId,
     setComposer,
     updateGoalDraft
@@ -58,8 +59,46 @@ const PostGoalSetupStep: React.FC<Props> = ({
     <div className="goal-selector">
       <section className="goal-selector-section">
         {isLoadingSuggestions && postGoalSuggestions.length === 0 ? (
-          <div className="goal-selector-empty-note">
-            Generating a fresh set of post-goal suggestions from your current brand narrative and business goal…
+          <div className="post-goal-browser post-goal-browser--gallery post-goal-browser--loading">
+            <article className="post-goal-detail-card post-goal-detail-card--loading">
+              <div className="post-goal-detail-layout">
+                <div className="post-goal-detail-visual-column">
+                  <div className="post-goal-preview-gallery">
+                    <div className="post-goal-preview-stage">
+                      <article className="post-goal-preview-canvas post-goal-preview-canvas--loading" />
+                    </div>
+                  </div>
+                </div>
+                <aside className="post-goal-detail-aside">
+                  <div className="post-goal-detail-header post-goal-detail-header--aside">
+                    <div className="goal-loading-line goal-loading-line--title" />
+                    <div className="goal-loading-line goal-loading-line--body" />
+                    <div className="goal-loading-line goal-loading-line--body goal-loading-line--short" />
+                  </div>
+                  <section className="post-goal-detail-panel">
+                    <div className="goal-loading-line goal-loading-line--body" />
+                    <div className="goal-loading-line goal-loading-line--body goal-loading-line--short" />
+                    <div className="post-goal-taxonomy-themes">
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <span key={index} className="post-goal-taxonomy-theme post-goal-taxonomy-theme--loading" />
+                      ))}
+                    </div>
+                  </section>
+                </aside>
+              </div>
+            </article>
+
+            <div className="post-goal-browser-list" aria-hidden="true">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="post-goal-browser-item post-goal-browser-item--loading">
+                  <div className="post-goal-browser-item-visual post-goal-browser-item-visual--loading">
+                    <div className="post-goal-browser-item-overlay">
+                      <div className="goal-loading-line goal-loading-line--title" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : postGoalSuggestions.length === 0 ? (
           <div className="goal-selector-empty-note">
@@ -71,7 +110,8 @@ const PostGoalSetupStep: React.FC<Props> = ({
               <PostGoalDetailPane
                 businessGoal={businessGoal}
                 goal={activeSuggestedGoal}
-                isSelected={selectedFolderTitles.has(activeSuggestedGoal.title)}
+                isPreviewLoading={Boolean(loadingPreviewIds[activeSuggestedGoal.id])}
+                isSelected={selectedFolderIds.has(activeSuggestedGoal.id)}
                 taxonomyDefinitions={activeTaxonomyDefinitions}
                 draftTitle={getGoalDraft(activeSuggestedGoal).title}
                 draftDescription={getGoalDraft(activeSuggestedGoal).description}
@@ -85,7 +125,8 @@ const PostGoalSetupStep: React.FC<Props> = ({
             <PostGoalSuggestionRail
               suggestions={postGoalSuggestions}
               activeSuggestionId={activeSuggestionId}
-              selectedFolderTitles={selectedFolderTitles}
+              loadingPreviewIds={loadingPreviewIds}
+              selectedFolderIds={selectedFolderIds}
               displayTitlesById={displayTitlesById}
               onSelectSuggestion={setActiveSuggestionId}
               onCreateCustomGoal={openCustomComposer}

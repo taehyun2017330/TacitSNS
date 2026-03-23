@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 
 import { apiFetch } from '../../../config/api';
 import {
@@ -28,7 +28,56 @@ interface Args {
   businessGoal: BusinessGoalOption;
   postGoalFolders: PostGoalFolder[];
   onCreatePostGoal: (folder: PostGoalFolder) => void;
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
+}
+
+async function requestPostGoalPreviewImage(
+  brand: BrandData,
+  businessGoal: BusinessGoalOption,
+  goal: PostGoalSuggestion
+) {
+  const taxonomyDefinitions = getTaxonomyDefinitions(goal.taxonomyTags);
+  const commonThemes = Array.from(new Set(taxonomyDefinitions.flatMap(item => item.themes))).slice(0, 5);
+  const directionAngle = [
+    `Create one strong Instagram-ready example image for the post-goal direction "${goal.title}".`,
+    goal.description,
+    goal.assistantPrompt,
+    goal.taxonomyTags.length ? `Relevant post categories: ${goal.taxonomyTags.join(', ')}.` : '',
+    commonThemes.length ? `Common themes to include: ${commonThemes.join(', ')}.` : '',
+    'This should feel like one clear example post, not a collage, moodboard, or UI mockup.'
+  ].filter(Boolean).join(' ');
+
+  const brandSummary = [
+    `${brand.name || 'Brand'} - ${brand.category || 'Business'}:`,
+    brand.identity,
+    brand.description,
+    `Business goal: ${businessGoal.title}. ${businessGoal.description}`,
+    businessGoal.rationale ? `Why this fits: ${businessGoal.rationale}` : ''
+  ].filter(Boolean).join(' ');
+
+  const response = await apiFetch('/api/generate-post-images', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      brandSummary,
+      similarity: 50,
+      explorationLevel: 0.5,
+      direction: goal.title,
+      directionAngles: [directionAngle],
+      actionType: 'initial',
+      numImages: 1
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Post goal preview generation failed with ${response.status}`);
+  }
+
+  const payload = await response.json() as {
+    posts?: Array<{ imageUrl?: string }>;
+  };
+
+  return payload.posts?.[0]?.imageUrl ?? null;
 }
 
 const buildGoalDraft = (goal: PostGoalSuggestion, businessGoalTitle: string): GoalDraft => ({
@@ -48,7 +97,9 @@ export function usePostGoalSuggestions({
   const [activeSuggestionId, setActiveSuggestionId] = useState<string | null>(null);
   const [suggestedPostGoals, setSuggestedPostGoals] = useState<PostGoalSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [loadingPreviewIds, setLoadingPreviewIds] = useState<Record<string, boolean>>({});
   const [draftByGoalId, setDraftByGoalId] = useState<Record<string, GoalDraft>>({});
+  const postGoalFoldersRef = useRef(postGoalFolders);
 
   const businessGoalSourceId = useMemo(
     () => resolvePostGoalSuggestionKey(businessGoal),
@@ -58,21 +109,84 @@ export function usePostGoalSuggestions({
     () => getPostGoalSuggestionsForBusinessGoal(businessGoalSourceId),
     [businessGoalSourceId]
   );
-  const selectedFolderTitles = useMemo(
-    () => new Set(postGoalFolders.map(folder => folder.title)),
+  const selectedFolderIds = useMemo(
+    () => new Set(postGoalFolders.map(folder => folder.id)),
     [postGoalFolders]
   );
+
+  useEffect(() => {
+    postGoalFoldersRef.current = postGoalFolders;
+  }, [postGoalFolders]);
 
   useEffect(() => {
     setComposer(null);
     setDraftByGoalId({});
     setSuggestedPostGoals([]);
     setActiveSuggestionId(null);
+    setLoadingPreviewIds({});
   }, [businessGoal.id]);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoadingSuggestions(true);
+
+    const generatePreviewImages = async (goals: PostGoalSuggestion[]) => {
+      const pendingGoals = goals.filter(goal => !goal.previewImageUrl && !goal.referenceAssets?.length);
+      if (pendingGoals.length === 0) {
+        return;
+      }
+
+      setLoadingPreviewIds(
+        Object.fromEntries(pendingGoals.map(goal => [goal.id, true]))
+      );
+
+      await Promise.allSettled(
+        pendingGoals.map(async goal => {
+          try {
+            const previewImageUrl = await requestPostGoalPreviewImage(brand, businessGoal, goal);
+            if (!previewImageUrl || cancelled) {
+              return;
+            }
+
+            startTransition(() => {
+              setSuggestedPostGoals(prev =>
+                prev.map(existingGoal =>
+                  existingGoal.id === goal.id
+                    ? { ...existingGoal, previewImageUrl }
+                    : existingGoal
+                )
+              );
+            });
+
+            const existingFolder = postGoalFoldersRef.current.find(folder =>
+              folder.businessGoalId === businessGoal.id &&
+              folder.title === goal.title
+            );
+
+            if (existingFolder) {
+              onCreatePostGoal({
+                ...existingFolder,
+                previewImageUrl
+              });
+            }
+          } catch {
+            // Keep the temporary preview background if generation fails.
+          } finally {
+            if (!cancelled) {
+              setLoadingPreviewIds(prev => {
+                if (!prev[goal.id]) {
+                  return prev;
+                }
+
+                const next = { ...prev };
+                delete next[goal.id];
+                return next;
+              });
+            }
+          }
+        })
+      );
+    };
 
     const fetchSuggestions = async () => {
       try {
@@ -133,6 +247,7 @@ export function usePostGoalSuggestions({
                 : normalizedSuggestions[0]?.id ?? null
             );
           });
+          void generatePreviewImages(normalizedSuggestions);
         }
       } catch {
         if (!cancelled) {
@@ -144,6 +259,7 @@ export function usePostGoalSuggestions({
                 : fallbackSuggestedPostGoals[0]?.id ?? null
             );
           });
+          void generatePreviewImages(fallbackSuggestedPostGoals);
         }
       } finally {
         if (!cancelled) {
@@ -250,8 +366,8 @@ export function usePostGoalSuggestions({
   const applySuggestedGoal = (goal: PostGoalSuggestion) => {
     const draftedGoal = buildDraftedSuggestion(goal);
 
-    if (selectedFolderTitles.has(goal.title) && draftedGoal.title !== goal.title) {
-      onRemovePostGoal(goal.title);
+    if (selectedFolderIds.has(goal.id) && draftedGoal.title !== goal.title) {
+      onRemovePostGoal(goal.id);
     }
 
     setSuggestedPostGoals(prev =>
@@ -315,6 +431,7 @@ export function usePostGoalSuggestions({
                 : `Create a post direction for ${title}.`),
         previewTitle: title,
         previewCaption: description,
+        previewImageUrl: composer.referenceAssets[0]?.dataUrl ?? baseGoal?.previewImageUrl,
         previewBackground:
           baseGoal?.previewBackground ??
           'linear-gradient(135deg, #35514d 0%, #8ca198 42%, #f1e5d5 100%)',
@@ -338,10 +455,11 @@ export function usePostGoalSuggestions({
     displayTitlesById,
     getGoalDraft,
     isLoadingSuggestions,
+    loadingPreviewIds,
     openCustomComposer,
     postGoalSuggestions: suggestedPostGoals,
     saveComposer,
-    selectedFolderTitles,
+    selectedFolderIds,
     setActiveSuggestionId,
     setComposer,
     closeComposer,

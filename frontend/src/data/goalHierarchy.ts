@@ -407,7 +407,7 @@ export function resolvePostGoalSuggestionKey(
 }
 
 export function normalizePostGoalSuggestion(
-  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'referenceAssets' | 'sourceLabel'>,
+  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets' | 'sourceLabel'>,
   fallbackIndex = 0
 ): PostGoalSuggestion {
   const firstTag = suggestion.taxonomyTags[0] ?? 'Custom';
@@ -430,7 +430,8 @@ export function normalizePostGoalSuggestion(
       suggestion.previewBackground ||
       preview?.previewBackground ||
       TAXONOMY_PREVIEW_BACKGROUNDS[firstTag] ||
-      TAXONOMY_PREVIEW_BACKGROUNDS.Custom
+      TAXONOMY_PREVIEW_BACKGROUNDS.Custom,
+    previewImageUrl: suggestion.previewImageUrl
   };
 }
 
@@ -455,7 +456,7 @@ export function suggestPostGoalAutocomplete(input: string, businessGoalId: strin
 }
 
 export function createPostGoalFolder(
-  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'referenceAssets'>,
+  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets'>,
   businessGoal: Pick<BusinessGoalOption, 'id' | 'title'>,
   source: PostGoalFolder['source']
 ): PostGoalFolder {
@@ -471,6 +472,7 @@ export function createPostGoalFolder(
     previewTitle: suggestion.previewTitle,
     previewCaption: suggestion.previewCaption,
     previewBackground: suggestion.previewBackground,
+    previewImageUrl: suggestion.previewImageUrl,
     referenceAssets: suggestion.referenceAssets,
     businessGoalId: businessGoal.id,
     businessGoalTitle: businessGoal.title,
