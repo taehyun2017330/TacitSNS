@@ -1,7 +1,9 @@
+export type ChecklistKey = 'offer' | 'audience' | 'emphasis' | 'tone';
+
 export interface Suggestion {
   text: string;
   type: 'continuation' | 'new_angle' | 'example' | 'sentence_end';
-  targets?: string[];
+  targets?: ChecklistKey[];
   reasoning?: string;
 }
 
@@ -16,6 +18,9 @@ export interface BrandStatus {
   overallAssessment: string;
   statusMessage: string;
   sentenceEnded: boolean;
+  currentSentenceState?: 'fragment' | 'developing' | 'complete';
+  recommendedAction?: 'continue_sentence' | 'finish_sentence' | 'start_new_sentence';
+  nextElement?: ChecklistKey | 'none';
 }
 
 export interface ModelConfig {
@@ -25,14 +30,24 @@ export interface ModelConfig {
   suggestionTemp: number;
 }
 
-export interface SentenceSegment {
-  text: string;
-  targets: string[];
+export interface ChecklistProgressItem {
+  key: ChecklistKey;
+  title: string;
+  description: string;
+  covered: boolean;
+  evidence?: string;
+  order: number;
 }
 
-export interface SentenceAnnotation {
-  segments: SentenceSegment[];
-  sentenceTargets: string[];
+export interface NarrativeProgress {
+  covered: number;
+  total: number;
+  percentage: number;
+  activeKey: ChecklistKey | 'none';
+  allElements: ChecklistProgressItem[];
+  recommendation?: {
+    hint: string;
+  } | null;
 }
 
 export interface TooltipPart {
@@ -47,10 +62,5 @@ export interface BrandAutocompleteResponse {
     thinking: string;
     elapsed: number;
   };
-  progress?: any;
-  annotation?: {
-    sentenceIndex: number;
-    segments: SentenceSegment[];
-    sentenceTargets: string[];
-  };
+  progress?: NarrativeProgress;
 }

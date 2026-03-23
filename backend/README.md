@@ -56,7 +56,6 @@ The active local API runs on `http://localhost:8001`.
 - `POST /brand/create`
 - `GET /brand/current`
 - `POST /api/suggestions`
-- `POST /api/annotate`
 - `POST /api/generate-post-images`
 - `POST /api/edit-image`
 - `POST /api/generate-captions`

@@ -1,90 +1,51 @@
-import type { CSSProperties } from 'react';
-
 import type {
   BrandStatus,
-  SentenceAnnotation,
   Suggestion,
   TooltipPart
 } from '../../types/brandAutocomplete';
 
 const VALID_TARGETS = new Set([
-  'companyType',
+  'offer',
   'audience',
-  'problem',
-  'solution',
-  'mission',
-  'differentiator',
-  'brandIdentity',
-  'values'
+  'emphasis',
+  'tone'
 ]);
 
 const ELEMENT_LABELS: Record<string, string> = {
-  companyType: 'Industry/Type',
-  audience: 'Target Audience',
-  problem: 'Problem',
-  solution: 'Solution',
-  mission: 'Mission',
-  differentiator: 'Differentiator',
-  brandIdentity: 'Brand Identity',
-  values: 'Values'
+  offer: 'What You Sell',
+  audience: 'Who It Is For',
+  emphasis: 'What You Want To Emphasize',
+  tone: 'How It Should Come Across'
 };
 
 const ELEMENT_COLORS: Record<string, string> = {
-  companyType: '#3B82F6',
+  offer: '#3B82F6',
   audience: '#10B981',
-  problem: '#EF4444',
-  solution: '#8B5CF6',
-  mission: '#F59E0B',
-  differentiator: '#EC4899',
-  brandIdentity: '#06B6D4',
-  values: '#14B8A6'
+  emphasis: '#C25D2C',
+  tone: '#06B6D4'
 };
 
 const ELEMENT_KEYWORDS: Record<string, { color: string; label: string }> = {
-  'company type': { color: '#3B82F6', label: 'Industry/Type' },
-  industry: { color: '#3B82F6', label: 'Industry/Type' },
-  type: { color: '#3B82F6', label: 'Industry/Type' },
-  audience: { color: '#10B981', label: 'Target Audience' },
-  'target audience': { color: '#10B981', label: 'Target Audience' },
-  problem: { color: '#EF4444', label: 'Problem' },
-  solution: { color: '#8B5CF6', label: 'Solution' },
-  mission: { color: '#F59E0B', label: 'Mission' },
-  vision: { color: '#F59E0B', label: 'Mission' },
-  differentiator: { color: '#EC4899', label: 'Differentiator' },
-  unique: { color: '#EC4899', label: 'Differentiator' },
-  'brand identity': { color: '#06B6D4', label: 'Brand Identity' },
-  personality: { color: '#06B6D4', label: 'Brand Identity' },
-  values: { color: '#14B8A6', label: 'Values' }
+  'what you sell': { color: '#3B82F6', label: 'What You Sell' },
+  product: { color: '#3B82F6', label: 'What You Sell' },
+  products: { color: '#3B82F6', label: 'What You Sell' },
+  service: { color: '#3B82F6', label: 'What You Sell' },
+  services: { color: '#3B82F6', label: 'What You Sell' },
+  offer: { color: '#3B82F6', label: 'What You Sell' },
+  audience: { color: '#10B981', label: 'Who It Is For' },
+  customer: { color: '#10B981', label: 'Who It Is For' },
+  customers: { color: '#10B981', label: 'Who It Is For' },
+  'target audience': { color: '#10B981', label: 'Who It Is For' },
+  'who it is for': { color: '#10B981', label: 'Who It Is For' },
+  emphasize: { color: '#C25D2C', label: 'What You Want To Emphasize' },
+  difference: { color: '#C25D2C', label: 'What You Want To Emphasize' },
+  quality: { color: '#C25D2C', label: 'What You Want To Emphasize' },
+  result: { color: '#C25D2C', label: 'What You Want To Emphasize' },
+  'how it should come across': { color: '#06B6D4', label: 'How It Should Come Across' },
+  tone: { color: '#06B6D4', label: 'How It Should Come Across' },
+  personality: { color: '#06B6D4', label: 'How It Should Come Across' },
+  feeling: { color: '#06B6D4', label: 'How It Should Come Across' }
 };
-
-export function splitSentences(fullText: string) {
-  const sentences: Array<{ index: number; start: number; end: number; text: string }> = [];
-  const regex = /[^.!?]+[.!?]?\s*/g;
-  let match: RegExpExecArray | null;
-  let index = 0;
-
-  while ((match = regex.exec(fullText)) !== null) {
-    const textPart = match[0];
-    if (!textPart) {
-      continue;
-    }
-
-    sentences.push({
-      index: index++,
-      start: match.index,
-      end: match.index + textPart.length,
-      text: textPart
-    });
-  }
-
-  return sentences;
-}
-
-export function getSentenceIndexAt(fullText: string, cursorPos: number) {
-  const sentences = splitSentences(fullText);
-  const index = sentences.findIndex(sentence => cursorPos >= sentence.start && cursorPos <= sentence.end);
-  return index === -1 ? null : index;
-}
 
 export function elementLabelForKey(key: string) {
   return ELEMENT_LABELS[key] || key;
@@ -108,39 +69,6 @@ export function getElementLabel(targets: string[] | undefined) {
   }
 
   return elementLabelForKey(targets[0]);
-}
-
-export function getUniqueSentenceTargets(
-  annotation: SentenceAnnotation | undefined | null,
-  fulfilledTargets: Set<string>
-) {
-  if (!annotation) {
-    return [];
-  }
-
-  const targets = new Set<string>();
-  annotation.segments.forEach(segment =>
-    normalizeTargets(segment.targets)
-      .filter(target => (fulfilledTargets.size ? fulfilledTargets.has(target) : true))
-      .forEach(target => targets.add(target))
-  );
-
-  return Array.from(targets);
-}
-
-export function underlineStyleForTargets(targets: string[]) {
-  if (!targets.length) {
-    return {
-      boxShadow: 'none',
-      background: 'transparent'
-    } satisfies CSSProperties;
-  }
-
-  const primaryColor = getElementColor([targets[0]]);
-  return {
-    boxShadow: `inset 0 -2px 0 ${primaryColor}`,
-    background: `${primaryColor}14`
-  } satisfies CSSProperties;
 }
 
 export function getSuggestionIcon(type: string) {
@@ -242,11 +170,11 @@ export function highlightElements(message: string): TooltipPart[] {
 
 export function getStatusTooltip(text: string, brandStatus: BrandStatus | null) {
   if (!text.trim()) {
-    return [{ text: 'Start by introducing what type of brand your company is' }];
+    return [{ text: 'Start by describing what you sell and who it is for.' }];
   }
 
   if (!brandStatus) {
-    return [{ text: 'Continue building your brand description' }];
+    return [{ text: 'Keep building the brand narrative with clearer detail.' }];
   }
 
   return highlightElements(`${brandStatus.overallAssessment}: ${brandStatus.statusMessage}`);

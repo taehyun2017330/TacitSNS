@@ -62,14 +62,6 @@ class SuggestionRequest(BaseModel):
     brandContext: Dict[str, Any] = Field(default_factory=dict)
 
 
-class AnnotateRequest(BaseModel):
-    brandName: Optional[str] = None
-    brandCategory: Optional[str] = None
-    brandIdentity: Optional[str] = ""
-    sentenceText: Optional[str] = None
-    modelConfig: Dict[str, Any] = Field(default_factory=dict)
-
-
 class PostGoalSuggestionRequest(BaseModel):
     brandName: Optional[str] = "your brand"
     brandCategory: Optional[str] = "business"

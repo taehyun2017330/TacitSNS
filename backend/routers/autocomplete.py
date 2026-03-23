@@ -2,8 +2,7 @@
 
 from fastapi import APIRouter
 
-from api_models import AnnotateRequest, SuggestionRequest
-from services.autocomplete_service import annotate_text as annotate_text_service
+from api_models import SuggestionRequest
 from services.autocomplete_service import generate_suggestions
 
 router = APIRouter()
@@ -23,7 +22,3 @@ async def get_suggestions(request: SuggestionRequest):
         session_id=session_id,
         model_config=request.modelConfig,
     )
-
-@router.post("/api/annotate")
-async def annotate_text(request: AnnotateRequest):
-    return await annotate_text_service(request.sentenceText or "")
