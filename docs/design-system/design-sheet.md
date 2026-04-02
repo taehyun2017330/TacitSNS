@@ -31,6 +31,8 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Custom business goals should live in a separate `Custom goals` area and must not displace or rewrite the system-recommended business goals.
 - Post-goal onboarding should behave like a visual browser, not another card picker: users browse suggestions, inspect larger SNS-style examples, then confirm which folders to start with.
 - Onboarding should keep explanation light so the guided narrative field remains the dominant action on the page.
+- The onboarding intro rail should stay narrow and secondary; it exists to orient, not to compete with the active editing surface.
+- Prefer one short instruction per screen. Let the checklist, examples, and live system behavior explain the rest.
 
 ## Current Direction
 - Primary users: small business owners with low design literacy
@@ -73,7 +75,40 @@ Use it to record the design rules that should remain stable across the CHI proto
 - Progress numbers themselves must always keep readable contrast; do not let soft fills or ambient rings reduce numeral legibility.
 - Sliding transition layers should be non-interactive while they animate so one click can never trigger two steps.
 - Workspace panels should feel like an expert planning surface, not a chat toy or generic dashboard.
+- The post studio should use a collapsible left context rail for hierarchy and rationale instead of a large standalone header block.
+- Inspecting one generated image should be a first-class studio state: feedback, edit, and finalize actions belong in the single-image view, not as scattered grid controls.
 - Keep feedback semantics vivid and explicit, even if surrounding surfaces become quieter.
+- Dynamic clarification should interrupt only at meaningful generation boundaries, not on every click.
+- Clarification prompts should feel like a focused design review, using the right control for the situation: confirmation, cards, swatches, compare strips, sliders, then optional text.
+- Clarification logic must stay compartmentalized from the main studio shell so new question types can be added without rewriting generation flow.
+- Clarification V2 uses a two-step studio intelligence loop:
+  AI evaluation in the background, then AI question generation at interruption time, with local rules as fallback.
+- Studio generation should now be staged:
+  `review current 2x2` first, then a separate `plan next set` surface for clarification, system synthesis, and next-batch approval.
+- Studio generation now shifts again to a guided expert interview:
+  `quick grid triage -> guided one-image-at-a-time critique -> generation brief -> regenerate`.
+- The grid should feel fast and low-stakes: only `Like / Dislike / Unsure`, no rationale chips, no note-taking, no visible clarification prompts.
+- The guided critique step should feel like an expert art director talking to the user, not a questionnaire or rating form.
+- Every guided image step should ask one main question, offer 4-6 reason chips, allow an optional short note, and include a first-class `Hard to answer` path.
+- Guided reason chips should be intentionally shaped, not just listed: include a few probe-worthy or goal-level reads so the system knows when to ask one micro follow-up now or one macro challenge later.
+- `Hard to answer` should branch into 2-4 concrete example interpretations and then allow the user either to pick one or leave the step unresolved.
+- Unresolved guided steps should become explicit open tradeoffs in the final brief, not silent failures or forced negative feedback.
+- Micro clarification belongs inside the guided image step and should stay image-local.
+- Macro clarification belongs after cross-image synthesis and should only appear when contradiction, goal drift, or a meaningful unresolved tradeoff remains.
+- The final brief should replace the old review-plan role and clearly expose:
+  `Keep`, `Avoid`, `Open tradeoff`, and `Next exploration`.
+- Keep studio copy terse. Prefer one short guide line, one question, and one action block over stacked explanatory paragraphs.
+- Keep the review screen focused on reacting to the current images; keep direction editing, exploration width, and next-generation approval on the plan screen.
+- The review stage should surface a persistent live-read strip so the studio’s proactive interpretation is visible before the user advances.
+- Pressing `Next` should create a soft-locked interpret pass: submitted review, current read, one clarification if needed, then next directions.
+- The plan screen should read like an expert synthesis surface: selected anchor, interpreted feedback, current understanding, proposed next routes, then generation.
+- The post-feedback plan screen should use a single-column reasoning flow, not a dashboard or card grid.
+- The main explanation model on the plan screen should be `input -> effect`: show what the user signaled, then how the next set will change.
+- Do not expose raw prompt scaffolding, repeated goal dumps, or backend-facing direction text in the user-facing plan surface.
+- Goal-reframe questions stay visually under the `clarify` family even when they draft post-goal or business-goal updates.
+- Clarification should live as anchored studio surfaces, not full-screen blocking modals, so the 2x2 grid remains visible while the system intervenes.
+- Goal-update drafts should be applied inline in the studio and then reflected live in workspace context and future generations.
+- Clarification cycles need a readable conversation history alongside the trace graph so the system’s reasoning stays inspectable.
 - Preserve the trace board's internal layout logic while restyling the shell around it.
 
 ## Capture Checklist

@@ -50,11 +50,6 @@ export interface NarrativeProgress {
   } | null;
 }
 
-export interface TooltipPart {
-  text: string;
-  color?: string;
-}
-
 export interface BrandAutocompleteResponse {
   suggestions?: Suggestion[];
   brandStatus?: BrandStatus;

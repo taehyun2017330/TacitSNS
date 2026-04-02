@@ -19,6 +19,7 @@ interface Props {
   onCreatePostGoal: (folder: PostGoalFolder) => void;
   onRemovePostGoal: (folderId: string) => void;
   showSelectionTray?: boolean;
+  refreshToken?: number;
 }
 
 const PostGoalSetupStep: React.FC<Props> = ({
@@ -27,7 +28,8 @@ const PostGoalSetupStep: React.FC<Props> = ({
   postGoalFolders,
   onCreatePostGoal,
   onRemovePostGoal,
-  showSelectionTray = true
+  showSelectionTray = true,
+  refreshToken = 0
 }) => {
   const {
     activeSuggestedGoal,
@@ -45,11 +47,13 @@ const PostGoalSetupStep: React.FC<Props> = ({
     selectedFolderIds,
     setActiveSuggestionId,
     setComposer,
+    setComposerReferenceAssets,
     updateGoalDraft
   } = usePostGoalSuggestions({
     brand,
     businessGoal,
     postGoalFolders,
+    refreshToken,
     onCreatePostGoal,
     onRemovePostGoal
   });
@@ -107,7 +111,6 @@ const PostGoalSetupStep: React.FC<Props> = ({
           <div className="post-goal-browser post-goal-browser--gallery">
             {activeSuggestedGoal && (
               <PostGoalDetailPane
-                businessGoal={businessGoal}
                 goal={activeSuggestedGoal}
                 isPreviewLoading={Boolean(loadingPreviewIds[activeSuggestedGoal.id])}
                 isSelected={selectedFolderIds.has(activeSuggestedGoal.id)}
@@ -147,6 +150,7 @@ const PostGoalSetupStep: React.FC<Props> = ({
               businessGoalTitle={businessGoal.title}
               composer={composer}
               onChange={setComposer}
+              onReferenceAssetsChange={setComposerReferenceAssets}
               onClose={closeComposer}
               onSave={saveComposer}
             />

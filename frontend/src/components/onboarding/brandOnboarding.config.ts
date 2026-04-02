@@ -9,8 +9,6 @@ export const INDUSTRY_OPTIONS = [
   { value: 'health', label: 'Health & Wellness' },
   { value: 'beauty', label: 'Beauty & Cosmetics' },
   { value: 'home', label: 'Home & Lifestyle' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'education', label: 'Education' },
   { value: 'entertainment', label: 'Entertainment' },
   { value: 'other', label: 'Other' }
 ] as const;

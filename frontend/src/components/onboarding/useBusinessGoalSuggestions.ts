@@ -15,6 +15,7 @@ type SuggestionSource = 'ai' | 'fallback';
 interface Args {
   brand: BrandData;
   enabled: boolean;
+  refreshToken?: number;
 }
 
 function mergeAiSuggestionsWithLibrary(
@@ -53,7 +54,7 @@ function mergeAiSuggestionsWithLibrary(
     .slice(0, 3);
 }
 
-export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
+export function useBusinessGoalSuggestions({ brand, enabled, refreshToken = 0 }: Args) {
   const fallbackSuggestedGoals = useMemo(
     () => inferBusinessGoalOptions(brand),
     [brand]
@@ -62,6 +63,7 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [suggestionSource, setSuggestionSource] = useState<SuggestionSource>('fallback');
   const [lastFetchedSignature, setLastFetchedSignature] = useState('');
+  const [lastRefreshToken, setLastRefreshToken] = useState(-1);
 
   const sourceSignature = useMemo(
     () => buildGoalSourceSignature(brand),
@@ -73,7 +75,11 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
       return;
     }
 
-    if (lastFetchedSignature === sourceSignature && suggestionSource === 'ai') {
+    if (
+      lastFetchedSignature === sourceSignature &&
+      suggestionSource === 'ai' &&
+      lastRefreshToken === refreshToken
+    ) {
       return;
     }
 
@@ -117,6 +123,7 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
             setSuggestedGoals(normalized);
             setSuggestionSource('ai');
             setLastFetchedSignature(sourceSignature);
+            setLastRefreshToken(refreshToken);
           });
         }
       } catch (error) {
@@ -125,6 +132,7 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
             setSuggestedGoals(fallbackSuggestedGoals);
             setSuggestionSource('fallback');
             setLastFetchedSignature(sourceSignature);
+            setLastRefreshToken(refreshToken);
           });
         }
 
@@ -148,6 +156,8 @@ export function useBusinessGoalSuggestions({ brand, enabled }: Args) {
     enabled,
     fallbackSuggestedGoals,
     lastFetchedSignature,
+    lastRefreshToken,
+    refreshToken,
     sourceSignature,
     suggestionSource
   ]);

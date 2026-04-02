@@ -21,11 +21,18 @@ export interface BusinessGoalOption {
   mappedGoalTitle?: string;
 }
 
+export interface PostGoalDirection {
+  chip: string;
+  angle: string;
+}
+
 export interface PostGoalSuggestion {
   id: string;
   title: string;
   description: string;
+  whyThisDirectionFits?: string;
   taxonomyTags: string[];
+  directions?: PostGoalDirection[];
   imageTypeChips?: string[];
   directionAngles?: string[];
   assistantPrompt: string;

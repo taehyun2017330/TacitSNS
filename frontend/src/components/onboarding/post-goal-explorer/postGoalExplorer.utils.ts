@@ -314,6 +314,13 @@ export function getPreviewTextTone(background: string) {
   return averageLuminance > 0.46 ? 'dark' : 'light';
 }
 
+function getContrastRatio(firstLuminance: number, secondLuminance: number) {
+  const lighter = Math.max(firstLuminance, secondLuminance);
+  const darker = Math.min(firstLuminance, secondLuminance);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 export function detectImageTextTone(imageUrl: string): Promise<'light' | 'dark'> {
   return new Promise(resolve => {
     const image = new Image();
@@ -336,8 +343,17 @@ export function detectImageTextTone(imageUrl: string): Promise<'light' | 'dark'>
         const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
         let totalLuminance = 0;
         let sampledPixels = 0;
+        const lowerBandStartRow = Math.floor(canvas.height * (2 / 3));
+        const lightTextLuminance = getLuminance('fffdf8');
+        const darkTextLuminance = getLuminance('1f2423');
 
         for (let index = 0; index < data.length; index += 4) {
+          const pixelIndex = index / 4;
+          const y = Math.floor(pixelIndex / canvas.width);
+          if (y < lowerBandStartRow) {
+            continue;
+          }
+
           const alpha = data[index + 3] / 255;
           if (alpha < 0.08) {
             continue;
@@ -354,7 +370,16 @@ export function detectImageTextTone(imageUrl: string): Promise<'light' | 'dark'>
           sampledPixels += 1;
         }
 
-        resolve(sampledPixels > 0 && totalLuminance / sampledPixels > 0.46 ? 'dark' : 'light');
+        if (sampledPixels === 0) {
+          resolve('light');
+          return;
+        }
+
+        const averageLuminance = totalLuminance / sampledPixels;
+        const lightContrast = getContrastRatio(averageLuminance, lightTextLuminance);
+        const darkContrast = getContrastRatio(averageLuminance, darkTextLuminance);
+
+        resolve(darkContrast > lightContrast ? 'dark' : 'light');
       } catch {
         resolve('light');
       }

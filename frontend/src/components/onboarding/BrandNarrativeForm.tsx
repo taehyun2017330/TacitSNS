@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import type { BrandData } from '../../types/brand';
 import BrandAutocomplete from '../BrandAutocomplete';
@@ -11,12 +11,10 @@ interface Props {
     brandCategory: string;
     brandIdentity?: string;
   };
-  industryPickerOpen: boolean;
   isCustomIndustry: boolean;
   onNameChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
   onNarrativeChange: (value: string) => void;
-  onToggleIndustryPicker: () => void;
   onSelectIndustry: (label: string) => void;
   onSetCustomIndustry: (nextValue: boolean) => void;
 }
@@ -24,94 +22,97 @@ interface Props {
 const BrandNarrativeForm: React.FC<Props> = ({
   brandData,
   brandContext,
-  industryPickerOpen,
   isCustomIndustry,
   onNameChange,
   onCategoryChange,
   onNarrativeChange,
-  onToggleIndustryPicker,
   onSelectIndustry,
   onSetCustomIndustry
-}) => (
-  <div className="onboarding-step-panel">
-    <div className="brand-onboarding-grid">
-      <label className="brand-onboarding-block">
-        <span>Brand name</span>
-        <input
-          type="text"
-          className="brand-onboarding-field"
-          value={brandData.name}
-          onChange={event => onNameChange(event.target.value)}
-          placeholder="e.g., Aster Vale"
-        />
-      </label>
+}) => {
+  const [industryOpen, setIndustryOpen] = useState(false);
 
-      <label className="brand-onboarding-block brand-onboarding-block--industry">
-        <span>Industry</span>
-        <button
-          type="button"
-          className={`brand-onboarding-picker ${industryPickerOpen ? 'is-open' : ''}`}
-          onClick={onToggleIndustryPicker}
-        >
-          <span>{brandData.category || 'Select an industry'}</span>
-          <span className="brand-onboarding-picker-icon">{industryPickerOpen ? '−' : '+'}</span>
-        </button>
+  const handleSelectIndustry = (label: string) => {
+    onSelectIndustry(label);
+    setIndustryOpen(false);
+  };
 
-        {industryPickerOpen && (
-          <div className="industry-picker-panel">
-            <div className="industry-chip-row">
-              {INDUSTRY_CHIPS.map(option => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`industry-chip ${brandData.category === option.label && !isCustomIndustry ? 'is-selected' : ''}`}
-                  onClick={() => onSelectIndustry(option.label)}
-                >
-                  {option.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                className={`industry-chip ${isCustomIndustry ? 'is-selected' : ''}`}
-                onClick={() => onSetCustomIndustry(true)}
-              >
-                Custom industry
-              </button>
-            </div>
+  const handleSetCustom = () => {
+    onSetCustomIndustry(true);
+  };
 
-            {isCustomIndustry && (
-              <input
-                type="text"
-                className="brand-onboarding-field"
-                value={brandData.category}
-                onChange={event => onCategoryChange(event.target.value)}
-                placeholder="Type your industry"
-              />
-            )}
-          </div>
-        )}
-      </label>
-    </div>
+  return (
+    <div className="onboarding-step-panel">
+      <div className="brand-onboarding-grid">
+        <label className="brand-onboarding-block">
+          <span>Brand name</span>
+          <input
+            type="text"
+            className="brand-onboarding-field"
+            value={brandData.name}
+            onChange={event => onNameChange(event.target.value)}
+            placeholder="e.g., Aster Vale"
+          />
+        </label>
 
-    <div className="brand-onboarding-block">
-      <span>Brand identity and positioning</span>
-      <div className="brand-onboarding-tip">
-        <p>Cover the essentials:</p>
-        <ul>
-          <li>what the brand is</li>
-          <li>who it serves</li>
-          <li>what makes it different</li>
-          <li>how it should come across</li>
-        </ul>
+        <label className="brand-onboarding-block">
+          <span>Industry</span>
+          <button
+            type="button"
+            className={`brand-onboarding-field brand-onboarding-field--picker ${industryOpen ? 'is-open' : ''}`}
+            onClick={() => setIndustryOpen(prev => !prev)}
+          >
+            <span className={brandData.category ? '' : 'brand-onboarding-field--placeholder'}>
+              {brandData.category || 'Select an industry'}
+            </span>
+          </button>
+        </label>
       </div>
-      <BrandAutocomplete
-        brandContext={brandContext}
-        value={brandData.description}
-        onChange={onNarrativeChange}
-        showHeader={false}
-      />
+
+      {industryOpen && (
+        <div className="industry-inline-tray">
+          <div className="industry-chip-row">
+            {INDUSTRY_CHIPS.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                className={`ui-btn ui-btn--choice industry-chip ${brandData.category === option.label && !isCustomIndustry ? 'is-selected' : ''}`}
+                onClick={() => handleSelectIndustry(option.label)}
+              >
+                {option.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`ui-btn ui-btn--choice industry-chip ${isCustomIndustry ? 'is-selected' : ''}`}
+              onClick={handleSetCustom}
+            >
+              Custom
+            </button>
+          </div>
+
+          {isCustomIndustry && (
+            <input
+              type="text"
+              className="brand-onboarding-field"
+              value={brandData.category}
+              onChange={event => onCategoryChange(event.target.value)}
+              placeholder="Type your industry"
+              autoFocus
+            />
+          )}
+        </div>
+      )}
+
+      <div className="brand-onboarding-block brand-onboarding-narrative-reveal">
+        <BrandAutocomplete
+          brandContext={brandContext}
+          value={brandData.description}
+          onChange={onNarrativeChange}
+          showHeader={false}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default BrandNarrativeForm;

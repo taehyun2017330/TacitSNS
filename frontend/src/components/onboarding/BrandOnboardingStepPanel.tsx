@@ -21,12 +21,10 @@ interface Props {
   isLoadingBusinessGoals: boolean;
   businessGoalSuggestionSource: 'ai' | 'fallback';
   postGoalFolders: PostGoalFolder[];
-  industryPickerOpen: boolean;
   isCustomIndustry: boolean;
   onNameChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
   onNarrativeChange: (value: string) => void;
-  onToggleIndustryPicker: () => void;
   onSelectIndustry: (label: string) => void;
   onSetCustomIndustry: (nextValue: boolean) => void;
   onSelectGoal: (goal: BusinessGoalOption) => void;
@@ -35,6 +33,7 @@ interface Props {
   onRemoveCustomGoal: (goalId: string) => void;
   onCreatePostGoal: (folder: PostGoalFolder) => void;
   onRemovePostGoal: (folderId: string) => void;
+  postGoalRefreshToken?: number;
 }
 
 const BrandOnboardingStepPanel: React.FC<Props> = ({
@@ -47,12 +46,10 @@ const BrandOnboardingStepPanel: React.FC<Props> = ({
   isLoadingBusinessGoals,
   businessGoalSuggestionSource,
   postGoalFolders,
-  industryPickerOpen,
   isCustomIndustry,
   onNameChange,
   onCategoryChange,
   onNarrativeChange,
-  onToggleIndustryPicker,
   onSelectIndustry,
   onSetCustomIndustry,
   onSelectGoal,
@@ -60,19 +57,18 @@ const BrandOnboardingStepPanel: React.FC<Props> = ({
   onUpdateGoal,
   onRemoveCustomGoal,
   onCreatePostGoal,
-  onRemovePostGoal
+  onRemovePostGoal,
+  postGoalRefreshToken = 0
 }) => {
   if (step === 'narrative') {
     return (
       <BrandNarrativeForm
         brandData={brandData}
         brandContext={brandContext}
-        industryPickerOpen={industryPickerOpen}
         isCustomIndustry={isCustomIndustry}
         onNameChange={onNameChange}
         onCategoryChange={onCategoryChange}
         onNarrativeChange={onNarrativeChange}
-        onToggleIndustryPicker={onToggleIndustryPicker}
         onSelectIndustry={onSelectIndustry}
         onSetCustomIndustry={onSetCustomIndustry}
       />
@@ -103,6 +99,7 @@ const BrandOnboardingStepPanel: React.FC<Props> = ({
           brand={brandData}
           businessGoal={selectedBusinessGoal}
           postGoalFolders={postGoalFolders}
+          refreshToken={postGoalRefreshToken}
           onCreatePostGoal={onCreatePostGoal}
           onRemovePostGoal={onRemovePostGoal}
         />

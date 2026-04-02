@@ -24,7 +24,7 @@ def normalize_business_goal_description(text: str) -> str:
         "this goal is to ",
     ):
         if normalized.lower().startswith(prefix):
-            normalized = normalized[len(prefix):].strip()
+            normalized = normalized[len(prefix) :].strip()
             if normalized:
                 normalized = normalized[0].upper() + normalized[1:]
             break
@@ -45,7 +45,6 @@ Choose goals that will naturally lead into strong post-goal exploration later.
 
 Brand name: {payload.get("brandName", "your brand")}
 Industry: {payload.get("brandCategory", "business")}
-Brand identity: {payload.get("brandIdentity", "")}
 Brand narrative: {payload.get("brandNarrative", "")}
 
 Requirements:
@@ -63,8 +62,8 @@ Return strict JSON:
 {{
   "suggestions": [
     {{
-      "id": "build-premium-trust",
-      "title": "Build premium trust",
+      "id": "short-slug",
+      "title": "Business goal title",
       "description": "One concise sentence explaining the business outcome for this brand.",
       "rationale": "One concise sentence explaining why this goal fits the brand narrative."
     }}
@@ -73,7 +72,9 @@ Return strict JSON:
 """.strip()
 
 
-async def suggest_business_goals(payload: Dict[str, Any]) -> BusinessGoalSuggestionResponse:
+async def suggest_business_goals(
+    payload: Dict[str, Any],
+) -> BusinessGoalSuggestionResponse:
     prompt = build_business_goal_prompt(payload)
 
     response = get_openai_client().chat.completions.create(
@@ -126,7 +127,11 @@ async def suggest_business_goals(payload: Dict[str, Any]) -> BusinessGoalSuggest
         if not goal_id:
             goal_id = title.lower().replace("'", "").replace("&", "and")
             goal_id = "-".join(part for part in goal_id.split() if part)
-            goal_id = "".join(character for character in goal_id if character.isalnum() or character == "-").strip("-")
+            goal_id = "".join(
+                character
+                for character in goal_id
+                if character.isalnum() or character == "-"
+            ).strip("-")
             if not goal_id:
                 goal_id = f"business-goal-{len(sanitized) + 1}"
 
@@ -141,7 +146,9 @@ async def suggest_business_goals(payload: Dict[str, Any]) -> BusinessGoalSuggest
         seen_titles.add(normalized_title)
 
     if len(sanitized) != 3:
-        raise ValueError("Business goal suggestion generation returned an incomplete set")
+        raise ValueError(
+            "Business goal suggestion generation returned an incomplete set"
+        )
 
     return BusinessGoalSuggestionResponse(
         suggestions=sanitized,

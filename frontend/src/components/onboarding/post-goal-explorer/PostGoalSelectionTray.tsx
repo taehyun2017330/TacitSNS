@@ -7,6 +7,12 @@ interface Props {
   onRemovePostGoal: (folderId: string) => void;
 }
 
+const getDirectionLabels = (folder: PostGoalFolder) => (
+  folder.directions?.slice(0, 4).map(direction => direction.chip || direction.angle).filter(Boolean)
+  ?? folder.imageTypeChips?.slice(0, 4)
+  ?? folder.taxonomyTags.slice(0, 4)
+);
+
 const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostGoal }) => {
   if (postGoalFolders.length === 0) {
     return null;
@@ -44,7 +50,13 @@ const PostGoalSelectionTray: React.FC<Props> = ({ postGoalFolders, onRemovePostG
             />
             <div className="post-goal-selected-card-copy">
               <strong>{folder.title}</strong>
-              <span>{(folder.imageTypeChips?.slice(0, 2) ?? folder.taxonomyTags.slice(0, 2)).join(' · ')}</span>
+              <div className="post-goal-selected-card-tags">
+                {getDirectionLabels(folder).map(tag => (
+                  <span key={tag} className="post-goal-selected-card-tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
             <button
               type="button"

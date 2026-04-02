@@ -1,14 +1,12 @@
 import React from 'react';
 
 import type {
-  BusinessGoalOption,
   PostGoalSuggestion
 } from '../../../types/workspace';
 import InlineEditableText from '../InlineEditableText';
 import PostGoalExampleGallery from './PostGoalExampleGallery';
 
 interface Props {
-  businessGoal: BusinessGoalOption;
   goal: PostGoalSuggestion;
   isPreviewLoading: boolean;
   isSelected: boolean;
@@ -21,7 +19,6 @@ interface Props {
 }
 
 const PostGoalDetailPane: React.FC<Props> = ({
-  businessGoal,
   goal,
   isPreviewLoading,
   isSelected,
@@ -32,10 +29,14 @@ const PostGoalDetailPane: React.FC<Props> = ({
   onApplyGoal,
   onRemoveGoal
 }) => {
-  const imageTypeChips = goal.imageTypeChips?.slice(0, 4) ?? [];
+  const directions = goal.directions?.length
+    ? goal.directions.slice(0, 4)
+    : (goal.imageTypeChips?.slice(0, 4) ?? []).map(chip => ({ chip, angle: chip }));
+  const visibleDirections = directions.slice(0, 3);
+  const hiddenDirectionCount = Math.max(0, directions.length - visibleDirections.length);
 
   return (
-    <article className="post-goal-detail-card">
+    <article className={`post-goal-detail-card ${isSelected ? 'is-selected' : ''}`}>
       <div className="post-goal-detail-layout">
         <div className="post-goal-detail-visual-column">
           <PostGoalExampleGallery goal={goal} isLoading={isPreviewLoading} />
@@ -43,60 +44,65 @@ const PostGoalDetailPane: React.FC<Props> = ({
 
         <aside className="post-goal-detail-aside">
           <div className="post-goal-detail-header post-goal-detail-header--aside">
-            {isSelected ? <span className="goal-card-selection-note">In your starting set</span> : null}
-            <InlineEditableText
-              as="h4"
-              value={draftTitle}
-              onChange={value => onChangeDraft('title', value)}
-              placeholder="Name the post direction"
-              className="inline-editable--post-title"
-              multiline={false}
-            />
+            <div className="post-goal-detail-title-row">
+              <InlineEditableText
+                as="h4"
+                value={draftTitle}
+                onChange={value => onChangeDraft('title', value)}
+                placeholder="Name the post direction"
+                className="inline-editable--post-title"
+                multiline={false}
+              />
+              <button
+                type="button"
+                className={`ui-btn ${isSelected ? 'ui-btn--secondary' : 'ui-btn--primary'} post-goal-add-pill`}
+                onClick={() => onApplyGoal(goal)}
+              >
+                {isSelected ? '✓ Added' : '+ Add'}
+              </button>
+            </div>
 
             <InlineEditableText
               as="p"
               value={draftDescription}
               onChange={value => onChangeDraft('description', value)}
-              placeholder="Describe the kind of image direction this should become."
-              className="post-goal-detail-note inline-editable--body"
+              placeholder="Describe the image direction."
+              className="post-goal-detail-note post-goal-detail-note--compact inline-editable--body"
             />
           </div>
 
-          <section className="post-goal-detail-panel">
-            <p className="post-goal-detail-panel-copy">{draftRationale}</p>
-            {imageTypeChips.length > 0 ? (
-              <>
-                <div className="goal-card-rationale-label">Image types that could fit this direction</div>
-                <div className="post-goal-taxonomy-themes">
-                  {imageTypeChips.map(chip => (
-                    <span key={chip} className="post-goal-taxonomy-theme">{chip}</span>
-                  ))}
-                </div>
-              </>
-            ) : null}
-          </section>
+          {draftRationale ? (
+            <p className="post-goal-detail-rationale-inline">{draftRationale}</p>
+          ) : null}
 
-          <div className="post-goal-card-actions">
+          {visibleDirections.length > 0 && (
+            <div className="post-goal-direction-chip-list">
+              {visibleDirections.map((direction, index) => (
+                <span
+                  key={`${direction.chip}-${index}`}
+                  className={`post-goal-direction-chip${index === 0 ? ' post-goal-direction-chip--current' : ''}`}
+                  title={direction.angle || direction.chip}
+                >
+                  <span className="post-goal-direction-chip-label">{direction.chip || direction.angle}</span>
+                </span>
+              ))}
+              {hiddenDirectionCount > 0 ? (
+                <span className="post-goal-direction-chip post-goal-direction-chip--count">
+                  +{hiddenDirectionCount} more
+                </span>
+              ) : null}
+            </div>
+          )}
+
+          {isSelected && (
             <button
               type="button"
-              className={isSelected ? 'ui-btn ui-btn--secondary' : 'ui-btn ui-btn--primary'}
-              onClick={() => onApplyGoal(goal)}
+              className="post-goal-remove-link"
+              onClick={() => onRemoveGoal(goal.id)}
             >
-              {isSelected ? 'Update this post goal' : 'Add this post goal'}
+              Remove
             </button>
-            {isSelected ? (
-              <button
-                type="button"
-                className="ui-btn ui-btn--secondary"
-                onClick={() => onRemoveGoal(goal.id)}
-              >
-                Remove from starting set
-              </button>
-            ) : null}
-          </div>
-          <p className="post-goal-detail-example-note">
-            This image is one example of what this direction could look like. You can explore more variations later.
-          </p>
+          )}
         </aside>
       </div>
     </article>

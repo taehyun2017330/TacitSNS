@@ -10,7 +10,7 @@ interface Props {
   activeBusinessGoal: BusinessGoalOption | null;
   postGoalFolders: PostGoalFolder[];
   onCreatePostGoal: (folder: PostGoalFolder) => void;
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
   onClose: () => void;
 }
 

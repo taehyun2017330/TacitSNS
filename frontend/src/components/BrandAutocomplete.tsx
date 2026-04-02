@@ -12,12 +12,8 @@ import type {
 import { requestSuggestions } from './brandAutocomplete/api';
 import {
   applySuggestionToText,
-  elementLabelForKey,
-  getElementColor,
   getElementLabel,
   getStatusColor,
-  getStatusTooltip,
-  getSuggestionIcon
 } from './brandAutocomplete/utils';
 import './BrandAutocomplete.css';
 
@@ -55,6 +51,28 @@ const CHECKLIST_ITEMS: Array<{
   }
 ];
 
+const AUTOCOMPLETE_DEBOUNCE_MS = 220;
+
+function needsMoreDetail(itemId: ChecklistKey, evidence: string) {
+  const trimmed = evidence.trim().toLowerCase();
+  if (!trimmed) {
+    return false;
+  }
+
+  const genericPatterns: Record<ChecklistKey, string[]> = {
+    offer: ['range of', 'innovative product', 'innovative products', 'high-quality product', 'solutions'],
+    audience: ['everyone', 'all customers', 'many people', 'broad audience'],
+    emphasis: ['quality', 'innovation', 'value', 'great result'],
+    tone: ['professional', 'friendly', 'trustworthy', 'premium']
+  };
+
+  if (trimmed.length < 28) {
+    return true;
+  }
+
+  return genericPatterns[itemId].some(pattern => trimmed.includes(pattern));
+}
+
 function buildFallbackSuggestions(brandName: string, activeKey: ChecklistKey | null): Suggestion[] {
   switch (activeKey) {
     case 'audience':
@@ -83,10 +101,33 @@ function buildFallbackSuggestions(brandName: string, activeKey: ChecklistKey | n
       return [
         { text: `${brandName || 'This brand'} sells`, type: 'continuation', targets: ['offer'] },
         { text: `${brandName || 'This brand'} offers`, type: 'continuation', targets: ['offer'] },
-        { text: 'products for', type: 'continuation', targets: ['offer'] },
-        { text: 'care designed for', type: 'continuation', targets: ['offer'] }
+        { text: `${brandName || 'This brand'} creates`, type: 'continuation', targets: ['offer'] },
+        { text: `${brandName || 'This brand'} provides`, type: 'continuation', targets: ['offer'] }
       ];
   }
+}
+
+function sanitizeSuggestionText(text: string) {
+  return text.replace(/\s*(?:\.\.\.|…)+\s*$/, '').trimEnd();
+}
+
+function sanitizeSuggestion(suggestion: Suggestion): Suggestion {
+  return {
+    ...suggestion,
+    text: sanitizeSuggestionText(suggestion.text)
+  };
+}
+
+function shouldTriggerAutocompleteRequest(nextText: string) {
+  if (!nextText.trim()) {
+    return true;
+  }
+
+  if (/\s$/.test(nextText)) {
+    return true;
+  }
+
+  return /[.!?]$/.test(nextText.trimEnd());
 }
 
 const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, showHeader = true }) => {
@@ -97,15 +138,16 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
   const [brandStatus, setBrandStatus] = useState<BrandStatus | null>(null);
   const [progress, setProgress] = useState<NarrativeProgress | null>(null);
   const [modelConfig] = useState<ModelConfig>({
-    directionModel: 'gpt-4.1',
+    directionModel: 'gpt-4o-mini',
     suggestionModel: 'gpt-4o',
     directionTemp: 0.2,
     suggestionTemp: 0.7
   });
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+  const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).substring(7)}`);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
-  const skipDebounceRef = useRef(false);
+  const requestSequenceRef = useRef(0);
+  const lastBrandSignatureRef = useRef('__init__');
+  const debounceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setText(value || '');
@@ -113,14 +155,15 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
 
   const progressElements = Array.isArray(progress?.allElements) ? progress.allElements : [];
   const progressByKey = new Map(progressElements.map(element => [element.key, element]));
-  const missingElements = progressElements.filter(element => !element.covered).slice(0, 3);
 
   const narrativeChecklist = CHECKLIST_ITEMS.map(item => {
     const progressItem = progressByKey.get(item.id);
+    const evidence = progressItem?.evidence || '';
     return {
       ...item,
       covered: Boolean(progressItem?.covered),
-      evidence: progressItem?.evidence || ''
+      evidence,
+      needsDetail: Boolean(progressItem?.covered && needsMoreDetail(item.id, evidence))
     };
   });
 
@@ -131,73 +174,140 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
       : firstIncompleteChecklistIndex >= 0
         ? narrativeChecklist[firstIncompleteChecklistIndex].id
         : null;
+  const activeChecklistItem =
+    (activeChecklistKey
+      ? narrativeChecklist.find(item => item.id === activeChecklistKey)
+      : null) ??
+    (firstIncompleteChecklistIndex >= 0 ? narrativeChecklist[firstIncompleteChecklistIndex] : null);
+  const tooltipEyebrow = !text.trim()
+    ? 'Start Here'
+    : activeChecklistItem
+      ? 'Write Next'
+      : 'Refine';
+  const tooltipTitle = !text.trim()
+    ? 'What you sell'
+    : activeChecklistItem
+      ? activeChecklistItem.title
+      : 'Core narrative covered';
+  const tooltipMessage = !text.trim()
+    ? 'Mention the product, service, or offer first.'
+    : activeChecklistItem
+      ? activeChecklistItem.hint
+      : 'You have covered the essentials. Refine the tone or add one more concrete detail.';
+  const tooltipNote = activeChecklistItem?.covered && activeChecklistItem.needsDetail
+    ? 'This part is present, but it still needs a more specific detail.'
+    : !text.trim()
+      ? 'Use the suggestion chips below to start the first sentence.'
+      : brandStatus?.statusMessage || 'Use the suggestion chips below to keep writing.';
+  const isSentenceStarterContext = !text.trim() || /[.!?]$/.test(text.trimEnd());
 
   const fetchSuggestions = async (currentText: string = '') => {
+    const requestId = ++requestSequenceRef.current;
     setIsLoading(true);
     try {
       const data = await requestSuggestions({
         brandContext,
         currentText,
-        sessionId,
+        sessionId: sessionIdRef.current,
         modelConfig
       });
-      setSuggestions(data.suggestions || []);
+      if (requestId !== requestSequenceRef.current) {
+        return;
+      }
+      setSuggestions((data.suggestions || []).map(sanitizeSuggestion).filter(suggestion => suggestion.text));
       setBrandStatus(data.brandStatus || null);
       setProgress(data.progress || null);
     } catch (error) {
+      if (requestId !== requestSequenceRef.current) {
+        return;
+      }
       if (!(error instanceof ApiUnavailableError)) {
         console.error('Error fetching suggestions:', error);
       }
-      setSuggestions(buildFallbackSuggestions(brandContext.brandName, activeChecklistKey));
+      setSuggestions(buildFallbackSuggestions(brandContext.brandName, activeChecklistKey).map(sanitizeSuggestion));
     } finally {
-      setIsLoading(false);
+      if (requestId === requestSequenceRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
-  useEffect(() => {
-    if (skipDebounceRef.current) {
-      skipDebounceRef.current = false;
+  const clearPendingFetch = () => {
+    if (debounceTimerRef.current !== null) {
+      window.clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+  };
+
+  const scheduleFetchSuggestions = (currentText: string, immediate = false) => {
+    clearPendingFetch();
+
+    if (immediate) {
+      setIsTyping(false);
+      void fetchSuggestions(currentText);
       return;
     }
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
+    setIsTyping(true);
+    debounceTimerRef.current = window.setTimeout(() => {
+      debounceTimerRef.current = null;
+      setIsTyping(false);
+      void fetchSuggestions(currentText);
+    }, AUTOCOMPLETE_DEBOUNCE_MS);
+  };
+
+  useEffect(() => () => {
+    clearPendingFetch();
+  }, []);
+
+  useEffect(() => {
+    const normalizedBrandName = brandContext.brandName.trim();
+    const normalizedBrandCategory = brandContext.brandCategory.trim();
+    const hasFullBrandContext = Boolean(normalizedBrandName && normalizedBrandCategory);
+    const brandSignature = `${normalizedBrandName}::${normalizedBrandCategory}`;
+
+    if (lastBrandSignatureRef.current === brandSignature) {
+      return;
     }
 
-    setIsTyping(true);
-    setSuggestions([]);
+    lastBrandSignatureRef.current = brandSignature;
+    clearPendingFetch();
+    requestSequenceRef.current += 1;
+    sessionIdRef.current = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    setBrandStatus(null);
+    setProgress(null);
+    setIsLoading(false);
+    setIsTyping(false);
 
-    debounceRef.current = setTimeout(() => {
-      setIsTyping(false);
-      fetchSuggestions(text);
-    }, 500);
+    if (hasFullBrandContext) {
+      scheduleFetchSuggestions(text, true);
+      return;
+    }
 
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [text]);
+    setSuggestions(buildFallbackSuggestions(normalizedBrandName, activeChecklistKey).map(sanitizeSuggestion));
+  }, [activeChecklistKey, brandContext.brandCategory, brandContext.brandName, text]);
 
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const nextValue = event.target.value;
     setText(nextValue);
     onChange?.(nextValue);
+    clearPendingFetch();
+    setIsTyping(false);
+
+    if (shouldTriggerAutocompleteRequest(nextValue)) {
+      setSuggestions([]);
+      scheduleFetchSuggestions(nextValue);
+    }
   };
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
-    const nextText = applySuggestionToText(text, suggestion);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    skipDebounceRef.current = true;
+    const nextText = applySuggestionToText(text, sanitizeSuggestion(suggestion));
     setText(nextText);
     onChange?.(nextText);
     textareaRef.current?.focus();
+    clearPendingFetch();
     setIsTyping(false);
-    fetchSuggestions(nextText);
+    scheduleFetchSuggestions(nextText, true);
   };
 
   return (
@@ -224,13 +334,11 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
       <div className="input-section">
         <div className="brand-narrative-checklist" aria-label="Brand narrative checklist">
           <div className="brand-narrative-checklist-header">
-            <span className="brand-narrative-checklist-eyebrow">Include At Least</span>
-            <p>The checklist updates as your narrative covers the essentials.</p>
+            <span className="brand-narrative-checklist-eyebrow">Things you could mention</span>
           </div>
           <div className="brand-narrative-checklist-grid">
             {narrativeChecklist.map((item, index) => {
               const isCurrent = !item.covered && index === firstIncompleteChecklistIndex;
-              const accent = getElementColor([item.id]);
 
               return (
                 <div
@@ -240,19 +348,10 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
                     item.covered ? 'is-complete' : '',
                     isCurrent ? 'is-current' : ''
                   ].filter(Boolean).join(' ')}
-                  style={{
-                    borderColor: item.covered || isCurrent ? `${accent}33` : undefined,
-                    backgroundColor: item.covered ? `${accent}12` : isCurrent ? `${accent}0E` : undefined
-                  }}
                 >
                   <span
                     className="brand-narrative-checklist-mark"
                     aria-hidden="true"
-                    style={{
-                      borderColor: item.covered || isCurrent ? `${accent}33` : undefined,
-                      color: item.covered || isCurrent ? accent : undefined,
-                      backgroundColor: item.covered || isCurrent ? `${accent}14` : undefined
-                    }}
                   >
                     {item.covered ? '✓' : index + 1}
                   </span>
@@ -261,6 +360,9 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
                     <span>{item.hint}</span>
                     {item.covered && item.evidence && (
                       <small className="brand-narrative-checklist-evidence">“{item.evidence}”</small>
+                    )}
+                    {item.covered && item.needsDetail && (
+                      <small className="brand-narrative-checklist-detail-note">Give more detail</small>
                     )}
                   </div>
                 </div>
@@ -274,80 +376,60 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
             ref={textareaRef}
             value={text}
             onChange={handleTextChange}
-            placeholder="Describe what the brand is, who it serves, what makes it different, and how it should come across."
+            placeholder="Describe your brand in a few sentences."
             className="brand-textarea"
-            rows={8}
+            rows={5}
           />
 
           <div className="status-indicator-overlay">
-            <div className={`status-light ${getStatusColor(text, brandStatus)}`} title="Hover for writing guidance">
+            <div className={`status-light ${getStatusColor(text, brandStatus)}`}>
               <div className="status-tooltip">
-                <div className="status-tooltip-message">
-                  {getStatusTooltip(text, brandStatus).map((part, index) =>
-                    part.color ? (
-                      <span key={index} className="highlighted-keyword" style={{ color: part.color, fontWeight: 600 }}>
-                        {part.text}
-                      </span>
-                    ) : (
-                      <span key={index}>{part.text}</span>
-                    )
-                  )}
+                <div className="status-tooltip-eyebrow">
+                  {tooltipEyebrow}
                 </div>
-                {missingElements.length > 0 && (
-                  <div className="status-tooltip-tags">
-                    {missingElements.map(element => (
-                      <span
-                        key={element.key}
-                        className="status-tooltip-tag"
-                        style={{
-                          borderColor: getElementColor([element.key]),
-                          color: getElementColor([element.key])
-                        }}
-                      >
-                        {elementLabelForKey(element.key)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="evaluation-note-inline">
-                  Hover here to see what to add next, then use the suggestion chips below.
-                </div>
+                <div className="status-tooltip-title">{tooltipTitle}</div>
+                <div className="status-tooltip-message">{tooltipMessage}</div>
+                <div className="evaluation-note-inline">{tooltipNote}</div>
               </div>
             </div>
           </div>
 
           <div className="suggestion-tray">
             {suggestions.length > 0 && !isLoading && !isTyping && (
-              <div className="inline-suggestions">
-                {suggestions.map((suggestion, index) => {
-                  const elementLabel = getElementLabel(suggestion.targets);
-                  const elementColor = getElementColor(suggestion.targets);
-                  const showDirectionIndicator = Boolean(elementLabel && suggestion.reasoning);
+              <>
+                <div className="suggestion-tray-header">
+                  <span className="suggestion-tray-label">
+                    {activeChecklistItem
+                      ? <>Start a phrase for <span className="suggestion-tray-target">{activeChecklistItem.title.toLowerCase()}</span>, or choose one of our suggested completions:</>
+                      : 'Choose one of our suggested completions:'}
+                  </span>
+                </div>
+                <div className="inline-suggestions">
+                  {suggestions.map((suggestion, index) => {
+                    const elementLabel = getElementLabel(suggestion.targets);
+                    const showDirectionIndicator = Boolean(
+                      isSentenceStarterContext && elementLabel && suggestion.reasoning
+                    );
 
-                  return (
-                    <button
-                      key={index}
-                      className={`inline-suggestion-bubble ${suggestion.type} ${showDirectionIndicator ? 'has-direction' : ''}`}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      style={showDirectionIndicator ? { borderLeftColor: elementColor, borderLeftWidth: '3px' } : {}}
-                    >
-                      {showDirectionIndicator && (
-                        <span className="direction-indicator" style={{ backgroundColor: elementColor }} />
-                      )}
-                      <span className="bubble-icon">{getSuggestionIcon(suggestion.type)}</span>
-                      <span className="bubble-text">{suggestion.text}</span>
-                      {showDirectionIndicator && (
-                        <div className="direction-tooltip">
-                          <div className="tooltip-header" style={{ backgroundColor: elementColor }}>
-                            {elementLabel}
-                          </div>
-                          <div className="tooltip-body">{suggestion.reasoning}</div>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={index}
+                        className={[
+                          'inline-suggestion-bubble',
+                          isSentenceStarterContext ? 'is-starter' : 'is-completion',
+                          showDirectionIndicator ? 'has-direction' : ''
+                        ].join(' ')}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {showDirectionIndicator && (
+                          <span className="direction-indicator" />
+                        )}
+                        <span className="bubble-text">{suggestion.text}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             )}
 
             {isTyping && (
@@ -368,7 +450,6 @@ const BrandAutocomplete: React.FC<Props> = ({ brandContext, value, onChange, sho
           </div>
         </div>
 
-        <div className="char-count">{text.length} characters</div>
       </div>
     </div>
   );

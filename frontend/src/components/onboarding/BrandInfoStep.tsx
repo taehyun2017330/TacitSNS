@@ -20,13 +20,20 @@ interface Props {
   initialData?: OnboardingResult | null;
   onComplete: (result: OnboardingResult) => void;
   initialStep?: OnboardingStep;
+  mode?: 'onboarding' | 'workspace-edit';
+  onCancel?: () => void;
+  onStepChange?: (step: OnboardingStep) => void;
 }
 
 const BrandInfoStep: React.FC<Props> = ({
   initialData = null,
   onComplete,
-  initialStep
+  initialStep,
+  mode = 'onboarding',
+  onCancel,
+  onStepChange
 }) => {
+  const isWorkspaceEditMode = mode === 'workspace-edit';
   const [brandData, setBrandData] = useState<BrandData>(() => initialData?.brand ?? INITIAL_BRAND_DATA);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(
     () => initialData?.selectedBusinessGoals[0]?.id ?? null
@@ -56,7 +63,6 @@ const BrandInfoStep: React.FC<Props> = ({
   const [postGoalFolders, setPostGoalFolders] = useState<PostGoalFolder[]>(
     () => initialData?.postGoalFolders ?? []
   );
-  const [industryPickerOpen, setIndustryPickerOpen] = useState(false);
   const [isCustomIndustry, setIsCustomIndustry] = useState(() =>
     Boolean(
       (initialData?.brand.category ?? '').trim() &&
@@ -66,6 +72,8 @@ const BrandInfoStep: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [goalRefreshDecisionOpen, setGoalRefreshDecisionOpen] = useState(false);
+  const [businessGoalRefreshToken, setBusinessGoalRefreshToken] = useState(0);
+  const [postGoalRefreshToken, setPostGoalRefreshToken] = useState(0);
 
   const {
     suggestedGoals,
@@ -73,7 +81,8 @@ const BrandInfoStep: React.FC<Props> = ({
     suggestionSource: businessGoalSuggestionSource
   } = useBusinessGoalSuggestions({
     brand: brandData,
-    enabled: currentStep === 'goals'
+    enabled: currentStep === 'goals',
+    refreshToken: businessGoalRefreshToken
   });
 
   const businessGoalOptions = useMemo(() => {
@@ -133,16 +142,14 @@ const BrandInfoStep: React.FC<Props> = ({
   }, [initialStep]);
 
   useEffect(() => {
-    if (currentStep !== 'narrative') {
-      setIndustryPickerOpen(false);
-    }
-  }, [currentStep]);
-
-  useEffect(() => {
     if (!selectedGoalId) {
       setPostGoalFolders([]);
     }
   }, [selectedGoalId]);
+
+  useEffect(() => {
+    onStepChange?.(currentStep);
+  }, [currentStep, onStepChange]);
 
   const transitionStep = (nextStep: OnboardingStep, direction: 'forward' | 'backward') => {
     if (nextStep === currentStep) {
@@ -169,6 +176,7 @@ const BrandInfoStep: React.FC<Props> = ({
       setSelectedGoalId(null);
       setPostGoalFolders([]);
       setGoalSourceSignature(currentGoalSourceSignature);
+      setBusinessGoalRefreshToken(token => token + 1);
       setGoalRefreshDecisionOpen(false);
       transitionStep('goals', 'forward');
       return;
@@ -242,7 +250,6 @@ const BrandInfoStep: React.FC<Props> = ({
   const handleIndustrySelect = (label: string) => {
     handleFieldChange('category', label);
     setIsCustomIndustry(false);
-    setIndustryPickerOpen(false);
   };
 
   const handleNarrativeChange = (text: string) => {
@@ -262,12 +269,10 @@ const BrandInfoStep: React.FC<Props> = ({
     isLoadingBusinessGoals,
     businessGoalSuggestionSource,
     postGoalFolders,
-    industryPickerOpen,
     isCustomIndustry,
     onNameChange: (value: string) => handleFieldChange('name', value),
     onCategoryChange: (value: string) => handleFieldChange('category', value),
     onNarrativeChange: handleNarrativeChange,
-    onToggleIndustryPicker: () => setIndustryPickerOpen(open => !open),
     onSelectIndustry: handleIndustrySelect,
     onSetCustomIndustry: setIsCustomIndustry,
     onSelectGoal: selectGoal,
@@ -275,7 +280,24 @@ const BrandInfoStep: React.FC<Props> = ({
     onUpdateGoal: updateGoal,
     onRemoveCustomGoal: removeCustomGoal,
     onCreatePostGoal: upsertPostGoalFolder,
-    onRemovePostGoal: removePostGoalFolder
+    onRemovePostGoal: removePostGoalFolder,
+    postGoalRefreshToken
+  };
+
+  const handleRegenerateCurrentStep = () => {
+    if (currentStep === 'goals') {
+      setCustomGoalOverrides([]);
+      setSelectedGoalId(null);
+      setPostGoalFolders([]);
+      setGoalSourceSignature(currentGoalSourceSignature);
+      setBusinessGoalRefreshToken(token => token + 1);
+      return;
+    }
+
+    if (currentStep === 'post-goals') {
+      setPostGoalFolders([]);
+      setPostGoalRefreshToken(token => token + 1);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -343,33 +365,78 @@ const BrandInfoStep: React.FC<Props> = ({
     }
   };
 
-  return (
-    <main className="brand-onboarding-screen">
-      <div className="brand-onboarding-layout">
-        <BrandOnboardingRail
-          currentStep={currentStep}
-          brandData={brandData}
-          canShowGoals={canShowGoals}
-          selectedBusinessGoal={selectedBusinessGoal}
-          postGoalFolders={postGoalFolders}
-        />
+  const footerStatus = (() => {
+    if (currentStep === 'narrative') {
+      if (!brandData.name.trim()) {
+        return { text: 'Add a brand name', ready: false };
+      }
+      if (!brandData.category.trim()) {
+        return { text: 'Add an industry', ready: false };
+      }
+      if (!brandData.description.trim()) {
+        return { text: 'Write a short brand description', ready: false };
+      }
+      if (!canGenerateGoals(brandData)) {
+        return { text: 'Add a little more detail', ready: false };
+      }
+      return { text: 'Ready for business goals', ready: true };
+    }
 
-        <section className="brand-onboarding-card">
-          <div className="screen-eyebrow">Onboarding</div>
+    if (currentStep === 'goals') {
+      return selectedGoalId
+        ? { text: 'Ready for post goals', ready: true }
+        : { text: isLoadingBusinessGoals ? 'Generating goals' : 'Choose one goal', ready: false };
+    }
+
+    return postGoalFolders.length > 0
+      ? {
+          text: `${postGoalFolders.length} post goal${postGoalFolders.length === 1 ? '' : 's'} ready`,
+          ready: true
+        }
+      : { text: 'Add one post goal', ready: false };
+  })();
+  const showFooterStatus = currentStep !== 'post-goals';
+
+  return (
+    <main className={`brand-onboarding-screen${isWorkspaceEditMode ? ' brand-onboarding-screen--embedded' : ''}`}>
+      <div className={`brand-onboarding-layout${isWorkspaceEditMode ? ' brand-onboarding-layout--single' : ''}`}>
+        {!isWorkspaceEditMode ? (
+          <BrandOnboardingRail
+            currentStep={currentStep}
+            brandData={brandData}
+            canShowGoals={canShowGoals}
+            selectedBusinessGoal={selectedBusinessGoal}
+            postGoalFolders={postGoalFolders}
+          />
+        ) : null}
+
+        <section className={`brand-onboarding-card${isWorkspaceEditMode ? ' brand-onboarding-card--embedded' : ''}`}>
           <h2>
-            {currentStep === 'narrative'
-              ? 'Tell the system who this brand is.'
-              : currentStep === 'goals'
-                ? 'Review the suggested business goals.'
-                : 'Choose the post goals you want to start with.'}
+            {isWorkspaceEditMode
+              ? currentStep === 'narrative'
+                ? 'Edit your brand narrative'
+                : currentStep === 'goals'
+                  ? 'Edit your business goal'
+                  : 'Edit your post goals'
+              : currentStep === 'narrative'
+                ? 'Brand Narrative'
+                : currentStep === 'goals'
+                  ? 'Business Goal'
+                  : 'Post Goal'}
           </h2>
-          <p className="brand-onboarding-subtitle">
-            {currentStep === 'narrative'
-              ? 'Use one guided field. Then move into business goals.'
-              : currentStep === 'goals'
-                ? 'What is the main reason for your business to use SNS marketing right now?'
-                : 'Turn the business goal into concrete post directions before entering the workspace.'}
-          </p>
+          {isWorkspaceEditMode ? (
+            <p className="brand-onboarding-subtitle">
+              {currentStep === 'narrative'
+                ? 'Refine the current draft.'
+                : currentStep === 'goals'
+                  ? 'Keep it or regenerate a new set.'
+                  : 'Keep these or regenerate a new set.'}
+            </p>
+          ) : currentStep === 'narrative' ? (
+            <p className="brand-onboarding-subtitle">
+              Write a short description of your brand. Use the prompts below to cover the essentials.
+            </p>
+          ) : null}
 
           {submitError && <div className="brand-onboarding-error">{submitError}</div>}
 
@@ -386,31 +453,26 @@ const BrandInfoStep: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="brand-onboarding-divider">
-              <div className="brand-onboarding-requirements">
-                {currentStep === 'narrative' && !brandData.name.trim() && <span>Brand name required</span>}
-                {currentStep === 'narrative' && brandData.name.trim() && !brandData.category.trim() && <span>Industry required</span>}
-                {currentStep === 'narrative' && brandData.name.trim() && brandData.category.trim() && brandData.description.trim().length <= 36 && (
-                  <span>Add a little more detail so the business goal can be inferred well</span>
-                )}
-                {currentStep === 'narrative' && canGenerateGoals(brandData) && (
-                  <span className="is-ready">Ready to review suggested business goals</span>
-                )}
-                {currentStep === 'goals' && !selectedGoalId && (
-                  <span>{isLoadingBusinessGoals ? 'Generating suggested business goals from your brand narrative' : 'Choose one business goal for this SNS marketing effort'}</span>
-                )}
-                {currentStep === 'goals' && isReadyToContinue && (
-                  <span className="is-ready">Ready to move into post goals</span>
-                )}
-                {currentStep === 'post-goals' && postGoalFolders.length === 0 && (
-                  <span>Add at least one post goal to create the first workspace directory</span>
-                )}
-                {currentStep === 'post-goals' && isReadyToFinish && (
-                  <span className="is-ready">Ready to enter the workspace directory</span>
-                )}
-              </div>
+            <div className={`brand-onboarding-divider${showFooterStatus ? '' : ' brand-onboarding-divider--compact'}`}>
+              {showFooterStatus ? (
+                <div className="brand-onboarding-status-line">
+                  <span className={`brand-onboarding-status-chip${footerStatus.ready ? ' is-ready' : ''}`}>
+                    {footerStatus.text}
+                  </span>
+                </div>
+              ) : null}
 
               <div className="brand-onboarding-actions">
+                {isWorkspaceEditMode ? (
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn--secondary"
+                    onClick={onCancel}
+                  >
+                    Close
+                  </button>
+                ) : null}
+
                 {currentStep !== 'narrative' && (
                   <button
                     type="button"
@@ -421,6 +483,17 @@ const BrandInfoStep: React.FC<Props> = ({
                   </button>
                 )}
 
+                {currentStep !== 'narrative' && (
+                  <button
+                    type="button"
+                    className="ui-btn ui-btn--secondary"
+                    onClick={handleRegenerateCurrentStep}
+                    disabled={loading}
+                  >
+                    Regenerate
+                  </button>
+                )}
+
                 {currentStep === 'narrative' ? (
                   <button
                     type="button"
@@ -428,7 +501,7 @@ const BrandInfoStep: React.FC<Props> = ({
                     onClick={handleReviewGoals}
                     disabled={!canGenerateGoals(brandData) || goalRefreshDecisionOpen}
                   >
-                    Review suggested business goals
+                    Next: Business goal
                   </button>
                 ) : currentStep === 'goals' ? (
                   <button
@@ -436,7 +509,7 @@ const BrandInfoStep: React.FC<Props> = ({
                     className={`ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn ${isReadyToContinue ? 'is-ready' : 'is-disabled'}`}
                     disabled={loading || !isReadyToContinue}
                   >
-                    Continue to post goals
+                    Next: Post goal
                   </button>
                 ) : (
                   <button
@@ -444,7 +517,9 @@ const BrandInfoStep: React.FC<Props> = ({
                     className={`ui-btn ui-btn--primary ui-btn--hero brand-onboarding-next-btn ${isReadyToFinish ? 'is-ready' : 'is-disabled'}`}
                     disabled={loading || !isReadyToFinish}
                   >
-                    {loading ? 'Preparing workspace...' : 'Enter workspace'}
+                    {loading
+                      ? (isWorkspaceEditMode ? 'Saving changes...' : 'Preparing workspace...')
+                      : (isWorkspaceEditMode ? 'Return to workspace' : 'Enter workspace')}
                   </button>
                 )}
               </div>

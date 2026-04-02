@@ -1,5 +1,16 @@
-const DEFAULT_API_BASE_URL = 'http://localhost:8001';
-const LEGACY_API_BASE_URL = 'http://localhost:8000';
+const DEFAULT_API_HOST =
+  typeof window !== 'undefined' && window.location.hostname
+    ? window.location.hostname
+    : '127.0.0.1';
+const DEFAULT_API_BASE_URL = `http://${DEFAULT_API_HOST}:8001`;
+const FALLBACK_API_BASE_URLS = [
+  'http://127.0.0.1:8001',
+  'http://localhost:8001'
+];
+const LEGACY_API_BASE_URLS = [
+  'http://127.0.0.1:8000',
+  'http://localhost:8000'
+];
 const API_UNAVAILABLE_COOLDOWN_MS = 30000;
 
 const unavailableCandidates = new Map<string, number>();
@@ -16,10 +27,12 @@ function normalizeBaseUrl(url: string) {
 }
 
 function buildApiCandidates(configuredUrl?: string) {
+  const normalizedConfigured = configuredUrl ? normalizeBaseUrl(configuredUrl) : null;
   const candidates = [
-    configuredUrl,
     DEFAULT_API_BASE_URL,
-    LEGACY_API_BASE_URL
+    normalizedConfigured,
+    ...FALLBACK_API_BASE_URLS,
+    ...LEGACY_API_BASE_URLS
   ].filter(Boolean) as string[];
 
   return Array.from(new Set(candidates.map(normalizeBaseUrl)));

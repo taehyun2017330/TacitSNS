@@ -62,40 +62,42 @@ const PostGoalSuggestionRail: React.FC<Props> = ({
   onSelectSuggestion,
   onCreateCustomGoal
 }) => (
-  <div className="post-goal-browser-list" aria-label="Suggested post-goal directions">
-    {suggestions.map(goal => {
-      const isAdded = selectedFolderIds.has(goal.id);
-      const isActive = activeSuggestionId === goal.id;
-      const displayTitle = displayTitlesById[goal.id]?.trim() || goal.previewTitle || goal.title;
+  <div className="post-goal-browser-rail" aria-label="Suggested post-goal directions">
+    <div className="post-goal-browser-list">
+      {suggestions.map(goal => {
+        const isAdded = selectedFolderIds.has(goal.id);
+        const isActive = activeSuggestionId === goal.id;
+        const displayTitle = displayTitlesById[goal.id]?.trim() || goal.previewTitle || goal.title;
 
-      return (
-        <SuggestionRailCard
-          key={goal.id}
-          goal={goal}
-          isActive={isActive}
-          isAdded={isAdded}
-          isLoadingPreview={Boolean(loadingPreviewIds[goal.id])}
-          displayTitle={displayTitle}
-          onSelectSuggestion={onSelectSuggestion}
-        />
-      );
-    })}
+        return (
+          <SuggestionRailCard
+            key={goal.id}
+            goal={goal}
+            isActive={isActive}
+            isAdded={isAdded}
+            isLoadingPreview={Boolean(loadingPreviewIds[goal.id])}
+            displayTitle={displayTitle}
+            onSelectSuggestion={onSelectSuggestion}
+          />
+        );
+      })}
 
-    <button
-      type="button"
-      className="post-goal-browser-item post-goal-browser-item--add"
-      onClick={onCreateCustomGoal}
-    >
-      <div
-        className="post-goal-browser-item-visual post-goal-browser-item-visual--add"
-        style={{ background: DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND }}
+      <button
+        type="button"
+        className="post-goal-browser-item post-goal-browser-item--add"
+        onClick={onCreateCustomGoal}
       >
-        <div className="post-goal-browser-add-icon">+</div>
-        <div className="post-goal-browser-item-overlay">
-          <strong>Add your own</strong>
+        <div
+          className="post-goal-browser-item-visual post-goal-browser-item-visual--add"
+          style={{ background: DEFAULT_POST_GOAL_PLACEHOLDER_BACKGROUND }}
+        >
+          <div className="post-goal-browser-add-icon">+</div>
+          <div className="post-goal-browser-item-overlay">
+            <strong>Add your own</strong>
+          </div>
         </div>
-      </div>
-    </button>
+      </button>
+    </div>
   </div>
 );
 

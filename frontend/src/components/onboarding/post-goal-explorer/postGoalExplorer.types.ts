@@ -12,10 +12,13 @@ export type PostGoalComposerState = {
   description: string;
   rationale: string;
   referenceAssets: PostGoalReferenceAsset[];
+  isGeneratingReferenceDraft?: boolean;
+  referenceGenerationError?: string;
+  lastReferenceDraftAssetId?: string | null;
 };
 
 export interface PostGoalExplorerSharedProps {
-  selectedFolderTitles: Set<string>;
+  selectedFolderIds: Set<string>;
   onCreatePostGoal: (folder: PostGoalFolder) => void;
-  onRemovePostGoal: (title: string) => void;
+  onRemovePostGoal: (folderId: string) => void;
 }

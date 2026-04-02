@@ -19,6 +19,24 @@ interface Props {
   onRequestAddPostGoal: () => void;
 }
 
+const getDirectionLabels = (folder: PostGoalFolder) => (
+  folder.directions?.slice(0, 4).map(direction => direction.chip || direction.angle).filter(Boolean)
+  ?? folder.imageTypeChips?.slice(0, 4)
+  ?? folder.taxonomyTags.slice(0, 4)
+);
+
+const getPreviewLabel = (folder: PostGoalFolder) => {
+  if (folder.referenceAssets?.length) {
+    return 'Reference-led';
+  }
+
+  if (folder.source === 'custom') {
+    return 'Custom';
+  }
+
+  return 'Preview';
+};
+
 const AddDirectionIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path
@@ -44,15 +62,17 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
     return null;
   }
 
+  const directoryLabel = folderCount === 1 ? '1 direction' : `${folderCount} directions`;
+
   return (
     <section className="workspace-hub-directory">
       <div className="workspace-hub-directory-header">
-        <div className="workspace-hub-directory-step">
-          <span className="workspace-hub-context-index">3</span>
-          <div className="workspace-hub-directory-step-copy">
-            <div className="workspace-hub-context-label">Post goals</div>
-            <h3>Current directions</h3>
+        <div className="workspace-hub-directory-lede">
+          <div className="workspace-hub-directory-heading">
+            <h2>Current directions</h2>
+            <span className="workspace-hub-directory-count">{directoryLabel}</span>
           </div>
+          <p>Open one to explore, or add a new direction.</p>
         </div>
       </div>
 
@@ -71,6 +91,13 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                   (() => {
                     const session = studioSessionsByFolderId[folder.id];
                     const generatedImageCount = session?.generatedImageCount ?? 0;
+                    const isPreparing = session?.bootstrapStatus === 'generating';
+                    const previewCaption = folder.previewTitle && folder.previewTitle !== folder.title
+                      ? folder.previewTitle
+                      : null;
+                    const directionLabels = getDirectionLabels(folder);
+                    const visibleLabels = directionLabels.slice(0, 3);
+                    const hiddenLabelCount = Math.max(0, directionLabels.length - visibleLabels.length);
 
                     return (
                       <button
@@ -98,12 +125,10 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                                 : { background: folder.previewBackground }
                             }
                           >
-                            {folder.referenceAssets?.length ? (
-                              <span className="workspace-hub-folder-kicker">Reference-led</span>
-                            ) : folder.source === 'custom' ? (
-                              <span className="workspace-hub-folder-kicker">Custom</span>
+                            <span className="workspace-hub-folder-kicker">{getPreviewLabel(folder)}</span>
+                            {previewCaption ? (
+                              <span className="workspace-hub-folder-preview-caption">{previewCaption}</span>
                             ) : null}
-                            <strong>{folder.previewTitle || folder.title}</strong>
                           </div>
                         </div>
 
@@ -116,7 +141,9 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                               ) : null}
                             </div>
                             <span className="workspace-hub-folder-status">
-                              {generatedImageCount > 0
+                              {isPreparing
+                                ? 'Preparing'
+                                : generatedImageCount > 0
                                 ? `${generatedImageCount} image${generatedImageCount === 1 ? '' : 's'}`
                                 : 'New'}
                             </span>
@@ -124,11 +151,16 @@ const WorkspacePostGoalDirectory: React.FC<Props> = ({
                           <p>{folder.description}</p>
                           <div className="workspace-hub-folder-meta">
                             <div className="workspace-hub-folder-tags">
-                              {(folder.imageTypeChips?.slice(0, 2) ?? folder.taxonomyTags.slice(0, 2)).map(tag => (
+                              {visibleLabels.map(tag => (
                                 <span key={tag} className="workspace-hub-tag">
                                   {tag}
                                 </span>
                               ))}
+                              {hiddenLabelCount > 0 ? (
+                                <span className="workspace-hub-tag workspace-hub-tag--count">
+                                  +{hiddenLabelCount} more
+                                </span>
+                              ) : null}
                             </div>
                           </div>
                         </div>

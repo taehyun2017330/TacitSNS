@@ -47,7 +47,10 @@ export function buildHistoryMap(nodes: Iterable<PostNode>): Map<string, Gen> {
       nodes: sortedNodes,
       parentBatchId: firstNode.metadata?.parentBatchId || null,
       selectedFromParent: firstNode.metadata?.selectedFromParent,
-      deltaFromParent: firstNode.deltaFromParent,
+      deltaFromParent:
+        firstNode.metadata?.batchAnalysis?.overallDelta ||
+        firstNode.deltaFromParent,
+      batchAnalysis: firstNode.metadata?.batchAnalysis,
       aggregateFeedback: {
         likes: sortedNodes.filter(node => node.feedback?.type === 'yes').length,
         dislikes: sortedNodes.filter(node => node.feedback?.type === 'no').length,
@@ -87,6 +90,9 @@ export function createSelectionNode(params: {
     imageUrl: sourceNode.imageUrl,
     keywords: sourceNode.keywords,
     vibe: sourceNode.vibe,
+    analysis: sourceNode.analysis,
+    deltaFromParent: sourceNode.deltaFromParent,
+    deltaDetails: sourceNode.deltaDetails,
     parentId: sourceNode.id,
     actionType: 'selection',
     timestamp,
@@ -99,7 +105,8 @@ export function createSelectionNode(params: {
         selectedNodeId: sourceNode.id,
         indexInGrid: selectedGridIndex ?? undefined
       },
-      indexInBatch: 0
+      indexInBatch: 0,
+      batchAnalysis: sourceNode.metadata?.batchAnalysis
     }
   };
 }

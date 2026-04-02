@@ -23,53 +23,6 @@ interface Props {
   onOpenPostGoal: (folder: PostGoalFolder) => void;
 }
 
-const SavedImagesIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      d="M5 6.5A1.5 1.5 0 0 1 6.5 5h11A1.5 1.5 0 0 1 19 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 17.5z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-    />
-    <circle cx="9" cy="10" r="1.4" fill="currentColor" />
-    <path
-      d="M7.3 16.2l3.1-3.3 2.2 2.1 1.8-1.9 2.3 3.1"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const PublishImagesIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      d="M12 16.5V6.8"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-    <path
-      d="M8.8 10.1 12 6.8l3.2 3.3"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M6.5 18.5h11"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
 const PostGoalWorkspace: React.FC<Props> = ({
   brandName,
   brandCategory,
@@ -146,34 +99,10 @@ const PostGoalWorkspace: React.FC<Props> = ({
       />
 
       <section className="workspace-hub-main">
-        <header className="workspace-hub-header">
-          <div className="workspace-hub-header-copy">
-            <div className="screen-eyebrow">Post goals</div>
-            <h2>Your post goals</h2>
-            <p>Open one to begin image exploration.</p>
-          </div>
-
-          <div className="workspace-hub-toolbar">
-            <button type="button" className="ui-btn ui-btn--secondary" disabled>
-              <span className="workspace-hub-toolbar-icon">
-                <SavedImagesIcon />
-              </span>
-              Saved images
-            </button>
-            <button type="button" className="ui-btn ui-btn--secondary" disabled>
-              <span className="workspace-hub-toolbar-icon">
-                <PublishImagesIcon />
-              </span>
-              Publish images
-            </button>
-          </div>
-        </header>
-
         {folderCount === 0 ? (
           <section className="workspace-hub-empty">
-            <div className="screen-eyebrow">Post goals</div>
             <h3>No post goals yet</h3>
-            <p>Add one here to begin image exploration in the workspace.</p>
+            <p>Add one to begin exploring.</p>
             {activeBusinessGoal ? (
               <button
                 type="button"

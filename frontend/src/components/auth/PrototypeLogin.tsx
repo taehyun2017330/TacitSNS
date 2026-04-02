@@ -50,30 +50,11 @@ const PrototypeLogin: React.FC<Props> = ({ onLogin }) => {
 
   return (
     <main className="auth-screen">
-      <section className="auth-shell">
-        <div className="auth-copy">
-          <div className="screen-eyebrow">TacitSNS Prototype</div>
-          <h1>Align your brand goals before you generate images.</h1>
-          <p>
-            This prototype helps small business owners turn vague brand instincts into
-            clearer business goals, post goals, and visual directions.
-          </p>
-
-          <div className="auth-copy-card">
-            <div className="auth-copy-label">What happens after login</div>
-            <ul>
-              <li>Define your brand in simple language.</li>
-              <li>Choose the business goals the system thinks matter most.</li>
-              <li>Create post-goal folders and open each one into the 2x2 studio.</li>
-            </ul>
-          </div>
-        </div>
-
+      <section className="auth-shell auth-shell--centered">
         <form className="auth-panel" onSubmit={handleSubmit}>
-          <div className="screen-eyebrow">Prototype Sign In</div>
-          <h2>Enter anything to continue</h2>
+          <h2>Get started</h2>
           <p>
-            Authentication is mocked for now. Any typed input will let you into the system shell.
+            Use the research account to continue.
           </p>
 
           <label className="auth-field">
@@ -102,12 +83,12 @@ const PrototypeLogin: React.FC<Props> = ({ onLogin }) => {
               type="password"
               value={password}
               onChange={event => setPassword(event.target.value)}
-              placeholder="Any text works for now"
+              placeholder="Enter your password"
             />
           </label>
 
           <button type="submit" className="ui-btn ui-btn--primary ui-btn--hero auth-submit" disabled={!canContinue}>
-            Continue to brand setup
+            Continue
           </button>
         </form>
       </section>

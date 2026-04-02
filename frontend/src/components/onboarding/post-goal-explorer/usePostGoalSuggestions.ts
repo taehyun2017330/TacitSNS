@@ -22,10 +22,60 @@ type GoalDraft = {
   rationale: string;
 };
 
+const cleanInlineText = (value: string) => value.replace(/\s+/g, ' ').trim();
+
+const stripTerminalPunctuation = (value: string) => value.replace(/[.!?]+$/g, '').trim();
+
+const ensureSentence = (value: string) => {
+  const cleaned = cleanInlineText(value);
+  if (!cleaned) {
+    return '';
+  }
+
+  return /[.!?]$/.test(cleaned) ? cleaned : `${cleaned}.`;
+};
+
+const lowerSentenceStart = (value: string) => (
+  value ? `${value.charAt(0).toLowerCase()}${value.slice(1)}` : value
+);
+
+const buildWhyThisDirectionFallback = (
+  goal: Pick<PostGoalSuggestion, 'description' | 'previewCaption' | 'imageTypeChips'>,
+  businessGoalTitle: string
+) => {
+  const previewLead = stripTerminalPunctuation(goal.previewCaption ?? '');
+  const descriptionLead = stripTerminalPunctuation(goal.description);
+  const primaryDirection = cleanInlineText(goal.imageTypeChips?.[0] ?? '');
+  const businessGoal = cleanInlineText(businessGoalTitle) || 'the business goal';
+
+  if (previewLead) {
+    return ensureSentence(
+      `It turns ${businessGoal.toLowerCase()} into a clearer first post by using ${lowerSentenceStart(previewLead)}`
+    );
+  }
+
+  if (descriptionLead) {
+    return ensureSentence(
+      `It gives ${businessGoal.toLowerCase()} a more concrete visual route by focusing on ${lowerSentenceStart(descriptionLead)}`
+    );
+  }
+
+  if (primaryDirection) {
+    return ensureSentence(
+      `It gives ${businessGoal.toLowerCase()} a usable first post through a ${primaryDirection.toLowerCase()} direction people can understand quickly`
+    );
+  }
+
+  return ensureSentence(
+    `It gives ${businessGoal.toLowerCase()} a clearer visual route the brand can explore next`
+  );
+};
+
 interface Args {
   brand: BrandData;
   businessGoal: BusinessGoalOption;
   postGoalFolders: PostGoalFolder[];
+  refreshToken?: number;
   onCreatePostGoal: (folder: PostGoalFolder) => void;
   onRemovePostGoal: (folderId: string) => void;
 }
@@ -35,8 +85,12 @@ async function requestPostGoalPreviewImage(
   businessGoal: BusinessGoalOption,
   goal: PostGoalSuggestion
 ) {
+  const primaryDirectionChip = goal.imageTypeChips?.[0];
+  const primaryDirectionAngle = goal.directionAngles?.[0];
   const directionAngle = [
     `Create one strong Instagram-ready example image for the post-goal direction "${goal.title}".`,
+    primaryDirectionChip ? `Primary image direction: ${primaryDirectionChip}.` : '',
+    primaryDirectionAngle ? `Direction angle for this first example: ${primaryDirectionAngle}` : '',
     goal.description,
     goal.previewTitle ? `Example image concept: ${goal.previewTitle}.` : '',
     goal.previewCaption || '',
@@ -77,16 +131,58 @@ async function requestPostGoalPreviewImage(
   return payload.posts?.[0]?.imageUrl ?? null;
 }
 
-const buildGoalDraft = (goal: PostGoalSuggestion, businessGoalTitle: string): GoalDraft => ({
+async function requestReferencePostGoalSuggestion(
+  brand: BrandData,
+  businessGoal: BusinessGoalOption,
+  businessGoalSourceId: string,
+  referenceAsset: PostGoalReferenceAsset
+) {
+  const response = await apiFetch('/api/post-goal-reference-suggestion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      brandName: brand.name,
+      brandCategory: brand.category,
+      brandIdentity: brand.identity,
+      brandNarrative: brand.description,
+      businessGoalId: businessGoalSourceId,
+      businessGoalTitle: businessGoal.title,
+      businessGoalDescription: businessGoal.description,
+      businessGoalRationale: businessGoal.rationale,
+      referenceImageUrl: referenceAsset.dataUrl
+    })
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(payload?.detail || `Reference post-goal suggestion failed with ${response.status}`);
+  }
+
+  const payload = await response.json() as {
+    suggestion?: Partial<PostGoalSuggestion>;
+  };
+
+  if (!payload.suggestion) {
+    throw new Error('Reference post-goal suggestion returned no draft');
+  }
+
+  return payload.suggestion;
+}
+
+const buildGoalDraft = (
+  goal: Pick<PostGoalSuggestion, 'title' | 'description' | 'whyThisDirectionFits' | 'previewCaption' | 'imageTypeChips'>,
+  businessGoalTitle: string
+): GoalDraft => ({
   title: goal.title,
   description: goal.description,
-  rationale: `This post goal supports "${businessGoalTitle}" for this brand.`
+  rationale: ensureSentence(goal.whyThisDirectionFits ?? '') || buildWhyThisDirectionFallback(goal, businessGoalTitle)
 });
 
 export function usePostGoalSuggestions({
   brand,
   businessGoal,
   postGoalFolders,
+  refreshToken = 0,
   onCreatePostGoal,
   onRemovePostGoal
 }: Args) {
@@ -121,11 +217,82 @@ export function usePostGoalSuggestions({
     setSuggestedPostGoals([]);
     setActiveSuggestionId(null);
     setLoadingPreviewIds({});
-  }, [businessGoal.id]);
+  }, [businessGoal.id, refreshToken]);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoadingSuggestions(true);
+
+    const applySuggestions = (goals: PostGoalSuggestion[]) => {
+      startTransition(() => {
+        setSuggestedPostGoals(goals);
+        setActiveSuggestionId(currentId =>
+          goals.some(goal => goal.id === currentId)
+            ? currentId
+            : goals[0]?.id ?? null
+        );
+      });
+      void generatePreviewImages(goals);
+    };
+
+    const requestSuggestionsOnce = async () => {
+      const response = await apiFetch('/api/post-goal-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brandName: brand.name,
+          brandCategory: brand.category,
+          brandIdentity: brand.identity,
+          brandNarrative: brand.description,
+          businessGoalId: businessGoalSourceId,
+          businessGoalTitle: businessGoal.title,
+          businessGoalDescription: businessGoal.description,
+          businessGoalRationale: businessGoal.rationale
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Post goal suggestions failed with ${response.status}`);
+      }
+
+      const payload = await response.json() as {
+        suggestions?: Array<Partial<PostGoalSuggestion>>;
+        source?: 'ai' | 'fallback';
+      };
+
+      const normalizedSuggestions = (payload.suggestions ?? [])
+        .map((suggestion, index) =>
+          normalizePostGoalSuggestion(
+            {
+              id: suggestion.id || `suggested-${businessGoalSourceId}-${index + 1}`,
+              title: suggestion.title?.trim() || `Suggested post goal ${index + 1}`,
+              description: suggestion.description?.trim() || 'A suggested image-post direction for this business goal.',
+              whyThisDirectionFits: suggestion.whyThisDirectionFits?.trim(),
+              taxonomyTags: suggestion.taxonomyTags?.length ? suggestion.taxonomyTags : ['Custom'],
+              directions: suggestion.directions?.length ? suggestion.directions : [],
+              imageTypeChips: suggestion.imageTypeChips?.length ? suggestion.imageTypeChips : [],
+              directionAngles: suggestion.directionAngles?.length ? suggestion.directionAngles : [],
+              assistantPrompt:
+                suggestion.assistantPrompt?.trim() ||
+                `Create a post direction for ${suggestion.title?.trim() || `this ${businessGoal.title.toLowerCase()} goal`}.`,
+              previewTitle: suggestion.previewTitle,
+              previewCaption: suggestion.previewCaption,
+              sourceLabel: payload.source === 'ai' ? 'ai' : 'fallback'
+            },
+            index
+          )
+        )
+        .slice(0, 4);
+
+      if (normalizedSuggestions.length === 0) {
+        throw new Error('No AI post goal suggestions returned');
+      }
+
+      return {
+        payloadSource: payload.source ?? 'fallback',
+        suggestions: normalizedSuggestions
+      };
+    };
 
     const generatePreviewImages = async (goals: PostGoalSuggestion[]) => {
       const pendingGoals = goals.filter(goal => !goal.previewImageUrl && !goal.referenceAssets?.length);
@@ -187,78 +354,39 @@ export function usePostGoalSuggestions({
 
     const fetchSuggestions = async () => {
       try {
-        const response = await apiFetch('/api/post-goal-suggestions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            brandName: brand.name,
-            brandCategory: brand.category,
-            brandIdentity: brand.identity,
-            brandNarrative: brand.description,
-            businessGoalId: businessGoalSourceId,
-            businessGoalTitle: businessGoal.title,
-            businessGoalDescription: businessGoal.description,
-            businessGoalRationale: businessGoal.rationale
-          })
-        });
+        const initialResult = await requestSuggestionsOnce();
 
-        if (!response.ok) {
-          throw new Error(`Post goal suggestions failed with ${response.status}`);
+        if (cancelled) {
+          return;
         }
 
-        const payload = await response.json() as {
-          suggestions?: Array<Partial<PostGoalSuggestion>>;
-          source?: 'ai' | 'fallback';
-        };
+        applySuggestions(initialResult.suggestions);
 
-        const normalizedSuggestions = (payload.suggestions ?? [])
-          .map((suggestion, index) =>
-            normalizePostGoalSuggestion(
-              {
-                id: suggestion.id || `suggested-${businessGoalSourceId}-${index + 1}`,
-                title: suggestion.title?.trim() || `Suggested post goal ${index + 1}`,
-                description: suggestion.description?.trim() || 'A suggested image-post direction for this business goal.',
-                taxonomyTags: suggestion.taxonomyTags?.length ? suggestion.taxonomyTags : ['Custom'],
-                imageTypeChips: suggestion.imageTypeChips?.length ? suggestion.imageTypeChips : [],
-                directionAngles: suggestion.directionAngles?.length ? suggestion.directionAngles : [],
-                assistantPrompt:
-                  suggestion.assistantPrompt?.trim() ||
-                  `Create a post direction for ${suggestion.title?.trim() || `this ${businessGoal.title.toLowerCase()} goal`}.`,
-                previewTitle: suggestion.previewTitle,
-                previewCaption: suggestion.previewCaption,
-                sourceLabel: payload.source === 'ai' ? 'ai' : 'fallback'
-              },
-              index
-            )
-          )
-          .slice(0, 4);
+        if (initialResult.payloadSource !== 'ai') {
+          for (const retryDelay of [1200, 2600]) {
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            if (cancelled) {
+              return;
+            }
 
-        if (normalizedSuggestions.length === 0) {
-          throw new Error('No AI post goal suggestions returned');
-        }
+            try {
+              const retriedResult = await requestSuggestionsOnce();
+              if (cancelled) {
+                return;
+              }
 
-        if (!cancelled) {
-          startTransition(() => {
-            setSuggestedPostGoals(normalizedSuggestions);
-            setActiveSuggestionId(currentId =>
-              normalizedSuggestions.some(goal => goal.id === currentId)
-                ? currentId
-                : normalizedSuggestions[0]?.id ?? null
-            );
-          });
-          void generatePreviewImages(normalizedSuggestions);
+              if (retriedResult.payloadSource === 'ai') {
+                applySuggestions(retriedResult.suggestions);
+                break;
+              }
+            } catch {
+              // Keep the current fallback set if retries fail.
+            }
+          }
         }
       } catch {
         if (!cancelled) {
-          startTransition(() => {
-            setSuggestedPostGoals(fallbackSuggestedPostGoals);
-            setActiveSuggestionId(currentId =>
-              fallbackSuggestedPostGoals.some(goal => goal.id === currentId)
-                ? currentId
-                : fallbackSuggestedPostGoals[0]?.id ?? null
-            );
-          });
-          void generatePreviewImages(fallbackSuggestedPostGoals);
+          applySuggestions(fallbackSuggestedPostGoals);
         }
       } finally {
         if (!cancelled) {
@@ -281,7 +409,8 @@ export function usePostGoalSuggestions({
     businessGoal.rationale,
     businessGoal.title,
     businessGoalSourceId,
-    fallbackSuggestedPostGoals
+    fallbackSuggestedPostGoals,
+    refreshToken
   ]);
 
   useEffect(() => {
@@ -317,7 +446,13 @@ export function usePostGoalSuggestions({
         [goalId]: {
           title: currentDraft?.title ?? sourceGoal?.title ?? '',
           description: currentDraft?.description ?? sourceGoal?.description ?? '',
-          rationale: currentDraft?.rationale ?? `This post goal supports "${businessGoal.title}" for this brand.`,
+          rationale: currentDraft?.rationale ?? buildGoalDraft(sourceGoal ?? {
+            title: '',
+            description: '',
+            assistantPrompt: '',
+            id: '',
+            taxonomyTags: []
+          }, businessGoal.title).rationale,
           [field]: value
         }
       };
@@ -334,6 +469,8 @@ export function usePostGoalSuggestions({
       ...goal,
       title,
       description,
+      whyThisDirectionFits: rationale || goal.whyThisDirectionFits,
+      directions: goal.directions,
       imageTypeChips: goal.imageTypeChips,
       directionAngles: goal.directionAngles,
       assistantPrompt: rationale
@@ -376,7 +513,102 @@ export function usePostGoalSuggestions({
       )
     );
 
-    createGoal(draftedGoal, 'recommended');
+    createGoal(draftedGoal, goal.sourceLabel === 'custom' ? 'custom' : 'recommended');
+  };
+
+  const setComposerReferenceAssets = async (referenceAssets: PostGoalReferenceAsset[]) => {
+    const referenceAsset = referenceAssets[0] ?? null;
+
+    setComposer(current => {
+      if (!current || current.mode !== 'custom' || current.inputMethod !== 'reference') {
+        return current;
+      }
+
+      return {
+        ...current,
+        referenceAssets,
+        isGeneratingReferenceDraft: Boolean(referenceAsset),
+        referenceGenerationError: '',
+        lastReferenceDraftAssetId: referenceAsset?.id ?? null
+      };
+    });
+
+    if (!referenceAsset) {
+      return;
+    }
+
+    try {
+      const generatedSuggestion = await requestReferencePostGoalSuggestion(
+        brand,
+        businessGoal,
+        businessGoalSourceId,
+        referenceAsset
+      );
+
+      const customSuggestion = normalizePostGoalSuggestion(
+        {
+          id:
+            generatedSuggestion.id ||
+            `reference-${referenceAsset.id}`,
+          title: generatedSuggestion.title?.trim() || 'Reference-led post goal',
+          description:
+            generatedSuggestion.description?.trim() ||
+            `A post direction inspired by the uploaded reference image for ${businessGoal.title.toLowerCase()}.`,
+          whyThisDirectionFits:
+            generatedSuggestion.whyThisDirectionFits?.trim() ||
+            buildWhyThisDirectionFallback(
+              {
+                description:
+                  generatedSuggestion.description?.trim() ||
+                  `A post direction inspired by the uploaded reference image for ${businessGoal.title.toLowerCase()}.`,
+                previewCaption: generatedSuggestion.previewCaption?.trim(),
+                imageTypeChips: generatedSuggestion.imageTypeChips
+              },
+              businessGoal.title
+            ),
+          taxonomyTags: generatedSuggestion.taxonomyTags?.length ? generatedSuggestion.taxonomyTags : ['Custom'],
+          directions: generatedSuggestion.directions?.length ? generatedSuggestion.directions : [],
+          imageTypeChips: generatedSuggestion.imageTypeChips?.length ? generatedSuggestion.imageTypeChips : [],
+          directionAngles: generatedSuggestion.directionAngles?.length ? generatedSuggestion.directionAngles : [],
+          assistantPrompt:
+            generatedSuggestion.assistantPrompt?.trim() ||
+            `Create a post direction inspired by the uploaded reference image for ${generatedSuggestion.title?.trim() || 'this post goal'}.`,
+          previewTitle: generatedSuggestion.previewTitle?.trim() || generatedSuggestion.title?.trim(),
+          previewCaption: generatedSuggestion.previewCaption?.trim() || generatedSuggestion.description?.trim(),
+          previewBackground: generatedSuggestion.previewBackground,
+          previewImageUrl: referenceAsset.dataUrl,
+          referenceAssets: [referenceAsset],
+          sourceLabel: 'custom'
+        },
+        suggestedPostGoals.length
+      );
+
+      startTransition(() => {
+        setSuggestedPostGoals(prev => [...prev, customSuggestion]);
+        setActiveSuggestionId(customSuggestion.id);
+        setDraftByGoalId(prev => ({
+          ...prev,
+          [customSuggestion.id]: buildGoalDraft(customSuggestion, businessGoal.title)
+        }));
+      });
+
+      setComposer(null);
+    } catch (error: any) {
+      setComposer(current => {
+        if (!current || current.mode !== 'custom' || current.inputMethod !== 'reference') {
+          return current;
+        }
+
+        return {
+          ...current,
+          referenceAssets,
+          isGeneratingReferenceDraft: false,
+          referenceGenerationError:
+            error?.message || 'Failed to turn the reference image into a post-goal draft.',
+          lastReferenceDraftAssetId: referenceAsset.id
+        };
+      });
+    }
   };
 
   const openCustomComposer = () => {
@@ -386,7 +618,10 @@ export function usePostGoalSuggestions({
       title: '',
       description: '',
       rationale: '',
-      referenceAssets: []
+      referenceAssets: [],
+      isGeneratingReferenceDraft: false,
+      referenceGenerationError: '',
+      lastReferenceDraftAssetId: null
     });
   };
 
@@ -395,10 +630,16 @@ export function usePostGoalSuggestions({
   };
 
   const saveComposer = () => {
-    if (!composer || !composer.title.trim()) {
-      if (!(composer.inputMethod === 'reference' && composer.referenceAssets.length > 0)) {
-        return;
-      }
+    if (!composer) {
+      return;
+    }
+
+    if (composer.inputMethod === 'reference') {
+      return;
+    }
+
+    if (!composer.title.trim()) {
+      return;
     }
 
     const baseGoal = composer.seed;
@@ -417,6 +658,14 @@ export function usePostGoalSuggestions({
         id: baseGoal?.id ?? `custom-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
         title,
         description,
+        whyThisDirectionFits: rationale || buildWhyThisDirectionFallback(
+          {
+            description,
+            previewCaption: description,
+            imageTypeChips: baseGoal?.imageTypeChips
+          },
+          businessGoal.title
+        ),
         taxonomyTags:
           baseGoal?.taxonomyTags ??
           (composer.inputMethod === 'reference' ? ['Experiential', 'Brand resonance'] : ['Custom']),
@@ -451,7 +700,6 @@ export function usePostGoalSuggestions({
 
     setSuggestedPostGoals(prev => [...prev, customSuggestion]);
     setActiveSuggestionId(customSuggestion.id);
-    createGoal(customSuggestion, 'custom', composer.referenceAssets);
     closeComposer();
   };
 
@@ -469,6 +717,7 @@ export function usePostGoalSuggestions({
     selectedFolderIds,
     setActiveSuggestionId,
     setComposer,
+    setComposerReferenceAssets,
     closeComposer,
     updateGoalDraft,
     applySuggestedGoal

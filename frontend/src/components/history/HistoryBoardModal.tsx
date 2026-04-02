@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import ConversationBoard from './ConversationBoard';
 import TraceBoard from './TraceBoard';
 import { getActionColor } from './historyUtils';
-import { Gen, PostNode } from './types';
+import { ClarificationCycle, Gen, PostNode } from './types';
 
 interface HistoryBoardModalProps {
   isOpen: boolean;
   history: Map<string, Gen>;
+  clarificationCycles?: ClarificationCycle[];
   onClose: () => void;
   onSelectGeneration: (gen: Gen) => void;
   onSelectNode: (node: PostNode) => void;
@@ -14,11 +16,12 @@ interface HistoryBoardModalProps {
 function HistoryBoardModal({
   isOpen,
   history,
+  clarificationCycles = [],
   onClose,
   onSelectGeneration,
   onSelectNode
 }: HistoryBoardModalProps) {
-  const [viewTab, setViewTab] = useState<'tree' | 'all'>('tree');
+  const [viewTab, setViewTab] = useState<'tree' | 'all' | 'conversation'>('tree');
 
   if (!isOpen) {
     return null;
@@ -46,6 +49,12 @@ function HistoryBoardModal({
               onClick={() => setViewTab('all')}
             >
               All Posts
+            </button>
+            <button
+              className={`historyTab ${viewTab === 'conversation' ? 'active' : ''}`}
+              onClick={() => setViewTab('conversation')}
+            >
+              Conversation
             </button>
           </div>
 
@@ -95,6 +104,8 @@ function HistoryBoardModal({
                 No history yet. Start by generating some post ideas!
               </div>
             )
+          ) : viewTab === 'conversation' ? (
+            <ConversationBoard cycles={clarificationCycles} />
           ) : (
             <div className="allPostsGrid">
               {Array.from(history.values())
@@ -116,14 +127,7 @@ function HistoryBoardModal({
                         {node.feedback.type === 'yes' ? '✅' : node.feedback.type === 'no' ? '❌' : '❓'}
                       </span>
                     )}
-                    {node.keywords && node.keywords.length > 0 && (
-                      <div className="post-keywords-overlay">
-                        {node.keywords.slice(0, 2).map((keyword, index) => (
-                          <span key={index}>{keyword}</span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="post-vibe">{node.vibe}</div>
+                    <div className="post-vibe">{node.analysis?.title || node.vibe}</div>
                   </div>
                 ))}
             </div>

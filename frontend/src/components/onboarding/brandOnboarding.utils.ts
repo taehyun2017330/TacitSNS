@@ -41,5 +41,5 @@ export function summarizeNarrative(text: string, maxLength = 180) {
     return trimmed;
   }
 
-  return `${trimmed.slice(0, maxLength).trimEnd()}...`;
+  return trimmed.slice(0, maxLength).trimEnd();
 }

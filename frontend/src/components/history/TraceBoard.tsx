@@ -18,6 +18,7 @@ import ReactFlow, {
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { Gen } from './types';
 import { getActionColor } from './historyUtils';
+import { getTraceEdgeLabel } from '../postStudio/analysisUtils';
 import 'reactflow/dist/style.css';
 import './TraceBoard.css';
 
@@ -309,7 +310,7 @@ function TraceBoard({ history, onGenerationClick }: TraceBoardProps) {
 
     const nextEdges: Edge[] = elkEdges.map(edge => {
       const targetGen = genById.get(edge.targets[0]);
-      const label = targetGen?.deltaFromParent ? `Δ: ${targetGen.deltaFromParent}` : '';
+      const label = getTraceEdgeLabel(targetGen?.batchAnalysis, targetGen?.deltaFromParent);
 
       return {
         id: edge.id,

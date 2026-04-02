@@ -35,7 +35,7 @@ const PostGoalReferenceUpload: React.FC<Props> = ({ referenceAssets, onChange })
         <span>Reference image</span>
         <label htmlFor={inputId} className="post-goal-reference-trigger">
           <span>Upload an example image</span>
-          <small>This can later guide the visual direction for this post goal.</small>
+          <small>This will be turned into a new suggested post-goal draft you can edit before adding.</small>
         </label>
         <input
           id={inputId}

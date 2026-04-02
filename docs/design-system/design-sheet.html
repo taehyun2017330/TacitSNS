@@ -513,6 +513,18 @@
         </div>
       </div>
       <div class="subsection">
+        <div class="subsection-title">Guided Studio Flow</div>
+        <div class="rules">
+          <div><strong>Flow:</strong> the studio should now move through `quick grid triage -> guided one-image critique -> generation brief -> regenerate`.</div>
+          <div><strong>Grid:</strong> keep the 2x2 grid fast. Users only mark <code>Like</code>, <code>Dislike</code>, or <code>Unsure</code>. No rationale chips or note fields live there anymore.</div>
+          <div><strong>Guided critique:</strong> the system should feel like an expert art director talking through one image at a time, with one main question, reason chips, an optional short note, and only one micro follow-up when needed.</div>
+          <div><strong>Reason chips:</strong> some chips should be deliberately probe-worthy or goal-level so the system knows when to ask one micro follow-up now or one macro challenge at the end.</div>
+          <div><strong>Hard to answer:</strong> every guided step should allow a `Hard to answer` path that opens a few concrete interpretation options, then lets the user either pick one or leave the signal unresolved.</div>
+          <div><strong>Brief:</strong> the final surface should read as a synthesis card, not a dashboard. It must clearly show <code>Keep</code>, <code>Avoid</code>, <code>Open tradeoff</code>, and <code>Next exploration</code>.</div>
+          <div><strong>Copy:</strong> keep the studio terse. Prefer one short guide line, one question, and one action block over stacked explanatory text.</div>
+        </div>
+      </div>
+      <div class="subsection">
         <div class="subsection-title">Add-Card Pattern</div>
         <div class="rules">
           <div><strong>Custom goals:</strong> custom business goals and custom post goals should appear as add-cards within the same planning surface as the recommended cards.</div>
@@ -532,6 +544,8 @@
       <div class="rules">
         <div><strong>Trace board:</strong> preserve the exact internal layout logic, node sizing behavior, edge labels, and feedback-border semantics unless explicitly redesigned as a trace-specific task.</div>
         <div><strong>Preference capture:</strong> yes / no / unsure must remain visually explicit and easy to compare across the 2x2 grid.</div>
+        <div><strong>Guided critique tone:</strong> once triage is complete, the system should feel like a confident expert guiding taste discovery one image at a time, not a passive review form.</div>
+        <div><strong>Clarification timing:</strong> image-level clarification belongs inside the guided interview after a reason is chosen. Macro clarification belongs after cross-image synthesis, not as a side effect of grid rating.</div>
         <div><strong>Goal hierarchy:</strong> business goals must be visible before post-goal folders, and post-goal folders must clearly nest under an active business goal.</div>
         <div><strong>Staged onboarding:</strong> brand narrative, business goals, and post goals should be separate steps before the user lands in the main directory workspace.</div>
         <div><strong>Step markers:</strong> numbered progress markers need strong resting-state contrast and explicit active/completed states.</div>

@@ -406,8 +406,66 @@ export function resolvePostGoalSuggestionKey(
   return DEFAULT_POST_GOAL_KEY;
 }
 
+function buildDefaultDirectionChips(title: string) {
+  const baseTitle = title.trim() || 'brand direction';
+
+  return [
+    `${baseTitle} hero`,
+    'detail close-up',
+    'in-use moment',
+    'editorial scene'
+  ];
+}
+
+function compactDirectionChip(angle: string, fallbackChip: string) {
+  const cleaned = angle
+    .replace(/\s+/g, ' ')
+    .replace(
+      /^(hero-led instagram composition showing|documentary-style post centered on|human-centered visual using|editorial social post translating|instagram-ready image centered on|hero image introducing|closer detail view for|human-centered version of|editorial composition for|create one strong instagram-ready example image for the post-goal direction)\s+/i,
+      ''
+    )
+    .split(/[.!?]/)[0]
+    ?.split(/\b(?:so|while|through)\b/i)[0]
+    ?.replace(/^["']|["']$/g, '')
+    ?.trim();
+
+  if (!cleaned) {
+    return fallbackChip;
+  }
+
+  return cleaned.length > 42 ? fallbackChip : cleaned;
+}
+
+function buildDirectionChips(
+  title: string,
+  explicitChips: string[] = [],
+  directionAngles: string[] = []
+) {
+  const defaults = buildDefaultDirectionChips(title);
+  const chipCandidates = explicitChips.length > 0
+    ? explicitChips
+    : directionAngles.map((angle, index) => compactDirectionChip(angle, defaults[index] ?? defaults[defaults.length - 1]));
+
+  const uniqueChips: string[] = [];
+  const seen = new Set<string>();
+
+  [...chipCandidates, ...defaults].forEach(chip => {
+    const cleanedChip = chip.trim().replace(/[.!?]+$/g, '');
+    const normalized = cleanedChip.toLowerCase();
+
+    if (!cleanedChip || seen.has(normalized)) {
+      return;
+    }
+
+    seen.add(normalized);
+    uniqueChips.push(cleanedChip);
+  });
+
+  return uniqueChips.slice(0, 4);
+}
+
 export function normalizePostGoalSuggestion(
-  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'directionAngles' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets' | 'sourceLabel'>,
+  suggestion: Pick<PostGoalSuggestion, 'id' | 'title' | 'description' | 'whyThisDirectionFits' | 'taxonomyTags' | 'directions' | 'imageTypeChips' | 'directionAngles' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets' | 'sourceLabel'>,
   fallbackIndex = 0
 ): PostGoalSuggestion {
   const firstTag = suggestion.taxonomyTags[0] ?? 'Custom';
@@ -420,12 +478,40 @@ export function normalizePostGoalSuggestion(
     `post-goal-${fallbackIndex + 1}`;
 
   const preview = POST_GOAL_PREVIEWS[derivedId];
+  const directions = suggestion.directions
+    ?.map(direction => ({
+      chip: direction.chip?.trim() ?? '',
+      angle: direction.angle?.trim() ?? ''
+    }))
+    .filter(direction => direction.chip || direction.angle)
+    .slice(0, 4) ?? [];
+  const directionAngles = suggestion.directionAngles?.length
+    ? suggestion.directionAngles.filter(Boolean).slice(0, 4)
+    : directions.map(direction => direction.angle).filter(Boolean).slice(0, 4);
+  const imageTypeChips = buildDirectionChips(
+    suggestion.title,
+    suggestion.imageTypeChips?.length
+      ? suggestion.imageTypeChips.filter(Boolean).slice(0, 4)
+      : directions.map(direction => direction.chip).filter(Boolean).slice(0, 4),
+    directionAngles
+  );
+  const normalizedDirections = Array.from({
+    length: Math.min(
+      Math.max(directions.length, imageTypeChips.length, directionAngles.length),
+      4
+    )
+  }).map((_, index) => ({
+    chip: directions[index]?.chip || imageTypeChips[index] || '',
+    angle: directions[index]?.angle || directionAngles[index] || ''
+  })).filter(direction => direction.chip || direction.angle);
 
   return {
     ...suggestion,
     id: derivedId,
-    imageTypeChips: suggestion.imageTypeChips?.filter(Boolean).slice(0, 4) ?? [],
-    directionAngles: suggestion.directionAngles?.filter(Boolean).slice(0, 4) ?? [],
+    whyThisDirectionFits: suggestion.whyThisDirectionFits,
+    directions: normalizedDirections,
+    imageTypeChips,
+    directionAngles,
     previewTitle: suggestion.previewTitle || preview?.previewTitle || suggestion.title,
     previewCaption: suggestion.previewCaption || preview?.previewCaption || suggestion.description,
     previewBackground:
@@ -458,7 +544,7 @@ export function suggestPostGoalAutocomplete(input: string, businessGoalId: strin
 }
 
 export function createPostGoalFolder(
-  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'taxonomyTags' | 'imageTypeChips' | 'directionAngles' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets'>,
+  suggestion: Pick<PostGoalSuggestion, 'title' | 'description' | 'whyThisDirectionFits' | 'taxonomyTags' | 'directions' | 'imageTypeChips' | 'directionAngles' | 'assistantPrompt' | 'previewTitle' | 'previewCaption' | 'previewBackground' | 'previewImageUrl' | 'referenceAssets'>,
   businessGoal: Pick<BusinessGoalOption, 'id' | 'title'>,
   source: PostGoalFolder['source']
 ): PostGoalFolder {
@@ -469,7 +555,9 @@ export function createPostGoalFolder(
     id: `${businessGoal.id}-${slug}-${createdAt}`,
     title: suggestion.title,
     description: suggestion.description,
+    whyThisDirectionFits: suggestion.whyThisDirectionFits,
     taxonomyTags: suggestion.taxonomyTags,
+    directions: suggestion.directions,
     imageTypeChips: suggestion.imageTypeChips,
     directionAngles: suggestion.directionAngles,
     assistantPrompt: suggestion.assistantPrompt,

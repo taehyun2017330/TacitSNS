@@ -9,12 +9,12 @@ from api_models import (
     EditImageRequest,
     PostGenerationRequest,
 )
-from image_generation_final import (
+from services.post_workflow_debug import log_post_workflow_debug
+from services.post_image_analysis_service import (
+    analyze_generation_batch,
     analyze_image,
-    generate_image_async,
-    generate_image_prompts,
-    summarize_image_delta,
 )
+from services.post_image_generation_service import generate_image_async, generate_image_prompts
 
 
 def normalize_exploration_level(request: PostGenerationRequest) -> float:
@@ -38,15 +38,34 @@ def build_action_prompt(base_prompt: str, request: PostGenerationRequest, varian
     if request.parentKeywords:
         prompt += f"\nReference keywords: {', '.join(request.parentKeywords[:8])}"
 
+    if request.clarificationContext:
+        clarification_lines = [
+            entry.get("summary", "").strip()
+            for entry in request.clarificationContext.get("activeInsights", [])[:4]
+            if entry.get("summary", "").strip()
+        ]
+        if clarification_lines:
+            prompt += f"\nClarified preferences: {' | '.join(clarification_lines)}"
+        recent_cycles = [
+            entry.get("summary", "").strip()
+            for entry in request.clarificationContext.get("recentCycles", [])[:3]
+            if entry.get("summary", "").strip()
+        ]
+        if recent_cycles:
+            prompt += f"\nRecent clarification cycle: {' | '.join(recent_cycles)}"
+
     if action_type == "explore":
         prompt += """
 \nUse the reference image as a starting point and deliberately evolve it.
 Keep recognizable brand DNA while changing the visible execution in a meaningful way.
+Do not reuse the exact same crop, composition, or styling from the reference.
+Make this candidate visibly different from both the reference and the other candidates in the set.
 """
     elif action_type == "regenerate":
         prompt += """
 \nRegenerate this concept from the same creative seed.
 Keep the overall idea but change the composition, subject pose, framing, and styling enough to feel like a new candidate.
+The four outputs should not look like minor edits of one another.
 """
     elif action_type == "edit":
         edit_instructions = collect_edit_instructions(request.editOptions)
@@ -69,6 +88,16 @@ def get_generation_variance(action_type: Optional[str], exploration_level: float
     if action_type == "explore":
         return int(20 + (exploration_level * 60))
     return int(40 + (exploration_level * 40))
+
+
+def get_reference_mode(action_type: Optional[str], exploration_level: float) -> str:
+    if action_type == "edit":
+        return "strict"
+    if action_type == "regenerate":
+        return "balanced"
+    if action_type == "explore":
+        return "loose" if exploration_level >= 0.45 else "balanced"
+    return "balanced"
 
 
 def collect_edit_instructions(edit_options: Optional[Dict[str, Any]]) -> List[str]:
@@ -101,14 +130,37 @@ def extract_brand_name(brand_summary: Optional[str]) -> str:
     return brand_summary.strip() or "Brand"
 
 
+def derive_user_feedback(images_feedback: Optional[List[Dict[str, Any]]]) -> Dict[str, List[str]]:
+    if not images_feedback:
+        return {"likes": [], "dislikes": [], "unsure": []}
+
+    aggregate = {"likes": [], "dislikes": [], "unsure": []}
+    for feedback in images_feedback:
+        primary_reason = str(feedback.get("primary_reason") or "").strip()
+        custom_note = str(feedback.get("custom_note") or "").strip()
+        micro_summary = str(feedback.get("micro_summary") or "").strip()
+        values = [value for value in [primary_reason, micro_summary, custom_note] if value]
+
+        if feedback.get("feedback_type") == "like":
+            aggregate["likes"].extend(values)
+        elif feedback.get("feedback_type") == "dislike":
+            aggregate["dislikes"].extend(values)
+        elif feedback.get("feedback_type") == "unsure":
+            aggregate["unsure"].extend(values)
+
+    return aggregate
+
+
 async def generate_post_images(request: PostGenerationRequest) -> Dict[str, Any]:
     brand_description = extract_brand_description(request.brandSummary)
     exploration_level = normalize_exploration_level(request)
+    user_feedback = request.userFeedback or derive_user_feedback(request.imagesFeedback)
     prompts = generate_image_prompts(
         brand_description=brand_description,
         images_feedback=request.imagesFeedback,
         exploration_level=exploration_level,
         direction_angles=request.directionAngles,
+        clarification_context=request.clarificationContext,
     )
 
     num_to_generate = 1 if request.actionType == "edit" else request.numImages or 4
@@ -117,64 +169,159 @@ async def generate_post_images(request: PostGenerationRequest) -> Dict[str, Any]
         for index, prompt in enumerate(prompts[:num_to_generate])
     ]
     variance = get_generation_variance(request.actionType, exploration_level)
+    reference_mode = get_reference_mode(request.actionType, exploration_level)
     brand_name = extract_brand_name(request.brandSummary)
     edit_instructions = collect_edit_instructions(request.editOptions)
+
+    log_post_workflow_debug(
+        "generate_post_images:resolved_inputs",
+        {
+            "actionType": request.actionType,
+            "brandSummary": request.brandSummary,
+            "parentNodeId": request.parentNodeId,
+            "parentImageUrlPresent": bool(request.parentImageUrl),
+            "parentKeywords": request.parentKeywords,
+            "seedImageUrls": request.seedImageUrls,
+            "direction": request.direction,
+            "directionAngles": request.directionAngles,
+            "analysisDirectionAngles": request.analysisDirectionAngles,
+            "similarityInput": request.similarity,
+            "explorationLevelInput": request.explorationLevel,
+            "normalizedExplorationLevel": exploration_level,
+            "variance": variance,
+            "referenceMode": reference_mode,
+            "imagesFeedback": request.imagesFeedback,
+            "userFeedback": user_feedback,
+            "clarificationContext": request.clarificationContext,
+            "promptBatch": prompt_batch,
+        },
+    )
 
     image_urls = await _generate_image_batch(
         prompt_batch=prompt_batch,
         brand_name=brand_name,
         variance=variance,
         reference_image=request.parentImageUrl,
+        reference_mode=reference_mode,
     )
 
+    candidate_images = [*request.seedImageUrls, *image_urls]
+    analysis_direction_angles = request.analysisDirectionAngles or request.directionAngles
+    batch_analysis = analyze_generation_batch(
+        candidate_images=candidate_images,
+        brand_context=brand_description,
+        action_type=request.actionType or "initial",
+        direction=request.direction,
+        direction_angles=analysis_direction_angles,
+        prompt_batch=[*analysis_direction_angles[: len(request.seedImageUrls)], *prompt_batch],
+        parent_image=request.parentImageUrl,
+        edit_instructions=edit_instructions,
+        similarity=request.similarity if request.similarity is not None else request.explorationLevel,
+        user_feedback=user_feedback,
+        clarification_context=request.clarificationContext,
+    )
+
+    log_post_workflow_debug(
+        "generate_post_images:analysis",
+        {
+            "candidateImageCount": len(candidate_images),
+            "analysisDirectionAngles": analysis_direction_angles,
+            "batchAnalysis": batch_analysis,
+        },
+    )
+    normalized_batch_analysis = {
+        "overallDelta": batch_analysis.get("overallDelta", ""),
+        "visible_changes": batch_analysis.get("visible_changes", [])[:4],
+        "continuity": batch_analysis.get("continuity", ""),
+        "keyword_shifts": batch_analysis.get("keyword_shifts", [])[:4],
+        "bias_suggestions": batch_analysis.get("bias_suggestions", [])[:4],
+        "feedback_trace": batch_analysis.get("feedback_trace", [])[:4],
+    }
+    analysis_by_index = batch_analysis.get("images", [])
+
     posts: List[Dict[str, Any]] = []
-    delta_candidates: List[str] = []
     iteration = request.iteration or 0
+    seed_image_count = len(request.seedImageUrls)
 
     for index, image_url in enumerate(image_urls):
-        analysis = analyze_image(image_url, brand_description)
-        delta_summary = None
+        image_analysis = (
+            analysis_by_index[index + seed_image_count]
+            if index + seed_image_count < len(analysis_by_index)
+            else {}
+        )
+        if not image_analysis:
+            fallback_analysis = analyze_image(image_url, brand_description)
+            image_analysis = {
+                "title": "",
+                "summary": fallback_analysis.get("description", ""),
+                "supportsGoal": "",
+                "differencesFromSiblings": [],
+                "designKeywords": fallback_analysis.get("keywords", [])[:6],
+                "feedbackSuggestions": {},
+                "suggestedEdits": [],
+                "vibe": fallback_analysis.get("vibe", ""),
+            }
 
-        if request.parentImageUrl:
-            delta_summary = summarize_image_delta(
-                parent_image=request.parentImageUrl,
-                child_image=image_url,
-                action_type=request.actionType or "explore",
-                brand_context=brand_description,
-                direction=request.direction,
-                edit_instructions=edit_instructions,
-                similarity=request.similarity if request.similarity is not None else request.explorationLevel,
-            )
-            if delta_summary.get("delta"):
-                delta_candidates.append(delta_summary["delta"])
+        delta_summary = {
+            "delta": normalized_batch_analysis["overallDelta"],
+            "visible_changes": normalized_batch_analysis["visible_changes"],
+            "continuity": normalized_batch_analysis["continuity"],
+            "keyword_shifts": normalized_batch_analysis["keyword_shifts"],
+            "bias_suggestions": normalized_batch_analysis["bias_suggestions"],
+            "feedback_trace": normalized_batch_analysis["feedback_trace"],
+        }
 
         posts.append(
             {
                 "id": f"post_{iteration}_{index}",
                 "imageUrl": image_url,
-                "keywords": analysis.get("keywords", [])[:8],
-                "description": analysis.get("description", ""),
-                "vibe": analysis.get("vibe", ""),
-                "deltaFromParent": delta_summary.get("delta") if delta_summary else None,
+                "keywords": image_analysis.get("designKeywords", [])[:8],
+                "description": image_analysis.get("summary", ""),
+                "vibe": image_analysis.get("vibe", ""),
+                "analysis": image_analysis,
+                "deltaFromParent": normalized_batch_analysis["overallDelta"] or None,
                 "deltaDetails": delta_summary,
                 "metadata": {
                     "iteration": iteration,
                     "variant": index,
-                    "vibe": analysis.get("vibe", ""),
+                    "vibe": image_analysis.get("vibe", ""),
                     "prompt_used": prompt_batch[index],
                     "exploration_level": exploration_level,
+                    "batchAnalysis": normalized_batch_analysis,
                 },
             }
         )
 
+    log_post_workflow_debug(
+        "generate_post_images:result_summary",
+        {
+            "delta": normalized_batch_analysis["overallDelta"],
+            "posts": [
+                {
+                    "id": post["id"],
+                    "promptUsed": post["metadata"]["prompt_used"],
+                    "keywords": post["keywords"],
+                    "analysisTitle": post["analysis"].get("title"),
+                    "suggestedEdits": post["analysis"].get("suggestedEdits"),
+                }
+                for post in posts
+            ],
+        },
+    )
+
     return {
         "posts": posts,
-        "delta": build_batch_delta(
+        "delta": normalized_batch_analysis["overallDelta"]
+        or build_batch_delta(
             request=request,
             exploration_level=exploration_level,
-            delta_candidates=delta_candidates,
+            delta_candidates=[],
             edit_instructions=edit_instructions,
         ),
+        "batchAnalysis": {
+            **normalized_batch_analysis,
+            "images": batch_analysis.get("images", []),
+        },
         "iteration": iteration,
     }
 
@@ -184,6 +331,7 @@ async def _generate_image_batch(
     brand_name: str,
     variance: int,
     reference_image: Optional[str],
+    reference_mode: str,
 ) -> List[str]:
     import asyncio
 
@@ -193,6 +341,7 @@ async def _generate_image_batch(
             brand_name,
             variance=variance,
             reference_image=reference_image,
+            reference_mode=reference_mode,
         )
         for prompt in prompt_batch
     ]
